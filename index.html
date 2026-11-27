@@ -301,6 +301,28 @@ html.nosc,html.nosc body{overflow:hidden;overscroll-behavior:none}body.nosc{posi
 .tl.bump{animation:bump .7s ease}
 @keyframes bump{30%{transform:scale(1.12);border-color:var(--red);box-shadow:0 0 0 4px rgba(215,20,26,.25)}}
 /* toolbar */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:40;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:color-mix(in srgb,var(--dk,#16171a) 96%,transparent);backdrop-filter:blur(10px);border-top:1px solid #2a2c31;padding:6px 6px calc(10px + env(safe-area-inset-bottom))}
+.tabbar[hidden]{display:none}.tabbar button{position:relative;background:transparent;border:0;color:#8e9198;display:flex;flex-direction:column;align-items:center;gap:2px;font:600 12px Barlow,system-ui,sans-serif;min-height:52px;justify-content:center;border-radius:12px}
+.tabbar button.on{color:#ff4a50}.tabbar button svg{transition:transform .25s}.tabbar button.on svg{transform:translateY(-2px) scale(1.08)}
+.tabbar b{position:absolute;top:2px;left:54%;min-width:18px;height:18px;border-radius:9px;background:var(--red);color:#fff;font:700 11px system-ui;display:grid;place-items:center;padding:0 4px}.tabbar b[hidden]{display:none}
+body.tabs{padding-bottom:84px}body.tabs[data-tab=floor] .v-trucks,body.tabs[data-tab=trucks] .v-floor{display:none!important}
+body.tabs #bMenu{display:none!important}body.tabs .toast{bottom:96px;z-index:55}
+.tkhead .wrap{display:flex;flex-direction:column;align-items:stretch;text-align:left;gap:12px;padding-top:18px;padding-bottom:6px}.trow0{display:flex;align-items:center;justify-content:space-between;gap:10px}#bCards{min-height:40px;padding:0 14px;border-radius:10px;font-size:14px}.tbig{margin:0;font:800 34px/1 "Barlow Condensed",sans-serif;text-transform:uppercase}
+.att{display:flex;gap:8px;flex-wrap:wrap}.att button{border-radius:20px;min-height:40px;padding:0 14px;font-weight:700;border:1.5px solid transparent;font-size:14px}
+.att .a-late{background:#3a1316;color:#ff6b70}.att .a-down{background:#2b1d10;color:#f5a04a}.att .a-sig{background:#2a2410;color:#f0c64a}.att .a-hold{background:#24262b;color:#d7d9de}.att .a-ok{background:#10261b;color:#3ccf86}
+.att button.on{border-color:currentColor}.att .a-clear{background:transparent;color:var(--mut);border-color:var(--line)}
+.rows{display:flex;flex-direction:column;gap:8px}
+.trow{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 14px;border-radius:14px;background:var(--card,#1b1d21);border:1.5px solid var(--line);color:inherit;font:inherit;animation:hin .3s both}
+.trow.late{border-color:#e11d2a}.trow:active{transform:scale(.99)}
+.trow .st{width:46px;height:46px;flex:none;border-radius:12px;background:#24262b;color:#f2f2f3;display:grid;place-items:center;font:800 18px "Barlow Condensed",sans-serif}
+.trow .st.z-out{background:#2b1d10;color:#f5a04a}.trow .st.z-final{background:#20232a}.trow .st.z-fin{background:#2a1315;color:#ff6b70}.trow .st.z-bub{background:#0f2233;color:#4fb2f0}.trow .st.z-nxt{background:#10261b;color:#3ccf86}.trow .st.z-dwn{background:#2b1d10;color:#f5a04a}
+.trow .mid{flex:1;min-width:0;display:flex;flex-direction:column}.trow .mid b{font:800 22px/1.1 "Barlow Condensed",sans-serif}.trow .mid span{font-size:14px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trow .rt{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none}.trow .rt small{font-size:13px;color:var(--mut)}
+.tag{padding:3px 8px;border-radius:7px;font-size:12px;font-weight:700;white-space:nowrap}.tag.t-late{background:#e11d2a;color:#fff}.tag.t-down{background:#2b1d10;color:#f5a04a}.tag.t-sig{background:#2a2410;color:#f0c64a}.tag.t-hold{background:#3a1316;color:#ff6b70}
+.tkpage{align-items:stretch!important;padding:0!important}.tksheet{display:block!important;max-width:640px;width:100%;margin:0 auto;height:100%;max-height:100%!important;border-radius:0!important;padding:10px 16px 40px!important;overflow-y:auto;animation:tkin .28s cubic-bezier(.2,.8,.2,1) both}@keyframes tkin{from{transform:translateX(30px);opacity:0}}
+.tktop{display:flex;align-items:center;gap:10px;margin-bottom:8px;position:sticky;top:-10px;z-index:2;background:inherit;padding:6px 0}.tktop span{font-weight:600;color:var(--mut)}
+.tkback{width:44px;height:44px;border-radius:50%;border:0;background:color-mix(in srgb,currentColor 10%,transparent);color:inherit;font-size:28px;line-height:1;padding:0 0 4px}
+#tkBody .card{animation:none}#tkBody .top h3{font:800 46px/1 "Barlow Condensed",sans-serif}
 .bar{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
 .bar .wrap{display:flex;flex-wrap:wrap;gap:8px;padding-block:10px;align-items:center}
 .bar input{flex:1 1 100%;min-height:44px;border:1.5px solid var(--line);border-radius:8px;padding:0 14px;background:var(--bg);font-size:16px}
@@ -398,7 +420,7 @@ details.shipped>summary{cursor:pointer;font:800 22px "Barlow Condensed",sans-ser
 @keyframes hin{from{opacity:0;transform:translateY(4px)}}
 .hist time{color:var(--mut);white-space:nowrap}
 /* sheets */
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;z-index:20;padding:12px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;z-index:50;padding:12px}
 .modal[hidden]{display:none}
 .sheet{background:var(--bg);width:min(560px,100%);max-height:90vh;overflow:auto;border-radius:14px;padding:18px;display:grid;gap:12px;animation:up .3s cubic-bezier(.3,1.3,.5,1)}
 @media(min-width:700px){.modal{align-items:center}}
@@ -432,7 +454,7 @@ label{display:grid;gap:4px;font-size:14px;font-weight:600}
   <div class="gbrand"><svg class="gamb" viewBox="0 0 48 28" aria-hidden="true"><use href="#v-amb"/></svg><h1>Code 3</h1><p>Mod Line tracker · every truck from Station 1 to signed off</p></div>
   <div class="gcard" id="gCard"><p class="gmsg">Loading…</p></div>
 </div></div>
-<section class="hero">
+<section class="hero v-floor">
   <div class="wrap">
     <div class="hhead"><div>
     <div class="htop"><button id="bMenu" class="menub" aria-label="Open menu" aria-expanded="false" hidden><i></i><i></i><i></i><b id="bellN" hidden>0</b></button><h1>Code 3</h1></div>
@@ -469,15 +491,16 @@ label{display:grid;gap:4px;font-size:14px;font-weight:600}
   </div>
 </section>
 <div class="drawer" id="drawer" hidden><div class="dback" data-dclose></div><aside class="dpanel" role="dialog" aria-label="Menu"><div class="dtop"><b>Code 3</b><button class="dx" data-dclose aria-label="Close menu">✕</button></div><div class="me" id="me"></div></aside></div>
-<div class="wrap floorwrap"><div class="fhead"><h2>Plant floor</h2><span class="k fhint">Tap a station to open · hold to edit</span><div class="topacts"><button class="go" id="bAdd">+ Add truck</button><span id="fmv"></span></div></div><div id="map"></div></div>
-<div class="bar"><div class="wrap">
+<div class="wrap floorwrap v-floor"><div class="fhead"><h2>Plant floor</h2><span class="k fhint">Tap a station to open · hold to edit</span><div class="topacts"><button class="go" id="bAdd">+ Add truck</button><span id="fmv"></span></div></div><div id="map"></div></div>
+<div class="tkhead v-trucks"><div class="wrap"><div class="trow0"><h2 class="tbig">Trucks</h2><button id="bCards" aria-label="Switch card size">Big cards</button></div><div class="att" id="att"></div></div></div>
+<div class="bar v-trucks"><div class="wrap">
   <input id="q" type="search" placeholder="Search plate #, customer" aria-label="Search trucks">
   <select id="sort" aria-label="Sort trucks"><option value="st">Line</option><option value="due">Due date</option><option value="unit">Plate #</option></select>
   <select id="monF" aria-label="Filter by build month"><option value="">All months</option><option value="1">Month 1</option><option value="2">Month 2</option><option value="3">Month 3</option><option value="4">Month 4</option><option value="5">Month 5</option><option value="6">Month 6</option><option value="7">Month 7</option><option value="8">Month 8</option><option value="9">Month 9</option><option value="10">Month 10</option><option value="11">Month 11</option><option value="12">Month 12</option></select>
   <span id="fchip"></span>
   <button id="bStations">Crews</button>
 </div></div>
-<main class="wrap">
+<main class="wrap v-trucks">
   <div id="panel"></div>
   <div id="note"></div>
   <div id="list"></div>
@@ -485,6 +508,13 @@ label{display:grid;gap:4px;font-size:14px;font-weight:600}
   <footer class="credits" id="credits"></footer>
 </main>
 
+<nav class="tabbar" id="tabbar" aria-label="Main" hidden>
+  <button data-tab="floor" class="on"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/></svg>Floor</button>
+  <button data-tab="trucks"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 7h12v9H3zM15 10h4l2 3v3h-6"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>Trucks</button>
+  <button data-tab="alerts"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>Alerts<b id="tabN" hidden>0</b></button>
+  <button data-tab="more"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>More</button>
+</nav>
+<div class="modal tkpage" id="mTk" hidden><div class="sheet tksheet"><div class="tktop"><button type="button" class="tkback" data-close aria-label="Back">‹</button><span>Truck</span></div><div id="tkBody"></div></div></div>
 <div class="modal" id="mTruck" hidden>
   <form class="sheet" id="fTruck">
     <h2 id="tTitle">Add truck</h2>
@@ -706,7 +736,7 @@ function tile(s,cnt,bump){const c=cnt[s.k]||0,inf=S.info[s.k],on=sel===s.k,b=bum
 
 function renderMe(){const r=eff();
   const isOwn=me&&me===ownerId&&!preview,isCo=!isOwn&&myRaw==='coowner'&&!preview,label=isOwn?'Owner':isCo?'Co-owner':{admin:'Admin',emp:'Supervisor',insp:'Inspector',view:'Employee · view only'}[r];
-  {const mb=$('#bMenu');if(mb)mb.hidden=!shared;if(!shared)closeDrawer()}
+  {const mb=$('#bMenu');if(mb)mb.hidden=!shared;const tbar=$('#tabbar');if(tbar){tbar.hidden=!shared;document.body.classList.toggle('tabs',!!shared);if(shared&&!document.body.dataset.tab){const lt=lsGet('c3-tab');document.body.dataset.tab=lt==='trucks'?'trucks':'floor';document.querySelectorAll('#tabbar [data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===document.body.dataset.tab));const bc=$('#bCards');if(bc)bc.textContent=cardMode()==='full'?'Small cards':'Big cards'}}if(!shared)closeDrawer()}
   $('#me').innerHTML=!shared?'':`<span>${me?esc(names[me]||'Signed in'):'Signed in'}</span><span class="role ${isOwn?'owner':isCo?'coowner':r==='admin'?'admin':r==='view'?'view':''}">${label}</span>${me&&me===ownerId?`<div class="seg" role="group" aria-label="View as">${[['admin',me===ownerId?'Owner':'Co-owner'],['emp','Supervisor'],['insp','Inspector'],['view','Employee']].map(([v,l])=>`<button data-prev="${v}" class="${(preview||'admin')===v?'on':''}" aria-pressed="${(preview||'admin')===v}">${l}</button>`).join('')}</div>`:''}<span class="hbtns" style="--n:${(n=>n<=4?n:Math.ceil(n/2))(4+(isMgr()?1:0)+(pinFor(me)?1:0))}">${isMgr()?'<button id="bPeople">People</button>':''}${pinFor(me)?'<button id="bLock">Lock</button>':''}<button id="bBell">Alerts<b id="bellN2" hidden></b></button><button id="bStats">Line stats</button>${can('edit')?'<button id="bExp">Export to spreadsheet</button>':''}<button id="bHelp">Help</button><button id="bInv">Invite</button><button id="bPin">PIN</button><button id="bOut">Sign out</button></span><span class="sync" id="sync"></span>`;
   $('#bAdd').hidden=!can('edit');$('#bStations').textContent=can('edit')?'Crews':'Crews';}
 
@@ -724,7 +754,13 @@ function render(bump){queueMicrotask(alertsTick);
   {const mine=eff()==='insp'||eff()==='admin'?S.trucks.flatMap(t=>t.k===SIGSTN?SIGS.filter(([k])=>t.req[k]&&t.req[k].uid===me&&!t.sig[k]).map(([k,l])=>({t,l})):[]):[];
    $('#note').innerHTML=mine.length?`<div class="reqban"><b>${mine.length} signature${mine.length===1?'':'s'} waiting on you</b>${mine.map(x=>`<button data-gocard="${esc(x.t.id)}">${esc(x.t.unit)} · ${x.l}</button>`).join('')}</div>`:''}
   const q=$('#q').value.trim().toLowerCase(),srt=$('#sort').value;
-  const mf=$('#monF').value;const L=on.filter(t=>(!q||(t.unit+' '+t.cust).toLowerCase().includes(q))&&(!mf||t.mon===mf));
+  const isL=t=>t.due&&t.due<td,needMe=t=>t.k===SIGSTN&&SIGS.some(([k])=>t.req[k]&&t.req[k].uid===me&&!t.sig[k]),heldT=t=>t.hold&&t.k!=='down';
+  const AT={late:isL,down:t=>t.k==='down',sig:needMe,hold:heldT};
+  {const c={late:on.filter(isL).length,down:on.filter(AT.down).length,sig:on.filter(needMe).length,hold:on.filter(heldT).length},lab={late:'overdue',down:'Down To',sig:c.sig===1?'needs your sig':'need your sig',hold:'on hold'};
+   const chips=Object.keys(c).filter(k=>c[k]).map(k=>`<button class="a-${k}${attF===k?' on':''}" data-att="${k}">${c[k]} ${lab[k]}</button>`).join('');
+   $('#att').innerHTML=chips?chips+(attF?'<button class="a-clear" data-att="">Show all</button>':''):'<button class="a-ok" disabled>✓ Nothing needs attention</button>';
+   if(attF&&!c[attF])attF=''}
+  const mf=$('#monF').value;const L=on.filter(t=>(!q||(t.unit+' '+t.cust).toLowerCase().includes(q))&&(!mf||t.mon===mf)&&(!attF||AT[attF](t)));
   L.sort(srt==='unit'?(a,b)=>String(a.unit).localeCompare(String(b.unit),undefined,{numeric:true}):srt==='due'?(a,b)=>(a.due||'9999').localeCompare(b.due||'9999'):(a,b)=>posOf(a.k)-posOf(b.k));
   let n=0;
   const card=t=>{const s=step(t.k),inf=S.info[t.k],d=days(t),isLate=t.k!=='done'&&t.due&&t.due<td,p=s.pos,lm=lastMove(t),nc=comments(t.k).length;
@@ -755,9 +791,15 @@ function render(bump){queueMicrotask(alertsTick);
       ${t.k==='down'?`<div class="holdbar dnbar"><b>Down To · waiting on OEM parts</b><span>${esc(t.dn&&t.dn.r||'Parts not listed')}</span>${t.dn?`<small>${esc(who(t.dn.by)||'')}${t.dn.by?' · ':''}${fmtDT(t.dn.t)} · ${spanT(t.dn.t,Date.now())}</small>`:''}</div>`:''}
       ${t.hold&&t.k!=='down'&&t.k!=='done'?`<div class="holdbar"><b>On hold</b><span>${esc(t.hold.r||'No reason given')}</span><small>${esc(who(t.hold.by)||'')}${t.hold.by?' · ':''}${fmtDT(t.hold.t)} · ${spanT(t.hold.t,Date.now())}</small></div>`:''}
       ${acts?`<div class="acts">${acts}</div>`:''}${t.k!=='done'&&t.k!=='down'&&can('move')?`<button class="holdb${t.hold?' on':''}" data-hold>${t.hold?'Release hold':'Put on hold'}</button>`:''}${hist(t)}</article>`};
+  const row=t=>{const s=step(t.k),late=isL(t),dd=late?Math.max(1,Math.round((new Date(td)-new Date(t.due))/864e5)):0;
+    const tag=late?`<span class="tag t-late">Overdue ${dd}d</span>`:t.k==='down'?`<span class="tag t-down">OEM parts</span>`:heldT(t)?`<span class="tag t-hold">On hold</span>`:t.k===SIGSTN&&!sigsDone(t)?`<span class="tag t-sig">${SIGS.filter(([k])=>t.sig[k]).length} of 2 sigs</span>`:t.mon?`<small>Month ${esc(t.mon)}</small>`:'';
+    return `<button class="trow${late?' late':''}" data-open="${esc(t.id)}" style="animation-delay:${Math.min(n++,10)*30}ms"><span class="st z-${s.z}">${esc(s.code.replace(/^S/,''))}</span><span class="mid"><b>${esc(t.unit)}</b><span>${esc([t.cust,title(t.k)].filter(Boolean).join(' · '))}</span></span><span class="rt">${tag}<small>Due ${fmtDue(t.due)}</small></span></button>`};
+  window.__card=card;
+  const big=cardMode()==='full';
   let html='';
   if(!L.length)html=`<div class="empty"><svg viewBox="0 0 48 28"><use href="#v-amb"/></svg><p>${sel?'No trucks here right now.':q?'No trucks match that search.':'No trucks on the line yet.'}</p>${!q&&!sel&&can('edit')?'<p class="k">Tap <b>+ Add truck</b> at the top to add one.</p>':''}</div>`;
-  else ZONES.forEach(z=>{const g=L.filter(t=>step(t.k).z===z.z);if(!g.length)return;html+=`<h2 class="zh z-${z.z}">${z.t} <span>${g.length} truck${g.length===1?'':'s'}</span></h2><div class="list">${g.map(card).join('')}</div>`});
+  else ZONES.forEach(z=>{const g=L.filter(t=>step(t.k).z===z.z);if(!g.length)return;html+=`<h2 class="zh z-${z.z}">${z.t} <span>${g.length} truck${g.length===1?'':'s'}</span></h2><div class="${big?'list':'rows'}">${g.map(big?card:row).join('')}</div>`});
+  refreshTk();
   $('#list').innerHTML=html;
   {const own=ownerId&&users[ownerId]?users[ownerId].name:'',cos=Object.values(users).filter(u=>u.role==='coowner').map(u=>u.name).filter(Boolean);
    $('#credits').innerHTML=own?`Code 3 · built by <b>${esc(own)}</b>${cos.length?` with co-owner${cos.length>1?'s':''} <b>${cos.map(esc).join('</b>, <b>')}</b>`:''}`:''}
@@ -992,15 +1034,15 @@ document.addEventListener('submit',e=>{if(e.target.id!=='fCm')return;e.preventDe
   const text=e.target.text.value.trim();if(!text)return;const c={id:nid(),k:pop,text:text.slice(0,1000),by:me||'',t:now()};C.push(c);putComment(c);e.target.reset();undo=null;render();refreshStn(true);toast('Comment posted')});
 document.addEventListener('click',e=>{
   const a=e.target.closest('[data-showk]');if(a){e.preventDefault();openStn(a.dataset.showk,false);return}
-  const mt=e.target.closest('#floor [data-tid]');if(mt){const c=document.querySelector(`.card[data-id="${CSS.escape(mt.dataset.tid)}"]`);if(c){c.scrollIntoView({behavior:reduce?'auto':'smooth',block:'center'});c.classList.remove('flash');void c.offsetWidth;c.classList.add('flash')}else{const t=find(mt.dataset.tid);if(t&&t.k!=='done')openStn(t.k,false)}return}
+  const mt=e.target.closest('#floor [data-tid]');if(mt){const t=find(mt.dataset.tid);if(t&&t.k!=='done')openTk(t.id);return}
   const nd=e.target.closest('#floor [data-k]');if(nd){if(longFired){longFired=false;return}openStn(nd.dataset.k,false);return}
-  if(e.target.closest('#floor [data-done]')){if($('#shipped').hidden){toast('No trucks signed off yet');return}$('#shipped').open=true;$('#shipped').scrollIntoView({behavior:reduce?'auto':'smooth'});return}
+  if(e.target.closest('#floor [data-done]')){if($('#shipped').hidden){toast('No trucks signed off yet');return}if(document.body.classList.contains('tabs'))setTab('trucks');$('#shipped').open=true;$('#shipped').scrollIntoView({behavior:reduce?'auto':'smooth'});return}
   const b=e.target.closest('button,[data-close]');if(!b||b.closest('#mvList'))return;
   if(b.hasAttribute('data-close')){closeModal(b.closest('.modal'));return}
   if(b.hasAttribute('data-stnedit')){stnEdit=true;refreshStn(true);return}
   if(b.hasAttribute('data-stncancel')){stnEdit=false;refreshStn(true);return}
   if(b.dataset.stmove){const t2=find(b.dataset.stmove);if(!t2)return;closeModal($('#mStn'));setTimeout(()=>movePick(t2),60);return}
-  if(b.dataset.gocard){const id=b.dataset.gocard;closeModal($('#mStn'));const c=document.querySelector(`.card[data-id="${CSS.escape(id)}"]`);if(c){c.scrollIntoView({behavior:reduce?'auto':'smooth',block:'center'});c.classList.remove('flash');void c.offsetWidth;c.classList.add('flash')}return}
+  if(b.dataset.gocard){const id=b.dataset.gocard;closeModal($('#mStn'));setTimeout(()=>openTk(id),60);return}
   if(b.dataset.prev){if(!(me&&me===ownerId))return;const v=b.dataset.prev==='admin'?null:b.dataset.prev;if(v===preview)return;preview=v;render();toast(preview==='emp'?'Showing what supervisors see':preview==='view'?'Showing what employees see (view only)':'Back to admin view');return}
   if(b.hasAttribute('data-index')){indexLine();return}
   if(b.dataset.cdel){const c=C.find(x=>x.id===b.dataset.cdel);if(c&&(can('edit')||c.by===me)){C=C.filter(x=>x.id!==c.id);delComment(c.id);render();toast('Comment deleted')}return}
@@ -1102,7 +1144,7 @@ function tourSteps(){const r=eff(),mgr=isMgr()&&!preview,admin=r==='admin';const
   S.push({el:'#floor .bubg.nx',t:'Next Truck',b:`The waiting area after Station 18, before the Final Line. It holds up to 30 trucks.${admin?' Send a signed truck here from Station 18, and bring it out to the Final Line when it\'s ready.':' Only admins move trucks in and out.'}`});
   S.push({el:'#floor .bubg.dn',t:'Down To',b:`After F5, a truck either gets signed off or goes to Down To while it waits on OEM parts. It holds up to 30.${admin?' Tap Down To on an F5 truck, then Sign off ✓ when the parts are in.':' Only admins move trucks in and out.'}`});
   if(admin)S.push({el:'#bAdd',t:'Add a truck',b:'Add a new truck and pick where it starts. Each station holds one truck. Outside services can hold more than one.'});
-  S.push({el:'#bMenu',t:'The menu',b:`Tap ☰ for ${mgr?'People (give roles), ':''}${me===ownerId&&!preview?'View as, ':''}Help, Invite, your quick PIN and Sign out.`});
+  S.push({el:'#tabbar',t:'The tabs',b:`Floor is the line map. Trucks is the list: tap any truck to open its page with all its buttons and history. Alerts shows what changed. More has ${mgr?'People, ':''}stats, Help, Invite, your PIN and Sign out.`});
   if(false)S.push({el:'#bPeople',t:'People',b:'New sign-ups wait here with no access. Give each person a role: Supervisor, Inspector, Employee or Admin.'});
   S.push({el:'#bInv',t:'Invite people',b:'Show the QR code, text or email the link, or print the flyer for the break room.'});
   S.push({el:'#bPin',t:'Quick PIN',b:'Closing the app signs you out. Set a PIN to get back in fast on this phone.'});
@@ -1186,7 +1228,7 @@ function alertList(){if(!me)return[];const r=eff(),out=[],wk=Date.now()-7*864e5,
   return out.sort((a,b)=>new Date(b.t)-new Date(a.t)).slice(0,60)}
 let lastBell=-1;
 function alertsTick(){const bb=$('#bMenu');if(!bb||!me)return;let seen=0,nt=0;try{seen=+localStorage.getItem(seenKey())||0;nt=+localStorage.getItem(notKey())||0}catch(e){}
-  const L=alertList(),fresh=L.filter(a=>+new Date(a.t)>seen&&a.by!==me),n=fresh.length,el=$('#bellN'),el2=$('#bellN2');el.hidden=!n;el.textContent=n>9?'9+':n;if(el2){el2.hidden=!n;el2.textContent=n>9?'9+':n}
+  const L=alertList(),fresh=L.filter(a=>+new Date(a.t)>seen&&a.by!==me),n=fresh.length,el=$('#bellN'),el2=$('#bellN2'),el3=$('#tabN');el.hidden=!n;el.textContent=n>9?'9+':n;if(el3){el3.hidden=!n;el3.textContent=n>9?'9+':n}if(el2){el2.hidden=!n;el2.textContent=n>9?'9+':n}
   if(n>lastBell&&lastBell>=0){bb.classList.remove('ring');void bb.offsetWidth;bb.classList.add('ring')}lastBell=n;
   const toNotify=fresh.filter(a=>+new Date(a.t)>nt);
   if(!nt){try{localStorage.setItem(notKey(),Date.now())}catch(e){}return}
@@ -1195,7 +1237,7 @@ function alertsTick(){const bb=$('#bMenu');if(!bb||!me)return;let seen=0,nt=0;tr
 function openAlerts(){let seen=0;try{seen=+localStorage.getItem(seenKey())||0}catch(e){}const L=alertList(),perm='Notification' in window?Notification.permission:'unsupported';
   $('#alertsBody').innerHTML=(perm==='default'||(perm==='granted'&&PUSH_URL&&!pushReady())?`<button class="go" id="bNotif" style="width:100%;margin-bottom:12px">Turn on phone alerts</button>`:perm==='granted'&&pushReady()?`<div class="pushok"><span>✓ Phone alerts are on, even with Code 3 closed</span><button id="bTestPush">Send me a test</button></div>${(L=>L?`<p class="k" style="margin:-4px 0 12px">Last alert ${L.ok?`went to ${L.sent} phone${L.sent===1?'':'s'}`:'failed: '+esc(L.err)} · ${fmtDT(new Date(L.t).toISOString())}</p>`:'')(lsGet('c3-push-last'))}`:perm==='denied'?`<p class="k" style="margin:0 0 10px">Phone alerts are blocked. Turn them on for this site in your browser's settings.</p>`:'')+
     (L.length?`<ul class="alist">${L.map(a=>`<li class="a-${a.c}${+new Date(a.t)>seen&&a.by!==me?' new':''}" data-aid="${esc(a.id)}"${a.ppl?' data-ppl="1"':''}><i>${a.i}</i><div><b>${esc(a.txt)}</b><small>${esc(a.sub)} · ${fmtDT(a.t)}</small></div></li>`).join('')}</ul>`:'<p class="note">No alerts yet. Line moves, holds, overdue trucks, Down To, sign-offs and sig requests show up here.</p>');
-  try{localStorage.setItem(seenKey(),Date.now())}catch(e){}lastBell=0;$('#bellN').hidden=true;if($('#bellN2'))$('#bellN2').hidden=true;openedAt=Date.now();$('#mAlerts').hidden=false}
+  try{localStorage.setItem(seenKey(),Date.now())}catch(e){}lastBell=0;$('#bellN').hidden=true;if($('#tabN'))$('#tabN').hidden=true;if($('#bellN2'))$('#bellN2').hidden=true;openedAt=Date.now();$('#mAlerts').hidden=false}
 document.addEventListener('click',e=>{
   if(e.target.closest('#bStats')){openStats();return}
   if(e.target.closest('#bExp,#bExp2')){exportCSV();return}
@@ -1203,7 +1245,7 @@ document.addEventListener('click',e=>{
   if(e.target.closest('#bNotif')){const bt=e.target.closest('#bNotif');bt.disabled=true;bt.textContent='Turning on…';(PUSH_URL?registerPush(true):Notification.requestPermission().then(p=>p==='granted')).then(ok=>{toast(ok?'Phone alerts are on':'Phone alerts are blocked. Allow notifications for this site in Chrome settings.');openAlerts()});return}
   if(e.target.closest('#bTestPush')){notify('test','Code 3 test alert','If you see this, alerts work. Try it again with the app closed.','');toast('Test sent. It should pop up in a few seconds.');return}
   const pl=e.target.closest('#alertsBody [data-ppl]');if(pl){$('#mAlerts').hidden=true;renderPeople();$('#mPeople').hidden=false;return}const ln=e.target.closest('#alertsBody .a-line');if(ln){$('#mAlerts').hidden=true;$('#map').scrollIntoView({behavior:reduce?'auto':'smooth'});return}
-  const li=e.target.closest('#alertsBody [data-aid]');if(li&&li.dataset.aid){$('#mAlerts').hidden=true;const c=document.querySelector(`.card[data-id="${CSS.escape(li.dataset.aid)}"]`);if(c){c.scrollIntoView({behavior:reduce?'auto':'smooth',block:'center'});c.classList.remove('flash');void c.offsetWidth;c.classList.add('flash')}}});
+  const li=e.target.closest('#alertsBody [data-aid]');if(li&&li.dataset.aid){$('#mAlerts').hidden=true;openTk(li.dataset.aid)}});
 // ---------- push alerts (work with the app closed) ----------
 const VAPID='BH6z9tYCd2ovLJeHyf7nzEKu1mgdMEVyxZlvpn0ykiXkUU7OH1Ff7yxw2yR0iJYXEdrSmGdaupQ6QUv1ChnXKrE';
 const PUSH_URL='https://code3-push.vyd02.workers.dev';
@@ -1219,6 +1261,20 @@ async function registerPush(ask){
     const ref=db.doc('tokens/'+me),cur=await ref.get();let list=cur.exists?((cur.data()||{}).list||[]):[];
     if(!list.includes(tok)||!lsGet('c3-push-'+me)){list=list.filter(x=>x!==tok).concat(tok).slice(-5);await ref.set({list,t:new Date().toISOString()})}
     lsSet('c3-push-'+me,1);return true}catch(e){console.log('push setup failed',e);return false}}
+// ---------- tabs + truck page ----------
+var attF='',tkId=null;
+function cardMode(){return lsGet('c3-cards')==='full'?'full':'compact'}
+function setTab(t){if(t==='alerts'){openAlerts();return}if(t==='more'){openDrawer();return}
+  document.body.dataset.tab=t;document.querySelectorAll('#tabbar [data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));lsSet('c3-tab',t);window.scrollTo(0,0);if(t==='floor')requestAnimationFrame(()=>render())}
+function openTk(id){const t=find(id);if(!t)return;tkId=id;openedAt=Date.now();$('#mTk').hidden=false;refreshTk();$('#mTk .tksheet').scrollTop=0}
+function refreshTk(){if(!tkId||$('#mTk').hidden)return;const t=find(tkId);if(!t||!window.__card){closeModal($('#mTk'));tkId=null;return}
+  if(t.k==='done'){$('#tkBody').innerHTML=`<div class="card" data-id="${esc(t.id)}"><div class="top"><div><h3>${esc(t.unit)}</h3><p>${esc(t.cust)}</p></div></div><p class="k">✓ Signed off. It's in the Signed off list on the Floor tab.</p>${hist(t)}</div>`;return}
+  const open=[...document.querySelectorAll('#tkBody details[open]')].length;$('#tkBody').innerHTML=window.__card(t);if(open)document.querySelectorAll('#tkBody details').forEach(d=>d.open=true)}
+function jumpTruck(id){const t=find(id);if(!t)return;openTk(id)}
+document.addEventListener('click',e=>{const tb=e.target.closest('#tabbar [data-tab]');if(tb){setTab(tb.dataset.tab);return}
+  const ro=e.target.closest('[data-open]');if(ro){openTk(ro.dataset.open);return}
+  const at=e.target.closest('[data-att]');if(at){attF=at.dataset.att;render();return}
+  if(e.target.closest('#bCards')){lsSet('c3-cards',cardMode()==='full'?'compact':'full');$('#bCards').textContent=cardMode()==='full'?'Small cards':'Big cards';render();return}});
 function openDrawer(){const d=$('#drawer');d.hidden=false;requestAnimationFrame(()=>requestAnimationFrame(()=>d.classList.add('open')));$('#bMenu').setAttribute('aria-expanded','true')}
 function closeDrawer(){const d=$('#drawer');if(!d||d.hidden)return;d.classList.remove('open');const mb=$('#bMenu');if(mb)mb.setAttribute('aria-expanded','false');setTimeout(()=>{if(!d.classList.contains('open'))d.hidden=true},280)}
 document.addEventListener('click',e=>{if(e.target.closest('#bMenu')){openDrawer();return}if(e.target.closest('[data-dclose]')){closeDrawer();return}if(e.target.closest('#me button')&&!e.target.closest('.seg'))closeDrawer()},true);
