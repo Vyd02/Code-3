@@ -324,7 +324,13 @@ body.locked{overflow:hidden}
 .tl.full span{color:var(--ink);font-weight:600}.tl.full.on span{color:inherit}
 .tl.shift{animation:shift .55s ease both;animation-delay:var(--d,0ms)}
 @keyframes shift{40%{transform:translateX(6px);border-color:var(--red)}}
-.picks{display:grid;gap:6px}.picks h3{margin-top:8px}
+.picks{display:grid;gap:8px}
+.pz{border:1.5px solid var(--line);border-radius:14px;overflow:hidden}
+.pz summary{list-style:none;display:flex;align-items:center;gap:10px;min-height:52px;padding:0 14px;cursor:pointer;font:800 18px "Barlow Condensed",sans-serif;text-transform:uppercase;letter-spacing:.03em}
+.pz summary::-webkit-details-marker{display:none}.pzt{flex:1}.pzc{font:600 13px system-ui,sans-serif;text-transform:none;letter-spacing:0;color:var(--mut)}
+.pzv{width:10px;height:10px;border-right:2.5px solid currentColor;border-bottom:2.5px solid currentColor;transform:rotate(45deg);transition:transform .2s;margin:-4px 2px 0}
+.pz[open] .pzv{transform:rotate(-135deg);margin-top:4px}
+.pzl{display:grid;gap:6px;padding:0 10px 10px;animation:hin .25s both}
 .pk{display:flex;align-items:center;gap:10px;text-align:left;width:100%}.pk b{font:800 18px "Barlow Condensed",sans-serif;min-width:32px}
 .pk span{flex:1}.pk em{font-style:normal;font-size:13px;color:var(--mut)}
 .err{color:var(--red);font-size:14px;margin:0}
@@ -877,8 +883,10 @@ $('#sigExtra').addEventListener('click',e=>{const b=e.target.closest('[data-siga
   putTruck(t);$('#mSig').hidden=true;render()});
 
 function pick(t,msg,keys,cb,except){pickCb=cb;$('#mvTitle').textContent=t;$('#mvMsg').textContent=msg;
+  const only=ZONES.filter(z=>keys.some(k=>k!=='done'&&step(k).z===z.z)).length===1;
   $('#mvList').innerHTML=ZONES.map(z=>{const ks=keys.filter(k=>k!=='done'&&step(k).z===z.z);if(!ks.length)return'';
-    return `<h3>${z.t}</h3>`+ks.map(k=>{const s=step(k),occ=occupied(k,except);return `<button class="pk" data-pick="${k}" ${occ?'disabled':''}><b>${s.code}</b><span>${esc(title(k))}</span>${occ?`<em>${WAIT[k]?'Full ('+WAIT[k].max+')':'Has '+esc(at(k)[0].unit)}</em>`:WAIT[k]?`<em>${waitCount(k,except)} / ${WAIT[k].max}</em>`:''}</button>`}).join('')}).join('');
+    const free=ks.filter(k=>!occupied(k,except)).length;
+    return `<details class="pz"${only?' open':''}><summary><span class="pzt">${z.t}</span><span class="pzc">${WAIT[ks[0]]&&ks.length===1?waitCount(ks[0],except)+' / '+WAIT[ks[0]].max:ks.length===1?'':free+' of '+ks.length+' open'}</span><i class="pzv"></i></summary><div class="pzl">`+ks.map(k=>{const s=step(k),occ=occupied(k,except);return `<button class="pk" data-pick="${k}" ${occ?'disabled':''}><b>${s.code}</b><span>${esc(title(k))}</span>${occ?`<em>${WAIT[k]?'Full ('+WAIT[k].max+')':'Has '+esc(at(k)[0].unit)}</em>`:WAIT[k]?`<em>${waitCount(k,except)} / ${WAIT[k].max}</em>`:''}</button>`}).join('')+'</div></details>'}).join('');
   $('#mMove').hidden=false}
 $('#mvList').addEventListener('click',e=>{const b=e.target.closest('[data-pick]');if(!b||b.disabled)return;$('#mMove').hidden=true;const cb=pickCb;pickCb=null;if(cb)cb(b.dataset.pick)});
 
