@@ -23,6 +23,8 @@ Every change is its own commit, so any one can be undone without touching the ot
 | 8 | Photos on trucks | `6da0de6` | Photos section on the truck page. Admins, supervisors and inspectors can add photos (shrunk on the phone) with a note. Saved in `trucks/{id}/photos`. |
 | 9 | Alerts organized | `d704877` | Filter chips (All, Moves, Down To, Sigs, Holds & late), grouped by day, line moves back to back merged into one ("The line moved 4 times"), compact rows with the time on the right. |
 | 10 | Undo out of the way | `d704877` | No more Undo bar at the bottom. Messages show briefly at the top-left; a small "↶ Undo" pill sits in the top-right corner for 10 seconds. (Changes feature 7.) |
+| 11 | Hold removed | `6a6625c` | Put on hold button, On hold banner/tag, floor-map hold dot, hold alerts and the On hold stat are hidden, since Down To covers it. One switch in the code (`HOLDS`) brings it back. |
+| 12 | More alert sections | `a195c10` | Moves, Bubble, Next Truck, Down To, Parts, Sigs, Signed off, Late, each with a count. Single truck moves now show too. |
 
 ### Database rules changed
 - Photos: new `match /trucks/{id}/photos/{pid}` block (feature 8).
