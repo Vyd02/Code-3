@@ -70,6 +70,17 @@ service cloud.firestore {
         || (isInspector() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['sig', 'req', 'h']));
     }
 
+    // Truck photos: anyone who can move or sign trucks can add; the person who added it or an admin can delete
+    match /trucks/{id}/photos/{pid} {
+      allow read: if isMember();
+      allow create: if (isSupervisor() || isInspector())
+        && request.resource.data.by == request.auth.uid
+        && request.resource.data.d is string && request.resource.data.d.size() < 1000000
+        && request.resource.data.keys().hasOnly(['d', 'w', 'h', 'c', 'by', 't']);
+      allow update: if false;
+      allow delete: if isAdmin() || (signedIn() && resource.data.by == request.auth.uid);
+    }
+
     // Station names, supervisors and crews
     match /plant/{doc} {
       allow read: if isMember();

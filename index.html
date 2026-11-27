@@ -381,6 +381,7 @@ body.tabs #bMenu{display:none!important}body.tabs .toast{bottom:96px;z-index:55}
 .mvbig{display:block;width:100%;min-height:56px;font:800 20px 'Barlow Condensed',sans-serif;letter-spacing:.04em;text-transform:uppercase;border-radius:14px;margin:4px 0 8px;box-shadow:0 6px 16px -8px var(--red);transition:transform .12s}.mvbig:active{transform:scale(.97)}.mvbig[aria-disabled=true]{background:var(--line,#ccc);border-color:transparent;color:var(--mut,#666);box-shadow:none}
 .parts{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}.parts li{display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:10px;padding:6px 6px 6px 10px}.parts li>span{flex:1;display:flex;flex-direction:column;min-width:0}.parts small{color:var(--mut)}.parts b{color:var(--ink)!important;font:700 16px Barlow,sans-serif!important;text-transform:none!important;letter-spacing:0!important}.parts li.in b{text-decoration:line-through;text-decoration-color:var(--mut)}.parts li.in small{color:var(--ok)}.parr{border-color:var(--ok);color:var(--ok);min-height:38px;padding:0 10px}.parr.on{border-color:var(--line);color:var(--mut)}.prm{min-height:38px;width:38px;padding:0}.padd{width:100%;margin-top:8px;border-style:dashed;border-color:#f08a24;color:#f08a24}.pok{margin:6px 0 0;color:var(--ok);font-weight:800}.dlab{display:flex;flex-direction:column;gap:4px;font-weight:600}#fPart{display:flex;flex-direction:column;gap:10px;margin-top:10px}#fPart .go{min-height:50px}
 .recapb{border:1.5px solid var(--line);border-radius:12px;padding:12px;margin-top:14px}.recapb b{font:800 15px 'Barlow Condensed',sans-serif;text-transform:uppercase;letter-spacing:.06em}.recapb button{width:100%}
+.phbox{border:1.5px solid var(--line);border-radius:12px;padding:10px;margin:12px 0}.clhd{display:flex;justify-content:space-between;align-items:baseline}.clhd b{font:800 15px 'Barlow Condensed',sans-serif;text-transform:uppercase;letter-spacing:.06em}.clhd span{color:var(--mut);font-weight:700}.phgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.pht{padding:0;border:0;aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--card);animation:chin .3s both}.pht img{width:100%;height:100%;object-fit:cover;display:block}.phadd{display:flex;align-items:center;justify-content:center;min-height:48px;margin-top:8px;border:1.5px dashed var(--mut);border-radius:10px;font-weight:700;cursor:pointer}.phprev{width:100%;max-height:40vh;object-fit:contain;border-radius:10px;margin:10px 0;background:#000}#fPh{display:flex;flex-direction:column;gap:10px}#fPh .go{min-height:50px}.phsheet{background:#000!important;color:#fff}.phsheet img{width:100%;max-height:70vh;object-fit:contain;display:block;margin:6px 0;animation:tkin .25s both}.phmeta{display:flex;flex-direction:column;gap:2px;margin:6px 0 12px}.phmeta span{color:#aaa}
 .chlist{display:flex;flex-direction:column;gap:10px;margin-top:12px}.chopt{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;min-height:58px;padding:10px 16px;border-radius:12px;animation:chin .3s both}.chopt:nth-child(2){animation-delay:.05s}.chopt:nth-child(3){animation-delay:.1s}.chopt b{font-size:17px}.chopt small{opacity:.8;font-weight:500}.chopt.dnc{border-color:#f08a24;color:#f08a24}@keyframes chin{from{opacity:0;transform:translateY(8px)}}.acts .go,.acts .warn{flex:1;min-width:0}
 .warn{border-color:var(--red);color:var(--red);background:transparent}
 .lk{flex:1;font-size:14px;color:var(--mut);display:flex;align-items:center;gap:6px}
@@ -572,6 +573,8 @@ label{display:grid;gap:4px;font-size:14px;font-weight:600}
 <div id="sigBody" style="display:grid;gap:10px"></div><p class="err" id="sigErr" hidden></p>
 <div class="row"><span id="sigExtra" style="margin-right:auto"></span><button type="button" data-close>Cancel</button><button class="go" type="submit" id="sigGo">Save</button></div></form></div>
 <div class="modal" id="mPart" hidden><div class="sheet"><div class="shead1"><h2 id="partT">Add part</h2><button type="button" data-close aria-label="Close">✕</button></div><form id="fPart"><label>Part<input id="partN" maxlength="80" required placeholder="e.g. Ford door module" autocomplete="off"></label><label>Ordered on<input id="partO" type="date"></label><button class="go" type="submit">Add part</button></form></div></div>
+<div class="modal" id="mPhAdd" hidden><form class="sheet" id="fPh"><div class="shead1"><h2>Add photo</h2><button type="button" data-close aria-label="Close">✕</button></div><img id="phPrev" class="phprev" alt="Photo preview"><label>Note <span class="hint">optional</span><input id="phCap" maxlength="120" placeholder="e.g. Scratch on driver door" autocomplete="off"></label><button class="go" type="submit" id="phSave">Save photo</button></form></div>
+<div class="modal phview" id="mPh" hidden><div class="sheet phsheet"><div class="shead1"><span></span><button type="button" data-close aria-label="Close">✕</button></div><img id="phBig" alt="Truck photo"><div id="phMeta" class="phmeta"></div><button type="button" class="del" id="phDel">Delete photo</button></div></div>
 <div class="modal" id="mChoose" hidden><div class="sheet"><div class="shead1"><h2 id="chT">Move</h2><button type="button" data-close aria-label="Close">✕</button></div><p class="hint" id="chM" style="margin:0"></p><div id="chList" class="chlist"></div></div></div>
 <div class="modal" id="mMove" hidden>
   <div class="sheet">
@@ -924,7 +927,7 @@ new ResizeObserver(()=>{const w=$('#map').clientWidth>=760;if(FL&&w!==flWide)ren
 
 // ---------- station pop-up ----------
 let openedAt=0;
-function closeModal(m,fromBackdrop){if(!m)return;if(fromBackdrop&&Date.now()-openedAt<450)return;m.hidden=true;if(m.id==='mStn'){pop=null;stnEdit=false;renderFloor()}}
+function closeModal(m,fromBackdrop){if(!m)return;if(fromBackdrop&&Date.now()-openedAt<450)return;m.hidden=true;if(m.id==='mTk'){phStop();tkId=null}if(m.id==='mStn'){pop=null;stnEdit=false;renderFloor()}}
 function openStn(k,edit){openedAt=Date.now();pop=k;stnEdit=!!edit&&can('edit');$('#mStn').hidden=false;refreshStn(true);renderFloor();
   if(stnEdit)setTimeout(()=>{const i=$('#fStn [name=sup]');if(i)i.focus()},120)}
 function refreshStn(force){if(!pop)return;const box=$('#stnSheet');
@@ -1043,6 +1046,12 @@ function pick(t,msg,keys,cb,except){pickCb=cb;$('#mvTitle').textContent=t;$('#mv
   $('#mMove').hidden=false}
 $('#fPart').addEventListener('submit',e=>{e.preventDefault();const t=find(partId);if(!t||!can('edit'))return;const n=$('#partN').value.trim();if(!n)return;
   const P=partsOf(t).map(({legacy,...x})=>x);P.push({id:nid(),n:n.slice(0,80),o:$('#partO').value||'',a:'',by:me||''});$('#mPart').hidden=true;partsSave(t,P);toast(`Added ${n} to ${t.unit}`)});
+$('#fPh').addEventListener('submit',async e=>{e.preventDefault();const P=phPending;if(!P)return;const b=$('#phSave');b.disabled=true;b.textContent='Saving…';
+  const doc={d:P.d,w:P.w,h:P.h,c:$('#phCap').value.trim().slice(0,120),by:me||'',t:now()};
+  try{if(shared)await db.collection(`trucks/${P.tid}/photos`).doc(nid()).set(doc);else{PH[P.tid]=[{id:nid(),...doc}].concat(PH[P.tid]||[]);phPaint()}$('#mPhAdd').hidden=true;phPending=null;toast('Photo saved')}
+  catch(x){writeFail(x)}finally{b.disabled=false;b.textContent='Save photo'}});
+$('#phDel').addEventListener('click',async()=>{const v=phView;if(!v)return;$('#mPh').hidden=true;phView=null;
+  try{if(shared)await db.collection(`trucks/${v.tid}/photos`).doc(v.id).delete();else{PH[v.tid]=(PH[v.tid]||[]).filter(x=>x.id!==v.id);phPaint()}toast('Photo deleted')}catch(x){writeFail(x)}});
 $('#chList').addEventListener('click',e=>{const b=e.target.closest('[data-ch]');if(!b||b.disabled)return;const o=chooseOpts[+b.dataset.ch];$('#mChoose').hidden=true;chooseOpts=[];if(o&&o.fn)setTimeout(o.fn,40)});
 $('#mvList').addEventListener('click',e=>{const b=e.target.closest('[data-pick]');if(!b||b.disabled)return;$('#mMove').hidden=true;const cb=pickCb;pickCb=null;if(cb)cb(b.dataset.pick)});
 
@@ -1064,7 +1073,7 @@ $('#fTruck').addEventListener('submit',e=>{e.preventDefault();const f=e.target,k
   let t;if(editing){t=find(editing);remember([t.id]);if(t.k!==k)setK(t,k);Object.assign(t,v);toast(`Saved ${t.unit}`)}
   else{t=normTruck({id:nid(),...v,k,h:[{k,t:now(),by:me||''}]});remember([t.id]);S.trucks.push(t);toast(`Added ${v.unit} at ${title(k)}`)}
   putTruck(t);$('#mTruck').hidden=true;render(new Set([k]))});
-$('#tDel').addEventListener('click',()=>{const t=find(editing);if(!t)return;remember([t.id]);S.trucks=S.trucks.filter(x=>x.id!==editing);delTruck(t.id);$('#mTruck').hidden=true;render();toast(`Deleted ${t.unit}`)});
+$('#tDel').addEventListener('click',()=>{const t=find(editing);if(!t)return;const gid=t.id;if(shared)setTimeout(async()=>{if(find(gid))return;try{const s=await db.collection(`trucks/${gid}/photos`).get();for(const d of s.docs)await db.collection(`trucks/${gid}/photos`).doc(d.id).delete()}catch(x){}},12000);remember([t.id]);S.trucks=S.trucks.filter(x=>x.id!==editing);delTruck(t.id);$('#mTruck').hidden=true;render();toast(`Deleted ${t.unit}`)});
 
 function openSt(focus){if(!can('edit'))return;
   const row=s=>{const inf=S.info[s.k];return `<details class="sed" ${s.k===focus?'open':''}><summary><b>${s.code}</b> <span>${esc(inf.n)}</span><em>${inf.sup?'· '+esc(inf.sup):''}</em></summary>
@@ -1339,13 +1348,28 @@ var attF='',tkId=null;
 function cardMode(){return lsGet('c3-cards')==='full'?'full':'compact'}
 function setTab(t){if(t==='alerts'){openAlerts();return}if(t==='more'){openDrawer();return}
   document.body.dataset.tab=t;document.querySelectorAll('#tabbar [data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));lsSet('c3-tab',t);window.scrollTo(0,0);if(t==='floor')requestAnimationFrame(()=>render())}
-function openTk(id){const t=find(id);if(!t)return;tkId=id;openedAt=Date.now();$('#mTk').hidden=false;refreshTk();$('#mTk .tksheet').scrollTop=0}
+// Feature 8: photos on trucks (stored in trucks/{id}/photos, shrunk on the phone first)
+let PH={},phUnsub=null,phFor=null,phView=null,phPending=null;
+const canPhoto=()=>can('move')||can('sign');
+function phWatch(id){if(phFor===id)return;phStop();phFor=id;PH[id]=PH[id]||null;if(!shared||!db){PH[id]=PH[id]||[];return}
+  phUnsub=db.collection(`trucks/${id}/photos`).onSnapshot(snap=>{PH[id]=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(b.t).localeCompare(String(a.t)));if(tkId===id)phPaint()},()=>{PH[id]=[];phPaint()})}
+function phStop(){if(phUnsub){try{phUnsub()}catch(e){}}phUnsub=null;phFor=null}
+function phBox(id){const L=PH[id];return `<div class="phbox"><div class="clhd"><b>Photos</b><span>${L?L.length:''}</span></div>${L===null?'<p class="k">Loading…</p>':L.length?`<div class="phgrid">${L.map((x,i)=>`<button type="button" class="pht" data-ph="${esc(x.id)}" style="animation-delay:${Math.min(i,8)*40}ms"><img src="${esc(x.d)}" alt="${esc(x.c||'Truck photo')}" loading="lazy"></button>`).join('')}</div>`:'<p class="k" style="margin:4px 0 0">No photos yet.</p>'}${canPhoto()?'<label class="phadd">📷 Add photo<input type="file" accept="image/*" id="phIn" hidden></label>':''}</div>`}
+function phPaint(){const h=$('#tkPh');if(h&&tkId)h.innerHTML=phBox(tkId)}
+function shrink(file){return new Promise((res,rej)=>{const img=new Image(),u=URL.createObjectURL(file);img.onload=()=>{URL.revokeObjectURL(u);let w=img.naturalWidth,h=img.naturalHeight,m=1280;const sc=Math.min(1,m/Math.max(w,h));w=Math.round(w*sc);h=Math.round(h*sc);
+    const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);let q=.72,d=c.toDataURL('image/jpeg',q);while(d.length>600000&&q>.3){q-=.1;d=c.toDataURL('image/jpeg',q)}
+    if(d.length>900000)return rej(new Error('too big'));res({d,w,h})};img.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('bad image'))};img.src=u})}
+document.addEventListener('change',async e=>{if(e.target.id!=='phIn')return;const f=e.target.files&&e.target.files[0];e.target.value='';if(!f||!tkId)return;
+  try{const r=await shrink(f);phPending={...r,tid:tkId};$('#phPrev').src=r.d;$('#phCap').value='';openedAt=Date.now();$('#mPhAdd').hidden=false}catch(x){toast("Couldn't read that picture")}});
+function phOpen(id){const x=(PH[tkId]||[]).find(p=>p.id===id);if(!x)return;phView={tid:tkId,id};$('#phBig').src=x.d;$('#phMeta').innerHTML=`${x.c?`<b>${esc(x.c)}</b>`:''}<span>${esc(who(x.by)||'Someone')} · ${fmtDT(x.t)}</span>`;$('#phDel').hidden=!(can('edit')||x.by===me);openedAt=Date.now();$('#mPh').hidden=false}
+function openTk(id){const t=find(id);if(!t)return;tkId=id;phWatch(id);openedAt=Date.now();$('#mTk').hidden=false;refreshTk();$('#mTk .tksheet').scrollTop=0}
 function refreshTk(){if(!tkId||$('#mTk').hidden)return;const t=find(tkId);if(!t||!window.__card){closeModal($('#mTk'));tkId=null;return}
-  if(t.k==='done'){$('#tkBody').innerHTML=`<div class="card" data-id="${esc(t.id)}"><div class="top"><div><h3>${esc(t.unit)}</h3><p>${esc(t.cust)}</p></div></div><p class="k">✓ Signed off. It's in the Signed off list on the Floor tab.</p>${hist(t)}</div>`;return}
-  const open=[...document.querySelectorAll('#tkBody details[open]')].length;$('#tkBody').innerHTML=window.__card(t);if(open)document.querySelectorAll('#tkBody details').forEach(d=>d.open=true)}
+  if(t.k==='done'){$('#tkBody').innerHTML=`<div id="tkPh" style="order:2"></div><div class="card" data-id="${esc(t.id)}"><div class="top"><div><h3>${esc(t.unit)}</h3><p>${esc(t.cust)}</p></div></div><p class="k">✓ Signed off. It's in the Signed off list on the Floor tab.</p>${hist(t)}</div>`;return}
+  const open=[...document.querySelectorAll('#tkBody details[open]')].length;$('#tkBody').innerHTML=window.__card(t)+`<div id="tkPh">${phBox(t.id)}</div>`;if(open)document.querySelectorAll('#tkBody details').forEach(d=>d.open=true)}
 function jumpTruck(id){const t=find(id);if(!t)return;openTk(id)}
 document.addEventListener('click',e=>{const tb=e.target.closest('#tabbar [data-tab]');if(tb){setTab(tb.dataset.tab);return}
   const ro=e.target.closest('[data-open]');if(ro){openTk(ro.dataset.open);return}
+  const ph=e.target.closest('[data-ph]');if(ph){phOpen(ph.dataset.ph);return}
   const at=e.target.closest('[data-att]');if(at){attF=at.dataset.att;render();return}
   if(e.target.closest('#bCards')){lsSet('c3-cards',cardMode()==='full'?'compact':'full');$('#bCards').textContent=cardMode()==='full'?'Small cards':'Big cards';render();return}});
 function openDrawer(){const d=$('#drawer');d.hidden=false;requestAnimationFrame(()=>requestAnimationFrame(()=>d.classList.add('open')));$('#bMenu').setAttribute('aria-expanded','true')}
