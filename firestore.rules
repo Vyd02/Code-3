@@ -75,8 +75,7 @@ service cloud.firestore {
       allow read: if isMember();
       allow create: if (isSupervisor() || isInspector())
         && request.resource.data.by == request.auth.uid
-        && request.resource.data.d is string && request.resource.data.d.size() < 1000000
-        && request.resource.data.keys().hasOnly(['d', 'w', 'h', 'c', 'by', 't']);
+        && request.resource.data.d is string && request.resource.data.d.size() < 1000000;
       allow update: if false;
       allow delete: if isAdmin() || (signedIn() && resource.data.by == request.auth.uid);
     }
