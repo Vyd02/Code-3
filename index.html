@@ -63,6 +63,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .sig small{font-size:12px;color:var(--mut);font-weight:400}
 .sig:disabled{opacity:1;cursor:default}
 .by{color:var(--mut)}
+.dup{margin:0;padding:8px 10px;border-radius:8px;background:color-mix(in srgb,var(--red) 14%,var(--bg));color:var(--red);font-size:14px;font-weight:600}
 body.locked{overflow:hidden}
 .gate{position:fixed;inset:0;z-index:50;background:#121315;color:#fff;overflow:auto;display:flex;align-items:center;justify-content:center;padding:24px 16px}
 .gate[hidden]{display:none}
@@ -503,7 +504,10 @@ const vtype=t=>{if(t.vt)return t.vt;const m=(t.model||'').toLowerCase();
   if(/rescue|squad/.test(m))return'rescue';if(/\brv\b|coach|motorhome|class [abc]|camper/.test(m))return'rv';if(/pump|engine/.test(m))return'pumper';return'amb'};
 const icon=(t,w=48,h=28,cls='')=>`<svg viewBox="0 0 48 28" width="${w}" height="${h}"${cls?` class="${cls}"`:''}><use href="#v-${vtype(t)}"/></svg>`;
 const at=k=>S.trucks.filter(t=>t.k===k);
-const occupied=(k,except)=>isBuild(k)&&S.trucks.some(t=>t.k===k&&t.id!==except);
+const single=k=>k!=='done'&&!!step(k)&&step(k).z!=='out';
+const occupied=(k,except)=>single(k)&&S.trucks.some(t=>t.k===k&&t.id!==except);
+const holder=(k,except)=>S.trucks.find(t=>t.k===k&&t.id!==except);
+const fullMsg=(k,except)=>`${short(k)} already has ${holder(k,except).unit}. Move that truck first.`;
 const setK=(t,k)=>{t.k=k;t.h=t.h.concat({k,t:now(),by:me||''})};
 const sigsDone=t=>!!(t.sig.el&&t.sig.co);
 const comments=k=>C.filter(c=>c.k===k).sort((a,b)=>String(b.t).localeCompare(String(a.t)));
@@ -552,8 +556,8 @@ function render(bump){
     let acts;
     if(s.z==='build'){acts=E+(t.k==='s1'&&can('move')?`<button class="go" data-index>Move line ▸</button>`:t.k===EMERG&&can('edit')?`<button class="warn" data-pull>Emergency pull</button>`:`<span class="lk">Moves when the line moves</span>`)}
     else if(s.z==='out')acts=E+(can('move')?`<button class="go" data-moveto>Move to… ▸</button>`:'');
-    else{const i=FLOW.indexOf(t.k),nx=FLOW[i+1],blocked=t.k===SIGSTN&&!sigsDone(t);
-      acts=(can('edit')?`<button data-back ${i===0?'disabled':''} aria-label="Move back one step">◂</button>`:'')+E+(can('move')?`<button class="go" data-adv ${blocked?'disabled':''}>${blocked?'Needs both sigs':nx==='done'?'Sign off ✓':'To '+esc(short(nx))+' ▸'}</button>`:'')}
+    else{const i=FLOW.indexOf(t.k),nx=FLOW[i+1],pv=FLOW[i-1],needSig=t.k===SIGSTN&&!sigsDone(t),full=nx&&occupied(nx,t.id),blocked=needSig||full;
+      acts=(can('edit')?`<button data-back ${i===0||(pv&&occupied(pv,t.id))?'disabled':''} aria-label="Move back one step">◂</button>`:'')+E+(can('move')?`<button class="go" data-adv ${blocked?'disabled':''}>${needSig?'Needs both sigs':full?esc(short(nx))+' is full':nx==='done'?'Sign off ✓':'To '+esc(short(nx))+' ▸'}</button>`:'')}
     const sigs=t.k===SIGSTN?`<div class="sigs">${SIGS.map(([k,l])=>{const g=t.sig[k];const mayClear=g&&(can('edit')||(g.by&&g.by===me));
       return `<button class="sig${g?' ok':''}" data-sig="${k}" ${(!g&&!can('sign'))||(g&&!mayClear)?'disabled':''}><span>${l}</span><b>${g?'✓ '+esc(who(g.by)||'Signed'):can('sign')?'Tap to sign':'Not signed yet'}</b>${g?`<small>${fmtDT(g.t)}${mayClear?' · tap to clear':''}</small>`:''}</button>`}).join('')}</div>`:'';
     return `<article class="card z-${s.z}" data-id="${esc(t.id)}" style="animation-delay:${Math.min(n++,8)*40}ms">
@@ -564,6 +568,7 @@ function render(bump){
       <div class="track" aria-label="${esc(title(t.k))}"><div class="segs">${Array.from({length:SEGS},(_,j)=>`<i class="sg z-${segZone(j)}${j<=p?' d':''}"></i>`).join('')}</div>
         <div class="pos"><div class="rig" style="left:${left(p)}">${icon(t)}</div></div></div>
       ${sigs}
+      ${single(t.k)&&S.trucks.some(x=>x.k===t.k&&x.id!==t.id)?`<p class="dup">⚠ Shares ${esc(short(t.k))} with ${esc(S.trucks.filter(x=>x.k===t.k&&x.id!==t.id).map(x=>x.unit).join(', '))}. Only one truck fits here. ${can('edit')?'Tap Edit and move one to an open spot.':'Ask an admin to fix it.'}</p>`:''}
       ${t.notes?`<p class="notes">${esc(t.notes)}</p>`:''}
       ${acts?`<div class="acts">${acts}</div>`:''}${hist(t)}</article>`};
   let html='';
@@ -730,7 +735,7 @@ function openTruck(id){if(!can('edit'))return;editing=id||null;const t=id?find(i
   f.k.value=t?t.k:(sel||(occupied('s1')?(STEPS.find(s=>s.z==='build'&&!occupied(s.k))||{k:'s1'}).k:'s1'));
   $('#tDel').hidden=!t;$('#mTruck').hidden=false;setTimeout(()=>f.unit.focus(),50)}
 $('#fTruck').addEventListener('submit',e=>{e.preventDefault();const f=e.target,k=f.k.value;
-  if(occupied(k,editing)){$('#tErr').textContent=`${title(k)} already has ${at(k).find(t=>t.id!==editing).unit}. Each build station holds one truck.`;$('#tErr').hidden=false;return}
+  if(occupied(k,editing)){$('#tErr').textContent=`${title(k)} already has ${at(k).find(t=>t.id!==editing).unit}. Each station holds one truck. Pick an open spot.`;$('#tErr').hidden=false;return}
   const v={unit:f.unit.value.trim(),model:f.model.value.trim(),vt:f.vt.value,cust:f.cust.value.trim(),due:f.due.value,notes:f.notes.value.trim()};
   let t;if(editing){t=find(editing);remember([t.id]);if(t.k!==k)setK(t,k);Object.assign(t,v);toast(`Saved ${t.unit}`)}
   else{t=normTruck({id:nid(),...v,k,h:[{k,t:now(),by:me||''}]});remember([t.id]);S.trucks.push(t);toast(`Added ${v.unit} at ${title(k)}`)}
@@ -776,9 +781,9 @@ document.addEventListener('click',e=>{
   if(b.hasAttribute('data-edit'))openTruck(id);
   else if(b.hasAttribute('data-pull')&&can('edit'))pick('Emergency pull',`Take ${t.unit} off Station 11. Where is it going?`,notBuild(),k=>moveTo(t,k,`${t.unit} pulled off Station 11 → ${title(k)}`));
   else if(b.hasAttribute('data-moveto')&&can('move'))pick(`Move ${t.unit}`,'Where is it going next?',STEPS.map(s=>s.k).filter(k=>k!==t.k),k=>moveTo(t,k),t.id);
-  else if(b.hasAttribute('data-adv')&&can('move')){const i=FLOW.indexOf(t.k);if(t.k===SIGSTN&&!sigsDone(t)){toast('Station 18 needs both sigs first');return}if(i>=0&&i<FLOW.length-1)moveTo(t,FLOW[i+1])}
-  else if(b.hasAttribute('data-back')&&can('edit')){const i=FLOW.indexOf(t.k);if(i>0)moveTo(t,FLOW[i-1])}
-  else if(b.hasAttribute('data-return')&&can('edit')){remember([t.id]);setK(t,'f5');putTruck(t);render(new Set(['f5']));toast(`${t.unit} back at ${title('f5')}`)}});
+  else if(b.hasAttribute('data-adv')&&can('move')){const i=FLOW.indexOf(t.k);if(t.k===SIGSTN&&!sigsDone(t)){toast('Station 18 needs both sigs first');return}if(i>=0&&i<FLOW.length-1){const nx=FLOW[i+1];if(occupied(nx,t.id)){toast(fullMsg(nx,t.id));return}moveTo(t,nx)}}
+  else if(b.hasAttribute('data-back')&&can('edit')){const i=FLOW.indexOf(t.k);if(i>0){const pv=FLOW[i-1];if(occupied(pv,t.id)){toast(fullMsg(pv,t.id));return}moveTo(t,pv)}}
+  else if(b.hasAttribute('data-return')&&can('edit')){if(occupied('f5',t.id)){toast(fullMsg('f5',t.id));return}remember([t.id]);setK(t,'f5');putTruck(t);render(new Set(['f5']));toast(`${t.unit} back at ${title('f5')}`)}});
 document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModal(m,true)}));
 document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.closest&&e.target.closest('#floor [data-k],#floor [data-tid],#floor [data-done]')){e.preventDefault();e.target.dispatchEvent(new MouseEvent('click',{bubbles:true}));return}if(e.key==='Escape')document.querySelectorAll('.modal').forEach(m=>{if(!m.hidden)closeModal(m)})});
 $('#bAdd').addEventListener('click',()=>openTruck());
