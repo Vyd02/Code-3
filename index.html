@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Code 3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE: plant-floor board — bold, corporate-industrial, readable at a glance
+   IDEA: the plant's flow board: build line → paint shop → TAG line → final line → signed off
+   PICTURE: zoned plant map of every step; each truck is drawn as its vehicle type and drives along a zone-coloured rail
+   COLOUR and TYPE: charcoal #121315, white, fire red #d7141a, paint-shop spectrum; Barlow Condensed caps + Barlow
+   LAYOUT: dark header with live counts, plant map, sticky toolbar, trucks grouped by zone; stacks on phones */
+:root{color-scheme:light dark;--line:light-dark(#dcdddf,#2f3136);--ok:light-dark(#0b7a3b,#3fcf7a);--bg:light-dark(#ffffff,#0f1012);--ink:light-dark(#121315,#f1f2f3);--mut:light-dark(#5f646b,#a2a7ae);--card:light-dark(#f4f4f3,#1a1b1e);--line:light-dark(#dcdddf,#2f3136);--dk:#121315;--red:#d7141a;--red2:#a50e13;--fin2:#6b7078;
+--paint:linear-gradient(115deg,#d7141a,#ff7a00 30%,#ffd400 52%,#19a463 72%,#1e7be5)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Barlow,system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{font-family:"Barlow Condensed",Barlow,sans-serif;line-height:1.05;margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;min-height:44px;border-radius:8px;border:1.5px solid var(--line);background:var(--bg);padding:0 14px;font-weight:600}
+button:disabled{opacity:.4;cursor:default}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+.go{background:var(--red);border-color:var(--red);color:#fff}
+.wrap{max-width:1240px;margin:0 auto;padding:0 max(4vw,14px)}
+/* header */
+.hero{background:var(--dk);color:#fff;position:relative;padding:26px 0 40px;overflow:hidden}
+.hero::after{content:"";position:absolute;right:0;bottom:12px;width:min(520px,70%);height:20px;background:linear-gradient(var(--red),var(--red)) 100% 0/100% 3px no-repeat,linear-gradient(var(--red),var(--red)) 100% 8px/72% 3px no-repeat,linear-gradient(#fff,#fff) 100% 16px/44% 3px no-repeat;opacity:.9;animation:slide 1s cubic-bezier(.2,.8,.2,1) both}
+@keyframes slide{from{transform:translateX(60%);opacity:0}}
+.hero h1{font-size:clamp(36px,6vw,52px);font-weight:800;text-transform:uppercase;letter-spacing:.01em}
+.hero p{margin:4px 0 0;color:#b9bdc3;font-size:15px}
+.hhead{display:flex;justify-content:space-between;align-items:center;gap:12px}.hhead>div{flex:1 1 auto}
+.amb{flex:none;width:clamp(130px,34vw,340px);height:auto;overflow:visible;animation:drivein 1.3s cubic-bezier(.2,.8,.2,1) both}
+@keyframes drivein{from{transform:translateX(-60px);opacity:0}}
+.amb .lr{fill:#ff2a2a;animation:flash .6s steps(1) infinite}.amb .lb{fill:#2f7bff;animation:flash .6s steps(1) infinite .3s}
+.amb .glow{opacity:.35;filter:blur(4px)}
+@keyframes flash{50%{opacity:.15}}
+.amb .spk{transform-box:fill-box;transform-origin:center;animation:spin .45s linear infinite}
+.amb .road{animation:road .5s linear infinite}
+@keyframes road{to{stroke-dashoffset:38}}
+.amb .bod{animation:bob2 .9s ease-in-out infinite alternate}
+@keyframes bob2{to{transform:translateY(-1.6px) rotate(-.3deg)}}
+.amb .bod{transform-box:view-box;transform-origin:130px 104px}
+.amb .streaks path{animation:streak 1.1s linear infinite;opacity:0}
+.amb .streaks path:nth-child(2){animation-delay:.35s}.amb .streaks path:nth-child(3){animation-delay:.7s}
+@keyframes streak{0%{transform:translateX(30px);opacity:0}30%{opacity:.6}100%{transform:translateX(-40px);opacity:0}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.me{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px;font-size:14px;color:#d6d8db}.me:empty{display:none}
+.role{display:inline-flex;align-items:center;gap:6px;border-radius:20px;padding:3px 12px;font-weight:600;background:#2a2c30;color:#fff}
+.role.admin{background:var(--red)}.role.view{background:#45484d}
+.me button{min-height:36px;background:transparent;color:#fff;border-color:#4a4d52;font-size:14px}.me button.on{background:#fff;color:var(--dk)}
+.seg{display:inline-flex;border:1.5px solid #4a4d52;border-radius:10px;padding:3px;gap:3px;flex-basis:100%;max-width:360px}.seg button{flex:1 1 auto;border:0;border-radius:7px;min-height:38px;padding:0 9px;font-size:13px;white-space:nowrap;transition:background .2s,color .2s}
+.sync{font-size:13px;color:#9a9ea4}
+.sigs{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+.sig{display:grid;gap:2px;text-align:left;padding:8px 10px;min-height:56px;border-style:dashed;background:var(--bg)}
+.sig span{font-size:13px;color:var(--mut);font-weight:600}.sig b{font-size:15px}
+.sig.ok{border-style:solid;border-color:var(--ok);background:color-mix(in srgb,var(--ok) 10%,var(--bg))}.sig.ok b{color:var(--ok)}
+.sig small{font-size:12px;color:var(--mut);font-weight:400}
+.sig:disabled{opacity:1;cursor:default}
+.by{color:var(--mut)}
+body.locked{overflow:hidden}
+.gate{position:fixed;inset:0;z-index:50;background:#121315;color:#fff;overflow:auto;display:flex;align-items:center;justify-content:center;padding:24px 16px}
+.gate[hidden]{display:none}
+.gwrap{width:min(420px,100%);display:grid;gap:18px}
+.gbrand{text-align:center}.gbrand h1{font-size:46px;font-weight:800;text-transform:uppercase;margin-top:4px}.gbrand p{color:#b9bdc3;margin:4px 0 0;font-size:15px}
+.gamb{width:150px;height:88px;animation:gdrive 2.4s ease-in-out infinite alternate}
+@keyframes gdrive{from{transform:translateX(-14px)}to{transform:translateX(14px)}}
+.gcard{background:#fff;color:#121315;border-radius:16px;padding:20px;display:grid;gap:12px;color-scheme:light}
+.gcard h2{font-size:28px;font-weight:800;text-transform:uppercase}
+.gcard form{display:grid;gap:12px}
+.gcard input{min-height:48px;border:1.5px solid #cfd1d4;border-radius:10px;padding:0 14px;font-size:16px;background:#fff;color:#121315}
+.gcard input:focus-visible{outline:3px solid var(--red);outline-offset:1px}
+.gbig{min-height:50px;font-size:17px}
+.gerr{margin:0;color:var(--red);font-size:14px;min-height:0}.gerr:empty{display:none}.gerr.ok{color:#0b7a3b}
+.glinks{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.glink{border:0;background:transparent;color:var(--red);padding:0 4px;min-height:40px;font-weight:600}
+.gmsg{margin:0;font-size:16px}.gnote{margin:0;font-size:13px;color:#5f646b}
+.hbtns{display:inline-flex;gap:6px}
+.shead1{display:flex;justify-content:space-between;align-items:center}.shead1 button{width:44px;padding:0}
+.ppl{display:grid;gap:8px}
+.pwait{margin:0;background:color-mix(in srgb,var(--red) 12%,var(--bg));color:var(--red);border-radius:10px;padding:8px 12px;font-weight:600;font-size:14px}
+.prow{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;align-items:center;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px}
+.prow.pend{border-color:var(--red)}
+.pav{width:40px;height:40px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;font:800 18px "Barlow Condensed",sans-serif;grid-row:span 2}
+.pinfo{display:grid}.pinfo .k{overflow:hidden;text-overflow:ellipsis}
+.prow select{min-height:44px;border:1.5px solid var(--line);border-radius:8px;padding:0 10px;background:var(--bg);font-size:15px}
+
+#floor{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
+#floor .hold{fill:none;stroke:var(--red);stroke-width:4;stroke-dasharray:120;stroke-dashoffset:120;opacity:0;pointer-events:none}
+#floor .holding .hold{opacity:1;animation:holdfill .52s linear forwards}
+@keyframes holdfill{to{stroke-dashoffset:0}}
+#floor .holding .nc{transform-box:fill-box;transform-origin:center;animation:press .52s ease forwards}
+@keyframes press{to{transform:scale(.9)}}
+.sheet.stn{gap:10px;padding:16px}
+.shead{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center}
+.shead h2{font-size:26px;text-transform:none}.shead .badge{grid-row:auto;width:52px;height:52px;font-size:24px}
+.shead button{width:44px;padding:0}
+.sbox{background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:12px;display:grid;gap:8px}
+.sbox h4{margin:0;font:800 18px "Barlow Condensed",sans-serif;text-transform:uppercase;display:flex;gap:8px;align-items:center}.sbox h4 span{font:600 14px Barlow;color:var(--mut)}
+.pmeta1{display:grid;gap:10px}.chips{list-style:none;margin:4px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px}.chips li{background:var(--bg);border:1px solid var(--line);border-radius:20px;padding:3px 12px;font-size:15px}
+.editbtn{justify-self:start}
+.strk{display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px solid var(--line)}.strk:first-of-type{border-top:0}.strk svg{flex:none}.strk1{flex:1}
+.strk button{min-height:38px}
+
+.floorwrap{padding-top:20px}
+.fhead{display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap}.fhead h2{font-size:24px;font-weight:800;text-transform:uppercase}.fhint{flex:1}
+#map{max-width:1000px;margin:0 auto}
+#floor{width:100%;height:auto;display:block;overflow:visible;-webkit-tap-highlight-color:transparent}
+#floor .road{fill:none;stroke:var(--line);stroke-width:18;stroke-linecap:round;stroke-linejoin:round}
+#floor .roadc{fill:none;stroke:var(--mut);stroke-width:1.5;stroke-dasharray:7 9;opacity:.55;animation:belt2 1.4s linear infinite}
+@keyframes belt2{to{stroke-dashoffset:-32}}
+#floor .conn{fill:none;stroke:var(--line);stroke-width:5;stroke-dasharray:1 9;stroke-linecap:round}
+#floor .zl{font:800 16px "Barlow Condensed",sans-serif;text-transform:uppercase;fill:var(--ink)}
+#floor .zs{font:500 11px Barlow,sans-serif;fill:var(--mut)}
+#floor .node{cursor:pointer;outline:none}#floor .hit{fill:transparent}
+#floor .nc{fill:var(--bg);stroke:var(--zc);stroke-width:3;transition:fill .2s,stroke-width .2s}
+#floor .node.has .nc{stroke-width:4}
+#floor .nt{font:800 13px "Barlow Condensed",sans-serif;fill:var(--ink);text-anchor:middle;dominant-baseline:central;pointer-events:none}
+#floor .z-fin .nt{fill:var(--red)}
+#floor .node.on .nc{fill:var(--ink)}#floor .node.on .nt{fill:var(--bg)}
+#floor .node:focus-visible .nc{stroke:var(--red);stroke-width:5}
+#floor .nl{font:500 10px Barlow,sans-serif;fill:var(--mut);text-anchor:middle;pointer-events:none}
+#floor .node.pulse .nc,#floor .bay.pulse,#floor .lot.pulse{animation:npulse .8s ease}
+@keyframes npulse{40%{stroke:var(--red);stroke-width:6}}
+#floor .ncm{fill:var(--red)}#floor .ncmt{font:700 9px Barlow,sans-serif;fill:#fff;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+#floor .svcbox{fill:var(--card);stroke:var(--line);stroke-width:1.5}
+#floor .bayg{cursor:pointer}#floor .bay{fill:var(--bg);stroke:var(--line);stroke-width:1.5}#floor .bay.on{stroke:var(--ink);stroke-width:3}
+#floor .bayl.sm{font-size:11px}#floor .bayl{font:800 13px "Barlow Condensed",sans-serif;fill:var(--ink);pointer-events:none}#floor .bays{font:700 12px Barlow,sans-serif;fill:var(--mut);pointer-events:none}
+#floor .lotg{cursor:pointer}#floor .lot{fill:var(--dk)}#floor .lott{font:800 18px "Barlow Condensed",sans-serif;fill:#fff;dominant-baseline:central;text-transform:uppercase}
+#floor .lotn{font:800 24px "Barlow Condensed",sans-serif;fill:#fff;dominant-baseline:central}
+#floor .mt{transition:transform 1s cubic-bezier(.5,0,.2,1),opacity .5s .5s;cursor:pointer;outline:none}#floor .mt.gone{opacity:0}
+#floor .mti{transition:transform .35s}
+#floor .mt.moving use{animation:bob .16s linear infinite alternate}
+#floor .mt:focus-visible use{outline:2px solid var(--red)}
+#floor .mtl{font:700 10px Barlow,sans-serif;fill:var(--ink);text-anchor:middle;paint-order:stroke;stroke:var(--bg);stroke-width:3px;pointer-events:none}
+.card.flash{animation:flash2 1.2s ease}
+@keyframes flash2{20%{box-shadow:0 0 0 4px var(--red)}}
+
+.cmts{grid-column:1 / -1;border-top:1px solid var(--line);padding-top:12px;margin-top:6px}
+.cmts h4{margin:0 0 8px;font:800 18px "Barlow Condensed",sans-serif;text-transform:uppercase;display:flex;gap:8px;align-items:center}.cmts h4 span{font:600 14px Barlow;color:var(--mut)}
+.cform{display:flex;gap:8px;align-items:flex-end}.cform textarea{flex:1;min-height:44px;border:1.5px solid var(--line);border-radius:8px;padding:8px 12px;background:var(--bg);font-size:16px;resize:vertical}
+.clist{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:8px}
+.clist li{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 12px;animation:rise .3s ease both}
+.chead{display:flex;gap:8px;align-items:center;font-size:14px}.chead time{color:var(--mut);flex:1}
+.cdel{min-height:30px;padding:0 8px;font-size:13px;border:0;color:var(--red);background:transparent}
+.clist p{margin:4px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.tl .cm{position:absolute;right:5px;bottom:5px;font:700 11px/16px Barlow;font-style:normal;min-width:18px;height:16px;padding:0 4px;border-radius:8px 8px 8px 2px;background:var(--red);color:#fff;text-align:center}
+.where a{color:var(--red);font-weight:600}
+
+.figs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin-top:20px}
+.fig{border-left:3px solid var(--fin2);padding:2px 0 2px 12px}
+.fig b{display:block;font:800 clamp(30px,5vw,44px)/1 "Barlow Condensed",sans-serif}
+.fig span{font-size:14px;color:#b9bdc3}
+.fig.p{border-image:var(--paint) 1}.fig.f{border-color:var(--red)}.fig.d{border-color:#fff}.fig.l b{color:#ff4d52}
+/* plant map */
+.map{padding:22px 0 8px;display:grid;gap:12px}
+.row2{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1.6fr) minmax(0,3.2fr);gap:12px}
+.zone{border:1.5px solid var(--line);border-radius:12px;padding:12px;background:var(--bg);position:relative}
+.zone>header{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:10px}
+.zone h3{font-size:19px;font-weight:800;text-transform:uppercase}
+.zone header span{font-size:13px;color:var(--mut);flex:1}
+.zone header b{font:800 20px "Barlow Condensed",sans-serif}
+.zone::before{content:"";position:absolute;left:12px;right:12px;top:-1.5px;height:4px;border-radius:0 0 3px 3px;background:var(--zc)}
+.z-build{--zc:var(--ink)}.z-out{--zc:var(--paint)}.z-final{--zc:var(--fin2)}.z-fin{--zc:var(--red)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:6px}
+.tl{position:relative;text-align:left;border:1.5px solid var(--line);background:var(--card);border-radius:8px;padding:6px 8px 7px;min-height:66px;display:flex;flex-direction:column;justify-content:space-between;transition:transform .15s,border-color .15s}
+.tl:hover{transform:translateY(-2px);border-color:var(--ink)}
+.tl b{font:800 22px/1 "Barlow Condensed",sans-serif}
+.tl span{font-size:12px;line-height:1.2;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tl i{position:absolute;top:6px;right:6px;font:700 13px/20px Barlow;font-style:normal;min-width:20px;height:20px;border-radius:10px;background:var(--ink);color:var(--bg);text-align:center;padding:0 5px}
+.tl i:empty{display:none}
+.tl.has{border-color:var(--ink);background:var(--bg)}
+.tl.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}.tl.on span{color:inherit;opacity:.75}.tl.on i{background:var(--red);color:#fff}
+.z-fin .tl b{color:var(--red)}.z-fin .tl.on b{color:#ff6b6f}
+.tl.pt{border:0;color:#fff;background:var(--paint);background-size:220% 220%;animation:wet 7s ease-in-out infinite alternate;padding:10px 12px;justify-content:flex-end;overflow:hidden}
+.tl.pt b{font-size:22px;text-transform:uppercase;text-shadow:0 1px 6px rgba(0,0,0,.35)}.tl.pt span{color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.4)}
+.tl.pt i{background:#fff;color:var(--dk);font-size:15px;min-width:26px;height:26px;line-height:26px;border-radius:13px}
+.tl.pt.on{outline:4px solid var(--ink);outline-offset:-4px}
+.tl.pt svg{position:absolute;top:0;left:0;width:100%;height:30px}
+@keyframes wet{to{background-position:100% 100%}}
+.z-out .tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
+.z-out .tl:not(.pt){border-top:4px solid var(--sc)}
+.tl.dn{background:var(--dk);color:#fff;border-color:var(--dk)}.tl.dn span{color:#b9bdc3}.tl.dn i{background:#fff;color:var(--dk)}
+.tl.bump{animation:bump .7s ease}
+@keyframes bump{30%{transform:scale(1.12);border-color:var(--red);box-shadow:0 0 0 4px rgba(215,20,26,.25)}}
+/* toolbar */
+.bar{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.bar .wrap{display:flex;flex-wrap:wrap;gap:8px;padding-block:10px;align-items:center}
+.bar input{flex:1 1 200px;min-height:44px;border:1.5px solid var(--line);border-radius:8px;padding:0 14px;background:var(--bg);font-size:16px}
+.bar select{min-height:44px;border:1.5px solid var(--line);border-radius:8px;padding:0 10px;background:var(--bg);font-size:16px}
+.chip{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+/* station panel */
+.panel{margin-top:18px;border-radius:12px;background:var(--card);border:1.5px solid var(--line);padding:16px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 16px;align-items:start;animation:rise .35s ease}
+.badge{width:60px;height:60px;border-radius:10px;display:grid;place-items:center;font:800 26px "Barlow Condensed",sans-serif;background:var(--ink);color:var(--bg);grid-row:span 2}
+.badge.z-out{background:var(--paint);color:#fff}.badge.z-fin{background:var(--red);color:#fff}.badge.z-final{background:var(--fin2);color:#fff}
+.panel h3{font-size:26px}.k{font-size:13px;color:var(--mut)}
+.panel ul{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.panel li{background:var(--bg);border:1px solid var(--line);border-radius:20px;padding:3px 12px;font-size:15px}
+.pmeta{grid-column:2 / -1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:12px}
+.pbtn{display:flex;gap:8px}
+/* list */
+.note{font-size:14px;color:var(--mut);margin:16px 0 0;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.note button{min-height:36px;font-size:14px}
+.zh{display:flex;align-items:center;gap:10px;margin:26px 0 12px;font-size:22px;font-weight:800;text-transform:uppercase}
+.zh::before{content:"";width:28px;height:6px;border-radius:3px;background:var(--zc)}
+.zh span{font:600 15px Barlow;color:var(--mut);text-transform:none}
+.zh::after{content:"";flex:1;height:1px;background:var(--line)}
+.list{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,350px),1fr));gap:12px}
+.card{background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:14px 16px;display:grid;gap:10px;animation:rise .4s ease both;overflow:hidden;transition:opacity .4s,transform .4s;position:relative}
+.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--zc)}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}}
+.card.leaving{opacity:0;transform:translateX(30px);transition-delay:.7s}
+.top{display:flex;justify-content:space-between;gap:10px}
+.top h3{font-size:28px;font-weight:800}.top p{margin:2px 0 0;color:var(--mut);font-size:15px}
+.due{font-size:13px;white-space:nowrap;text-align:right;color:var(--mut)}.due b{display:block;color:var(--ink);font-size:16px}
+.due.late b{color:var(--red)}
+.where{display:flex;justify-content:space-between;flex-wrap:wrap;gap:2px 10px;font-size:15px}.where span{color:var(--mut);font-size:14px}
+.track{position:relative;height:50px}
+.segs{position:absolute;left:0;right:0;bottom:4px;display:flex;gap:2px}
+.sg{flex:1;height:8px;border-radius:2px;background:var(--line);transition:background .25s;transition-delay:var(--d,0ms)}
+.sg.d.z-build{background:var(--ink)}.sg.d.z-final{background:var(--fin2)}.sg.d.z-fin{background:var(--red)}.sg.d.z-out{background:var(--paint)}
+.sg.z-out{flex:1.6}
+.pos{position:absolute;left:24px;right:24px;top:0;bottom:0}
+.rig{position:absolute;bottom:13px;width:48px;height:28px;transform:translateX(-50%);transition:left .8s cubic-bezier(.5,0,.2,1)}
+.rig svg{display:block;transform-origin:center}
+.rig.rev svg{transform:scaleX(-1)}
+.rig.moving svg{animation:bob .18s linear infinite alternate}
+@keyframes bob{to{translate:0 -2px}}
+.sigs{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+.sig{display:grid;gap:0;text-align:left;padding:8px 12px;border:2px dashed var(--mut);background:var(--bg);min-height:56px}
+.sig b{font-size:15px}.sig span{font-size:13px;color:var(--mut);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sig.ok{border:2px solid var(--ok);background:color-mix(in srgb,var(--ok) 12%,var(--bg))}.sig.ok b{color:var(--ok)}
+.sig.stamp{animation:stamp .45s cubic-bezier(.3,1.6,.5,1)}
+@keyframes stamp{from{transform:scale(1.35) rotate(-4deg);opacity:0}}
+.notes{font-size:15px;margin:0;padding:8px 10px;border-left:3px solid var(--red);background:var(--bg);border-radius:4px}
+.acts{display:flex;gap:8px;align-items:center}.acts .go,.acts .warn{flex:1;min-width:0}
+.warn{border-color:var(--red);color:var(--red);background:transparent}
+.lk{flex:1;font-size:14px;color:var(--mut);display:flex;align-items:center;gap:6px}
+.lk::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--mut);opacity:.5}
+.mv{min-height:38px;padding:0 12px;font-size:15px}
+.tl svg.mi{position:absolute;right:5px;bottom:20px;width:30px;height:18px}
+.tl.full span{color:var(--ink);font-weight:600}.tl.full.on span{color:inherit}
+.tl.shift{animation:shift .55s ease both;animation-delay:var(--d,0ms)}
+@keyframes shift{40%{transform:translateX(6px);border-color:var(--red)}}
+.picks{display:grid;gap:6px}.picks h3{margin-top:8px}
+.pk{display:flex;align-items:center;gap:10px;text-align:left;width:100%}.pk b{font:800 18px "Barlow Condensed",sans-serif;min-width:32px}
+.pk span{flex:1}.pk em{font-style:normal;font-size:13px;color:var(--mut)}
+.err{color:var(--red);font-size:14px;margin:0}
+.acts .go,.acts .warn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.empty{text-align:center;padding:36px 16px;border:2px dashed var(--line);border-radius:12px;color:var(--mut);margin-top:20px}
+.empty svg{width:120px;height:70px;animation:roll 3s ease-in-out infinite}
+@keyframes roll{50%{transform:translateX(14px)}}
+details.shipped{margin:28px 0 48px;border-top:1.5px solid var(--line);padding-top:12px}
+details.shipped>summary{cursor:pointer;font:800 22px "Barlow Condensed",sans-serif;text-transform:uppercase;min-height:44px;display:flex;align-items:center}
+.srow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.srow{flex-wrap:wrap}.srow span{color:var(--mut);font-size:14px}
+.sv{display:flex;gap:12px;align-items:flex-start;flex:1 1 240px}.sv svg{flex:none;margin-top:4px}
+.signed{margin-top:4px;font-size:15px;color:var(--ok,#0b7a3b)}.signed b{color:var(--ink)}
+.when{display:flex;flex-wrap:wrap;gap:2px 16px;font-size:14px;color:var(--mut)}.when b{color:var(--ink);font-weight:600;white-space:nowrap}
+.hist{font-size:14px;width:100%}.hist summary{cursor:pointer;color:var(--mut);min-height:32px;display:flex;align-items:center}
+.hist ol{list-style:none;margin:4px 0 0;padding:0 0 0 14px;border-left:2px solid var(--line);display:grid;gap:6px}
+.hist li{display:flex;justify-content:space-between;gap:10px;position:relative}.hist li::before{content:"";position:absolute;left:-19px;top:7px;width:8px;height:8px;border-radius:50%;background:var(--red)}
+.hist li:not(:first-child)::before{background:var(--mut)}.hist time{color:var(--mut);white-space:nowrap}
+/* sheets */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;z-index:20;padding:12px}
+.modal[hidden]{display:none}
+.sheet{background:var(--bg);width:min(560px,100%);max-height:90vh;overflow:auto;border-radius:14px;padding:18px;display:grid;gap:12px;animation:up .3s cubic-bezier(.3,1.3,.5,1)}
+@media(min-width:700px){.modal{align-items:center}}
+@keyframes up{from{transform:translateY(40px);opacity:0}}
+.sheet h2{font-size:28px;font-weight:800;text-transform:uppercase}
+.sheet h3{font-size:18px;font-weight:800;text-transform:uppercase;margin-top:6px}
+label{display:grid;gap:4px;font-size:14px;font-weight:600}
+.sheet input,.sheet select,.sheet textarea{min-height:44px;border:1.5px solid var(--line);border-radius:8px;padding:8px 12px;background:var(--bg);font-size:16px;font-weight:400}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.row{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}.row .del{margin-right:auto;color:var(--red)}
+.sed{border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;display:grid;gap:8px}
+.sed summary{cursor:pointer;font-weight:600;min-height:36px;display:flex;align-items:center;gap:8px}
+.sed summary em{font-style:normal;color:var(--mut);font-weight:400;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hint{font-size:13px;color:var(--mut);font-weight:400}
+.toast{position:fixed;left:50%;bottom:18px;transform:translate(-50%,120px);background:var(--dk);color:#fff;border-radius:10px;padding:6px 6px 6px 16px;display:flex;gap:12px;align-items:center;z-index:30;transition:transform .35s cubic-bezier(.3,1.3,.5,1);max-width:calc(100% - 24px)}
+.toast{visibility:hidden}.toast.show{transform:translate(-50%,0);visibility:visible}
+.toast button{background:#fff;color:var(--dk);border:0;min-height:38px}
+@media(min-width:1000px){.z-build .tiles{grid-template-columns:repeat(15,minmax(0,1fr))}}
+@media(max-width:900px){.row2{grid-template-columns:minmax(0,1fr) minmax(0,2fr)}.row2 .z-fin{grid-column:1 / -1}}
+@media(max-width:600px){.figs{grid-template-columns:repeat(3,minmax(0,1fr))}.fig.d,.fig.l{grid-column:span 1}
+ .tiles{grid-template-columns:repeat(5,minmax(0,1fr))}.tl{min-height:58px;padding:5px 6px}.tl b{font-size:20px}.tl span{font-size:11px}
+ .row2{grid-template-columns:1fr}.tl.pt b{font-size:19px}
+ .z-fin .tiles{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .panel{grid-template-columns:auto minmax(0,1fr)}.pbtn{grid-column:1 / -1}.pmeta{grid-template-columns:1fr;grid-column:1 / -1}.two{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="gate" class="gate"><div class="gwrap">
+  <div class="gbrand"><svg class="gamb" viewBox="0 0 48 28" aria-hidden="true"><use href="#v-amb"/></svg><h1>Code 3</h1><p>Line tracker · every truck from Station 1 to signed off</p></div>
+  <div class="gcard" id="gCard"><p class="gmsg">Loading…</p></div>
+</div></div>
+<section class="hero">
+  <div class="wrap">
+    <div class="hhead"><div>
+    <h1>Code 3</h1>
+    <p>Line tracker · every truck from Station 1 to signed off</p>
+    <div class="me" id="me"></div>
+    </div>
+    <svg class="amb" viewBox="0 0 260 130" aria-hidden="true">
+      <ellipse cx="130" cy="120" rx="122" ry="6" fill="rgba(0,0,0,.45)"/>
+      <path class="road" d="M-60 127H320" stroke="#4a4d52" stroke-width="3" stroke-dasharray="22 16" stroke-linecap="round"/>
+      <g class="streaks"><path d="M-30 40h28M-46 58h36M-24 80h22" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></g>
+      <g class="bod">
+      <circle class="glow lr" cx="17" cy="19" r="10"/><circle class="glow lb" cx="161" cy="19" r="10"/><circle class="glow lr" cx="185" cy="37" r="10"/><circle class="glow lb" cx="201" cy="37" r="10"/>
+      <rect x="10" y="14" width="160" height="86" rx="6" fill="#f4f5f6"/>
+      <rect x="10" y="14" width="160" height="7" rx="3.5" fill="#fff"/>
+      <rect x="22" y="28" width="30" height="30" rx="2" fill="none" stroke="#c4c8ce" stroke-width="1.5"/><rect x="58" y="28" width="30" height="30" rx="2" fill="none" stroke="#c4c8ce" stroke-width="1.5"/>
+      <rect x="44" y="40" width="5" height="2" rx="1" fill="#9aa0a6"/><rect x="80" y="40" width="5" height="2" rx="1" fill="#9aa0a6"/>
+      <rect x="98" y="28" width="44" height="24" rx="3" fill="#2b3036"/><path d="M101 31h16l-8 18h-8z" fill="#fff" opacity=".18"/>
+      <rect x="10" y="64" width="160" height="12" fill="#d7141a"/><rect x="10" y="78" width="160" height="3" fill="#d7141a" opacity=".55"/>
+      <rect x="22" y="84" width="66" height="12" rx="2" fill="none" stroke="#c4c8ce" stroke-width="1.5"/>
+      <rect class="lr" x="12" y="16" width="11" height="6" rx="2"/><rect class="lb" x="155" y="16" width="11" height="6" rx="2"/>
+      <rect x="10" y="98" width="232" height="6" rx="2" fill="#3a3d42"/>
+      <path d="M170 42h40l28 28v30h-68z" fill="#f4f5f6"/>
+      <path d="M176 48h31l21 22h-52z" fill="#2b3036"/><path d="M180 51h10l-6 16h-4z" fill="#fff" opacity=".18"/>
+      <path d="M190 74v24" stroke="#c4c8ce" stroke-width="1.5"/><rect x="194" y="80" width="6" height="2" rx="1" fill="#9aa0a6"/>
+      <rect x="170" y="76" width="68" height="9" fill="#d7141a"/>
+      <rect x="231" y="88" width="9" height="6" rx="2" fill="#ffe28a"/><rect x="226" y="98" width="22" height="8" rx="2" fill="#9aa0a6"/>
+      <rect x="208" y="54" width="4" height="11" rx="1" fill="#3a3d42"/>
+      <rect class="lr" x="178" y="34" width="14" height="6" rx="2"/><rect class="lb" x="194" y="34" width="14" height="6" rx="2"/>
+      </g>
+      <g><circle cx="50" cy="104" r="16" fill="#1b1c1e"/><circle cx="50" cy="104" r="8" fill="#c9ccd1"/><g class="spk"><path d="M50 97v14M43 104h14" stroke="#6b7078" stroke-width="2.5" stroke-linecap="round"/></g></g>
+      <g><circle cx="204" cy="104" r="16" fill="#1b1c1e"/><circle cx="204" cy="104" r="8" fill="#c9ccd1"/><g class="spk"><path d="M204 97v14M197 104h14" stroke="#6b7078" stroke-width="2.5" stroke-linecap="round"/></g></g>
+    </svg>
+    </div>
+    <div class="figs" id="figs"></div>
+  </div>
+</section>
+<div class="wrap floorwrap"><div class="fhead"><h2>Plant floor</h2><span class="k fhint">Tap a station to open · hold to edit</span><span id="fmv"></span></div><div id="map"></div></div>
+<div class="bar"><div class="wrap">
+  <input id="q" type="search" placeholder="Search unit, model, customer" aria-label="Search trucks">
+  <select id="sort" aria-label="Sort trucks"><option value="st">Line order</option><option value="due">Due date</option><option value="unit">Unit #</option></select>
+  <span id="fchip"></span>
+  <button id="bStations">Crews</button><button class="go" id="bAdd">+ Add truck</button>
+</div></div>
+<main class="wrap">
+  <div id="panel"></div>
+  <div id="note"></div>
+  <div id="list"></div>
+  <details class="shipped" id="shipped"></details>
+</main>
+
+<div class="modal" id="mTruck" hidden>
+  <form class="sheet" id="fTruck">
+    <h2 id="tTitle">Add truck</h2>
+    <label>Unit / job number<input name="unit" required autocomplete="off" placeholder="e.g. 24117"></label>
+    <div class="two">
+      <label>Model<input name="model" autocomplete="off" placeholder="e.g. Pumper"></label>
+      <label>Vehicle type<select name="vt"><option value="">Guess from model (ambulance if unsure)</option><option value="pumper">Pumper</option><option value="aerial">Aerial / ladder</option><option value="rescue">Rescue</option><option value="tanker">Tanker</option><option value="amb">Ambulance</option><option value="rv">RV / coach</option></select></label>
+    </div>
+    <div class="two">
+      <label>Customer<input name="cust" autocomplete="off"></label>
+      <label>Due date<input name="due" type="date"></label>
+    </div>
+    <label>Where is it now?<select name="k" id="tStep"></select></label>
+    <p class="err" id="tErr" hidden></p>
+    <label>Notes<textarea name="notes" rows="2" placeholder="Waiting on parts, rework, etc."></textarea></label>
+    <div class="row"><button type="button" class="del" id="tDel">Delete</button><button type="button" data-close>Cancel</button><button class="go" type="submit">Save</button></div>
+  </form>
+</div>
+
+<div class="modal" id="mSt" hidden>
+  <form class="sheet" id="fSt">
+    <h2>Crews</h2>
+    <p class="hint" style="margin:0">Rename any step and add its supervisor and employees. Put one employee per line.</p>
+    <div id="stEd" style="display:grid;gap:8px"></div>
+    <div class="row"><button type="button" data-close>Cancel</button><button class="go" type="submit">Save</button></div>
+  </form>
+</div>
+
+<div class="modal" id="mPeople" hidden><div class="sheet"><div class="shead1"><h2>People</h2><button type="button" data-close aria-label="Close">✕</button></div>
+<p class="hint" style="margin:0">Pick a role for each person. New sign-ups wait here with no access until you choose.</p>
+<p class="k" style="margin:0">Admin: everything · Supervisor: move trucks and comment · Employee: view only</p>
+<div id="pplList" class="ppl"></div></div></div>
+<div class="modal" id="mStn" hidden><div class="sheet stn" id="stnSheet" role="dialog" aria-modal="true" aria-label="Station"></div></div>
+<div class="modal" id="mMove" hidden>
+  <div class="sheet">
+    <h2 id="mvTitle">Move truck</h2>
+    <p class="hint" id="mvMsg" style="margin:0;font-size:15px"></p>
+    <div class="picks" id="mvList"></div>
+    <div class="row"><button type="button" data-close>Cancel</button></div>
+  </div>
+</div>
+
+<div class="modal" id="mSig" hidden>
+  <form class="sheet" id="fSig">
+    <h2 id="sgTitle">Signature</h2>
+    <p class="hint" id="sgMsg" style="margin:0;font-size:15px"></p>
+    <label>Signed by<input name="by" list="sgNames" autocomplete="off" placeholder="Name"></label>
+    <datalist id="sgNames"></datalist>
+    <div class="row"><button type="button" class="del" id="sgDel">Remove sig</button><button type="button" data-close>Cancel</button><button class="go" type="submit" id="sgGo">Sign</button></div>
+  </form>
+</div>
+
+<div class="toast" id="toast" role="status"><span id="tMsg"></span><button id="tUndo">Undo</button></div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <g id="wh"><circle cx="11" cy="23" r="4.5" fill="#1b1c1e"/><circle cx="11" cy="23" r="1.8" fill="#c9ccd1"/><circle cx="38" cy="23" r="4.5" fill="#1b1c1e"/><circle cx="38" cy="23" r="1.8" fill="#c9ccd1"/></g>
+  <g id="cab"><path d="M32 7h8l6 7v8H32z" fill="#d7141a"/><path d="M34 9h5l4.5 5H34z" fill="#cfe6ff"/><rect x="33" y="5" width="6" height="2" rx="1" fill="#ffd400"/></g>
+  <symbol id="v-pumper" viewBox="0 0 48 28"><rect x="2" y="8" width="30" height="14" rx="1.5" fill="#d7141a"/><rect x="4" y="10" width="7" height="8" rx=".8" fill="#a50e13"/><rect x="12.5" y="10" width="7" height="8" rx=".8" fill="#a50e13"/><rect x="21" y="10" width="9" height="8" rx=".8" fill="#a50e13"/><path d="M3 4.5h27M3 6.5h27M5 4.5v2M9 4.5v2M13 4.5v2M17 4.5v2M21 4.5v2M25 4.5v2M29 4.5v2" stroke="#b9bdc3" stroke-width=".9"/><use href="#cab"/><rect x="2" y="18.5" width="44" height="1.2" fill="#fff" opacity=".85"/><use href="#wh"/></symbol>
+  <symbol id="v-aerial" viewBox="0 0 48 28"><rect x="2" y="11" width="30" height="11" rx="1.5" fill="#d7141a"/><g transform="rotate(-11 5 10)"><path d="M5 8h40M5 11h40M9 8v3M13 8v3M17 8v3M21 8v3M25 8v3M29 8v3M33 8v3M37 8v3M41 8v3" stroke="#c9ccd1" stroke-width="1"/></g><rect x="3" y="8" width="8" height="3.5" rx="1" fill="#6b7078"/><use href="#cab"/><rect x="2" y="18.5" width="44" height="1.2" fill="#fff" opacity=".85"/><use href="#wh"/></symbol>
+  <symbol id="v-rescue" viewBox="0 0 48 28"><rect x="2" y="3" width="30" height="19" rx="1.5" fill="#d7141a"/><path d="M9.5 5v13M17 5v13M24.5 5v13" stroke="#a50e13" stroke-width="1.2"/><rect x="3" y="2" width="28" height="1.6" rx=".8" fill="#ffd400"/><use href="#cab"/><rect x="2" y="18.5" width="44" height="1.2" fill="#fff" opacity=".85"/><use href="#wh"/></symbol>
+  <symbol id="v-tanker" viewBox="0 0 48 28"><rect x="2" y="7.5" width="30" height="12" rx="6" fill="#c9ccd1"/><rect x="2" y="12.3" width="30" height="2.4" fill="#d7141a"/><rect x="2" y="18" width="30" height="4" fill="#3a3d42"/><use href="#cab"/><use href="#wh"/></symbol>
+  <symbol id="v-amb" viewBox="0 0 48 28"><rect x="2" y="3.5" width="29" height="18" rx="2" fill="#f4f5f6" stroke="#aeb3b9" stroke-width=".8"/><rect x="2" y="13" width="29" height="2.6" fill="#d7141a"/><rect x="6" y="6.5" width="7" height="4.5" rx=".8" fill="#4a5058"/><rect x="4" y="2" width="6" height="2" rx="1" fill="#d7141a"/><rect x="23" y="2" width="6" height="2" rx="1" fill="#1e7be5"/><path d="M31 9h8l6.5 6.5V22H31z" fill="#f4f5f6" stroke="#aeb3b9" stroke-width=".8"/><path d="M33 11h5l4 4.5h-9z" fill="#cfe6ff"/><rect x="31" y="16" width="14.5" height="1.6" fill="#d7141a"/><use href="#wh"/></symbol>
+  <symbol id="v-rv" viewBox="0 0 48 28"><path d="M2 5h38q6 0 6 6.5V22H2z" fill="#eeece6" stroke="#b5b2aa" stroke-width=".8"/><path d="M2 15.5c12-3.5 25 2 44-1.5v2.4c-19 3.4-32-2-44 1.4z" fill="#d7141a"/><rect x="7" y="7.5" width="7" height="4.5" rx=".8" fill="#4a5058"/><rect x="17" y="7.5" width="9" height="4.5" rx=".8" fill="#4a5058"/><path d="M39.5 6.5q5 .4 5.6 5.5h-5.6z" fill="#cfe6ff"/><use href="#wh"/></symbol>
+</defs></svg>
+
+<script src="fb.js"></script>
+<script>
+{
+const KEY='line-tracker-v2';
+const FIN=['Cleaning','Standard work','QC','Finish gigs','Sign the truck'];
+const OUT=[['paint','P','Paint shop','#d7141a'],['body','B','Body shop','#6b7078'],['graphics','G','Graphics','#1e7be5'],['under','U','Undercoating','#121315']];
+const SIGS=[['el','Electrical sig'],['co','Cosmetic sig']];
+const STEPS=[...Array(15)].map((_,i)=>({k:'s'+(i+1),code:String(i+1),def:'Station '+(i+1),z:'build',pos:i}))
+  .concat(OUT.map(([k,code,def,c])=>({k,code,def,z:'out',pos:15,c})))
+  .concat([16,17,18].map((n,j)=>({k:'s'+n,code:String(n),def:'Station '+n,z:'final',pos:16+j})))
+  .concat(FIN.map((n,i)=>({k:'f'+(i+1),code:'F'+(i+1),def:n,z:'fin',pos:19+i})));
+const SEGS=24,DONEPOS=24,EMERG='s11',SIGSTN='s18';
+const segZone=j=>j<15?'build':j===15?'out':j<19?'final':'fin';
+const FLOW=['s16','s17','s18','f1','f2','f3','f4','f5','done'];
+const ZONES=[{z:'build',t:'Build line',sub:'Stations 1–15'},{z:'out',t:'Outside services',sub:''},{z:'final',t:'TAG line',sub:'Stations 16–18'},{z:'fin',t:'Final Line',sub:'Clean to sign-off'}];
+const $=s=>document.querySelector(s);
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const iso=d=>d.toISOString().slice(0,10);
+const now=()=>new Date().toISOString();
+const nid=()=>Math.random().toString(36).slice(2,10);
+const clone=o=>JSON.parse(JSON.stringify(o));
+
+// ---------- state ----------
+let S={info:{},trucks:[]},C=[];             // C = comments
+let db=null,U=null,me=null,role='admin',preview=null,shared=false;
+let sel=null,pop=null,stnEdit=false,holdT=null,longFired=false,undo=null,editing=null,tTimer=null,pickCb=null,animating=0,pendingRender=false;
+let names={};
+const eff=()=>role==='admin'&&preview?preview:role;
+const can=a=>{const r=eff();if(r==='admin')return true;if(r==='emp')return['move','comment'].includes(a);return false};
+
+function normInfo(src){const info={};STEPS.forEach(s=>{const x=(src||{})[s.k]||{};info[s.k]={n:String(x.n||'').trim()||s.def,sup:String(x.sup||''),crew:Array.isArray(x.crew)?x.crew.map(String).filter(Boolean):[]}});return info}
+function normTruck(t){if(!t||!t.id)return null;const k=(t.k==='done'||STEPS.some(s=>s.k===t.k))?t.k:'s1';
+  return{id:String(t.id),unit:String(t.unit||''),model:String(t.model||''),vt:String(t.vt||''),cust:String(t.cust||''),due:String(t.due||''),notes:String(t.notes||''),k,
+    h:Array.isArray(t.h)?t.h.filter(e=>e&&e.k&&e.t).map(e=>({k:String(e.k),t:String(e.t),by:e.by?String(e.by):''})):[],
+    sig:{el:t.sig&&t.sig.el&&t.sig.el.t?{t:String(t.sig.el.t),by:String(t.sig.el.by||'')}:null,co:t.sig&&t.sig.co&&t.sig.co.t?{t:String(t.sig.co.t),by:String(t.sig.co.by||'')}:null}}}
+function normOld(v){
+  if(!v||typeof v!=='object')return{info:normInfo({}),trucks:[]};
+  if(v.v!==4){const old=Array.isArray(v.stations)?v.stations:[],was3=v.v===3;
+    const mapI=i=>{i=+i||0;if(!was3&&i>=18)return'done';if(i<18)return's'+(i+1);if(i<23)return'f'+(i-17);return'done'};
+    const info={};old.forEach((x,i)=>{const k=i<18?'s'+(i+1):i<23?'f'+(i-17):null;if(!k||!x)return;if(typeof x==='string')x={n:x};info[k]=x});
+    v={v:4,info,trucks:(v.trucks||[]).map(t=>({...t,k:mapI(t.s),h:(t.h||[]).map(e=>({k:mapI(e.s),t:e.t}))}))}}
+  return{info:normInfo(v.info),trucks:(v.trucks||[]).filter(t=>t&&!t.sample).map(normTruck).filter(Boolean)}}
+function loadLocal(){try{const v=JSON.parse(localStorage.getItem(KEY));if(v)return normOld(v)}catch(e){}return{info:normInfo({}),trucks:[]}}
+S.info=normInfo({});S.trucks=[];
+C=[];
+function saveLocal(){if(shared)return;try{localStorage.setItem(KEY,JSON.stringify({v:4,info:S.info,trucks:S.trucks}));localStorage.setItem(KEY+'-c',JSON.stringify(C))}catch(e){}}
+
+// ---------- writes ----------
+function writeFail(e){const code=e&&e.code;
+  if(code==='invalid_argument'||code==='permission-denied'){toast("You don't have permission to change this");render()}
+  else if(code==='quota_exceeded')toast('Storage is full. Delete some old signed-off trucks.');
+  else toast("Couldn't save. Check your connection.")}
+async function putTruck(t){if(!shared){saveLocal();return}try{await db.collection('trucks').doc(t.id).set(clone(t))}catch(e){writeFail(e)}}
+async function delTruck(id){if(!shared){saveLocal();return}try{await db.collection('trucks').doc(id).delete()}catch(e){writeFail(e)}}
+async function putInfo(){if(!shared){saveLocal();return}try{await db.doc('plant/crews').set({info:S.info})}catch(e){writeFail(e)}}
+async function putComment(c){if(!shared){saveLocal();return}try{await db.collection('comments').doc(c.id).set(c)}catch(e){writeFail(e)}}
+async function delComment(id){if(!shared){saveLocal();return}try{await db.collection('comments').doc(id).delete()}catch(e){writeFail(e)}}
+function remember(ids){undo=ids.map(id=>{const t=find(id);return{id,before:t?clone(t):null}})}
+async function doUndo(){if(!undo)return;const u=undo;undo=null;$('#toast').classList.remove('show');
+  for(const e of u){if(e.before){const i=S.trucks.findIndex(t=>t.id===e.id);if(i>=0)S.trucks[i]=e.before;else S.trucks.push(e.before);putTruck(e.before)}else{S.trucks=S.trucks.filter(t=>t.id!==e.id);delTruck(e.id)}}
+  saveLocal();render()}
+
+// ---------- helpers ----------
+const find=id=>S.trucks.find(t=>t.id===id);
+const step=k=>STEPS.find(s=>s.k===k);
+const isBuild=k=>/^s([1-9]|1[0-5])$/.test(k);
+const posOf=k=>k==='done'?DONEPOS:step(k).pos;
+const nm=k=>S.info[k].n;
+const isDef=k=>nm(k)===step(k).def;
+const title=k=>{if(k==='done')return'Signed off';if(k==='sig-el')return'Electrical sig signed';if(k==='sig-co')return'Cosmetic sig signed';if(k==='unsig-el')return'Electrical sig cleared';if(k==='unsig-co')return'Cosmetic sig cleared';const s=step(k);if(!s)return k;if(s.z==='build'||s.z==='final')return isDef(k)?nm(k):`Stn ${s.code} · ${nm(k)}`;return nm(k)};
+const short=k=>{if(k==='done')return'Signed off';const s=step(k);if(s.z==='build'||s.z==='final')return isDef(k)?'Stn '+s.code:nm(k);return nm(k)};
+const sub=k=>{const s=step(k);return s.z==='fin'?`Final Line ${s.code.slice(1)} of 5`:s.z==='out'?'Outside service':s.z==='final'?'TAG line':`Build line · ${s.code} of 15`};
+const moves=t=>t.h.filter(e=>!/sig-/.test(e.k));
+const lastMove=t=>{const m=moves(t);return m[m.length-1]||null};
+const days=t=>{const l=lastMove(t);return l?Math.max(0,Math.floor((Date.now()-new Date(l.t))/864e5)):0};
+const left=p=>p>=DONEPOS?'115%':(p/(SEGS-1)*100)+'%';
+const fmtDue=d=>d?new Date(d+'T12:00').toLocaleDateString(undefined,{month:'short',day:'numeric'}):'—';
+const fmtDT=x=>{if(!x)return'—';const d=new Date(x);if(isNaN(d))return'—';return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:d.getFullYear()!==new Date().getFullYear()?'numeric':undefined})+', '+d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'})};
+const spanT=(a,b)=>{const m=Math.max(0,Math.round((new Date(b)-new Date(a))/6e4));if(m<60)return m+' min';const h=Math.round(m/60);if(h<48)return h+' hr';return Math.round(h/24)+' days'};
+const who=id=>!id?'':id===me?'you':(names[id]||'Someone');
+const byTxt=id=>id?` · ${esc(who(id))}`:'';
+const vtype=t=>{if(t.vt)return t.vt;const m=(t.model||'').toLowerCase();
+  if(/amb|type i|medic|medical/.test(m))return'amb';if(/aerial|ladder|platform|tower|quint/.test(m))return'aerial';if(/tank|tender/.test(m))return'tanker';
+  if(/rescue|squad/.test(m))return'rescue';if(/\brv\b|coach|motorhome|class [abc]|camper/.test(m))return'rv';if(/pump|engine/.test(m))return'pumper';return'amb'};
+const icon=(t,w=48,h=28,cls='')=>`<svg viewBox="0 0 48 28" width="${w}" height="${h}"${cls?` class="${cls}"`:''}><use href="#v-${vtype(t)}"/></svg>`;
+const at=k=>S.trucks.filter(t=>t.k===k);
+const occupied=(k,except)=>isBuild(k)&&S.trucks.some(t=>t.k===k&&t.id!==except);
+const setK=(t,k)=>{t.k=k;t.h=t.h.concat({k,t:now(),by:me||''})};
+const sigsDone=t=>!!(t.sig.el&&t.sig.co);
+const comments=k=>C.filter(c=>c.k===k).sort((a,b)=>String(b.t).localeCompare(String(a.t)));
+const hist=t=>`<details class="hist"><summary>History (${t.h.length})</summary><ol>${t.h.slice().reverse().map(e=>`<li><span>${esc(title(e.k))}${e.by?`<span class="by"> · ${esc(who(e.by))}</span>`:''}</span><time>${fmtDT(e.t)}</time></li>`).join('')}</ol></details>`;
+
+let nameTimer=null;
+function resolveNames(){clearTimeout(nameTimer);nameTimer=setTimeout(async()=>{if(!U||!U.profiles)return;
+  const ids=new Set();S.trucks.forEach(t=>{t.h.forEach(e=>e.by&&ids.add(e.by));SIGS.forEach(([k])=>t.sig[k]&&t.sig[k].by&&ids.add(t.sig[k].by))});C.forEach(c=>c.by&&ids.add(c.by));if(me)ids.add(me);
+  const need=[...ids].filter(id=>!(id in names));if(!need.length)return;
+  try{const ps=await U.profiles(need);need.forEach(id=>{names[id]=(ps&&ps[id]&&ps[id].name)||''});safeRender()}catch(e){need.forEach(id=>names[id]='')}},150)}
+
+let shown={};
+function countUp(el,to){const from=shown[el.id]??0;shown[el.id]=to;if(reduce||from===to){el.textContent=to;return}
+  const t0=performance.now();const f=n=>{const p=Math.min(1,(n-t0)/600);el.textContent=Math.round(from+(to-from)*(1-(1-p)**3));if(p<1)requestAnimationFrame(f)};requestAnimationFrame(f)}
+
+// ---------- render ----------
+function tile(s,cnt,bump){const c=cnt[s.k]||0,inf=S.info[s.k],on=sel===s.k,b=bump&&bump.has(s.k)?' bump':'',nc=comments(s.k).length,cm=nc?`<em class="cm" aria-label="${nc} comments">${nc}</em>`:'';
+  if(s.z==='build'){const tr=at(s.k);const lab=tr.length===1?esc(tr[0].unit):tr.length>1?tr.length+' trucks':(isDef(s.k)?'Empty':esc(inf.n));
+    return `<button class="tl${c?' has full':''}${on?' on':''}${b}" data-k="${s.k}" aria-pressed="${on}" title="${esc(inf.n)}"><b>${s.code}</b>${tr.length?icon(tr[0],30,18,'mi'):''}<span>${lab}</span>${cm}</button>`}
+  if(s.k==='paint')return `<button class="tl pt${on?' on':''}${b}" data-k="paint" aria-pressed="${on}"><svg viewBox="0 0 100 30" preserveAspectRatio="none"><path d="M0 0h100v6c-4 0-4 10-8 10s-4-9-8-9-3 16-7 16-4-13-8-13-4 7-8 7-4-11-9-11-4 19-8 19-4-15-8-15-4 8-8 8-4-6-8-6-4 10-8 10-3-12-6-12V0z" fill="rgba(255,255,255,.22)"/></svg><b>${esc(inf.n)}</b><span>${inf.sup?'Sup: '+esc(inf.sup):'&nbsp;'}</span><i>${c||''}</i>${cm}</button>`;
+  return `<button class="tl${c?' has':''}${on?' on':''}${b}" data-k="${s.k}" aria-pressed="${on}" title="${esc(inf.n)}"${s.c?` style="--sc:${s.c}"`:''}><b>${s.code}</b><span>${s.z==='fin'||s.z==='out'||!isDef(s.k)?esc(inf.n):(inf.sup?esc(inf.sup):'&nbsp;')}</span><i>${c||''}</i>${cm}</button>`}
+
+function renderMe(){const r=eff();
+  const label={admin:'Admin',emp:'Supervisor',view:'Employee · view only'}[r];
+  $('#me').innerHTML=!shared?'':`<span>${me?esc(names[me]||'Signed in'):'Signed in'}</span><span class="role ${r==='admin'?'admin':r==='view'?'view':''}">${label}</span>${role==='admin'?`<div class="seg" role="group" aria-label="View as">${[['admin','Admin'],['emp','Supervisor'],['view','Employee']].map(([v,l])=>`<button data-prev="${v}" class="${(preview||'admin')===v?'on':''}" aria-pressed="${(preview||'admin')===v}">${l}</button>`).join('')}</div>`:''}<span class="hbtns">${role==='admin'?'<button id="bPeople">People</button>':''}<button id="bOut">Sign out</button></span><span class="sync" id="sync"></span>`;
+  $('#bAdd').hidden=!can('edit');$('#bStations').textContent=can('edit')?'Crews':'Crews';}
+
+function safeRender(b){if(animating){pendingRender=true;return}render(b)}
+function render(bump){
+  renderMe();
+  const on=S.trucks.filter(t=>t.k!=='done'),dn=S.trucks.filter(t=>t.k==='done'),td=iso(new Date());
+  const cnt={};on.forEach(t=>cnt[t.k]=(cnt[t.k]||0)+1);
+  const zc=z=>on.filter(t=>step(t.k).z===z).length,late=on.filter(t=>t.due&&t.due<td).length;
+  if(!$('#figs').children.length)$('#figs').innerHTML=[['fLine','Build line',''],['fOut','Outside','p'],['fTag','TAG line',''],['fFin','Final Line','f'],['fDone','Signed off','d'],['fLate','Past due','l']].map(([id,l,c])=>`<div class="fig ${c}"><b id="${id}">0</b><span>${l}</span></div>`).join('');
+  countUp($('#fLine'),zc('build'));countUp($('#fOut'),zc('out'));countUp($('#fTag'),zc('final'));countUp($('#fFin'),zc('fin'));countUp($('#fDone'),dn.length);countUp($('#fLate'),late);
+  const zoneHtml=z=>`<section class="zone z-${z.z}"><header><h3>${z.t}</h3><span>${z.sub}</span><b>${zc(z.z)}</b>${z.z==='build'&&can('move')?'<button class="go mv" data-index>Move line ▸</button>':''}</header><div class="tiles">${STEPS.filter(s=>s.z===z.z).map(s=>tile(s,cnt,bump)).join('')}${z.z==='fin'?`<button class="tl dn${bump&&bump.has('done')?' bump':''}" data-done><b>✓</b><span>Signed off</span><i>${dn.length||''}</i></button>`:''}</div></section>`;
+  renderFloor(bump);
+  $('#panel').innerHTML='';$('#fchip').innerHTML='';if(pop&&!$('#mStn').hidden)refreshStn();
+  $('#note').innerHTML='';
+  const q=$('#q').value.trim().toLowerCase(),srt=$('#sort').value;
+  const L=on.filter(t=>(!q||(t.unit+' '+t.model+' '+t.cust).toLowerCase().includes(q)));
+  L.sort(srt==='unit'?(a,b)=>String(a.unit).localeCompare(String(b.unit),undefined,{numeric:true}):srt==='due'?(a,b)=>(a.due||'9999').localeCompare(b.due||'9999'):(a,b)=>posOf(a.k)-posOf(b.k));
+  let n=0;
+  const card=t=>{const s=step(t.k),inf=S.info[t.k],d=days(t),isLate=t.due&&t.due<td,p=s.pos,lm=lastMove(t),nc=comments(t.k).length;
+    const E=can('edit')?'<button data-edit>Edit</button>':'';
+    let acts;
+    if(s.z==='build'){acts=E+(t.k==='s1'&&can('move')?`<button class="go" data-index>Move line ▸</button>`:t.k===EMERG&&can('edit')?`<button class="warn" data-pull>Emergency pull</button>`:`<span class="lk">Moves when the line moves</span>`)}
+    else if(s.z==='out')acts=E+(can('move')?`<button class="go" data-moveto>Move to… ▸</button>`:'');
+    else{const i=FLOW.indexOf(t.k),nx=FLOW[i+1],blocked=t.k===SIGSTN&&!sigsDone(t);
+      acts=(can('edit')?`<button data-back ${i===0?'disabled':''} aria-label="Move back one step">◂</button>`:'')+E+(can('move')?`<button class="go" data-adv ${blocked?'disabled':''}>${blocked?'Needs both sigs':nx==='done'?'Sign off ✓':'To '+esc(short(nx))+' ▸'}</button>`:'')}
+    const sigs=t.k===SIGSTN?`<div class="sigs">${SIGS.map(([k,l])=>{const g=t.sig[k];const mayClear=g&&(can('edit')||(g.by&&g.by===me));
+      return `<button class="sig${g?' ok':''}" data-sig="${k}" ${(!g&&!can('sign'))||(g&&!mayClear)?'disabled':''}><span>${l}</span><b>${g?'✓ '+esc(who(g.by)||'Signed'):can('sign')?'Tap to sign':'Not signed yet'}</b>${g?`<small>${fmtDT(g.t)}${mayClear?' · tap to clear':''}</small>`:''}</button>`}).join('')}</div>`:'';
+    return `<article class="card z-${s.z}" data-id="${esc(t.id)}" style="animation-delay:${Math.min(n++,8)*40}ms">
+      <div class="top"><div><h3>${esc(t.unit)}</h3><p>${esc([t.model,t.cust].filter(Boolean).join(' · '))||'&nbsp;'}</p></div>
+      <div class="due${isLate?' late':''}">Due<b>${fmtDue(t.due)}${isLate?' · late':''}</b></div></div>
+      <div class="where"><strong>${esc(title(t.k))}</strong><span>${d===0?'Today':d+(d===1?' day':' days')+' here'}${inf.sup?' · Sup: '+esc(inf.sup):''}${nc?` · <a href="#" data-showk="${t.k}">${nc} comment${nc===1?'':'s'}</a>`:''}</span></div>
+      <div class="when"><span>Moved here <b>${fmtDT(lm&&lm.t)}</b>${lm&&lm.by?` by <b>${esc(who(lm.by))}</b>`:''}</span>${moves(t).length>1?`<span>Started <b>${fmtDT(t.h[0].t)}</b></span>`:''}</div>
+      <div class="track" aria-label="${esc(title(t.k))}"><div class="segs">${Array.from({length:SEGS},(_,j)=>`<i class="sg z-${segZone(j)}${j<=p?' d':''}"></i>`).join('')}</div>
+        <div class="pos"><div class="rig" style="left:${left(p)}">${icon(t)}</div></div></div>
+      ${sigs}
+      ${t.notes?`<p class="notes">${esc(t.notes)}</p>`:''}
+      ${acts?`<div class="acts">${acts}</div>`:''}${hist(t)}</article>`};
+  let html='';
+  if(!L.length)html=`<div class="empty"><svg viewBox="0 0 48 28"><use href="#v-amb"/></svg><p>${sel?'No trucks here right now.':q?'No trucks match that search.':'No trucks on the line yet.'}</p>${!q&&!sel&&can('edit')?'<button class="go" data-addempty>+ Add your first truck</button>':''}</div>`;
+  else ZONES.forEach(z=>{const g=L.filter(t=>step(t.k).z===z.z);if(!g.length)return;html+=`<h2 class="zh z-${z.z}">${z.t} <span>${g.length} truck${g.length===1?'':'s'}</span></h2><div class="list">${g.map(card).join('')}</div>`});
+  $('#list').innerHTML=html;
+  const shEl=$('#shipped'),wasOpen=shEl.open;
+  const dl=dn.slice().sort((a,b)=>String((lastMove(b)||{}).t).localeCompare(String((lastMove(a)||{}).t)));
+  shEl.innerHTML=`<summary>Signed off (${dn.length})</summary>`+(dn.length?dl.map(t=>{const lm=lastMove(t)||{};return `<div class="srow" data-id="${esc(t.id)}"><div class="sv">${icon(t,44,26)}<div><b>${esc(t.unit)}</b> <span>${esc(t.model)}${t.cust?' · '+esc(t.cust):''}</span>
+    <div class="signed">✓ Signed off <b>${fmtDT(lm.t)}</b>${lm.by?` by <b>${esc(who(lm.by))}</b>`:''}</div>
+    ${SIGS.map(([k,l])=>t.sig[k]?`<div class="k">${l}: ${esc(who(t.sig[k].by)||'signed')} · ${fmtDT(t.sig[k].t)}</div>`:'').join('')}
+    ${moves(t).length>1?`<div class="k">Started ${fmtDT(t.h[0].t)} · ${spanT(t.h[0].t,lm.t)} start to sign-off</div>`:''}</div></div>${can('edit')?'<button data-return>Back to signing</button>':''}${hist(t)}</div>`}).join(''):'<p class="note">No trucks signed off yet.</p>');
+  shEl.open=wasOpen;
+  resolveNames();
+}
+
+// ---------- plant floor map ----------
+const SVGNS='http://www.w3.org/2000/svg';
+let FL=null,flWide=null,prevOn=new Set();
+function computeFloor(){
+  const w=$('#map').clientWidth||360,wide=w>=760;
+  const VW=wide?1000:360,cols=wide?8:5,pad=wide?60:34,rowH=wide?96:84,cw=(VW-2*pad)/(cols-1);
+  const P={},labels=[],roads=[],conns=[];let y=0,dir=1;
+  const colX=i=>dir>0?pad+i*cw:VW-pad-i*cw;
+  const label=(t,sub)=>{y+=34;labels.push({t,sub,y});y+=58};
+  const rows=keys=>{const pts=[];for(let r=0;r<keys.length;r+=cols){keys.slice(r,r+cols).forEach((k,i)=>{P[k]={x:colX(i),y,d:dir};pts.push(P[k])});y+=rowH;dir=-dir}y-=rowH;return pts};
+  const ks=z=>STEPS.filter(s=>s.z===z).map(s=>s.k);
+  label('Build line','Stations 1–15');const b=rows(ks('build'));roads.push(b);
+  const lastB=b[b.length-1];
+  label('Outside services','');const sy=y-16,sh=wide?88:96,sx=pad-22,sw=VW-2*pad+44;
+  conns.push(`M${lastB.x} ${lastB.y}V${sy}`);
+  const bays=ks('out').map((k,i)=>{const bw=(sw-10*5)/4,bx=sx+10+i*(bw+10);P[k]={x:bx+bw/2,y:sy+sh/2+8,d:1,bay:{x:bx,y:sy+10,w:bw,h:sh-20}};return k});
+  y=sy+sh;dir=1;
+  label('TAG line','Stations 16–18');const t=rows(ks('final'));roads.push(t);
+  conns.push(`M${t[0].x} ${sy+sh}V${t[0].y}`);
+  const lastT=t[t.length-1];dir=-1;
+  label('Final Line','Clean to sign-off');const f=rows(ks('fin'));roads.push(f);
+  conns.push(`M${lastT.x} ${lastT.y}V${(lastT.y+f[0].y)/2}H${f[0].x}V${f[0].y}`);
+  const lastF=f[f.length-1];y+=44;
+  const lot={x:pad-22,y,w:VW-2*pad+44,h:58};P.done={x:lot.x+lot.w/2,y:lot.y+lot.h/2,d:1};
+  conns.push(`M${lastF.x} ${lastF.y}V${lot.y}`);
+  return{VW,VH:lot.y+lot.h+10,P,labels,roads,conns,svc:{x:sx,y:sy,w:sw,h:sh},lot,bays,wide}}
+
+function truckSpots(on){const g={};on.forEach(t=>{(g[t.k]=g[t.k]||[]).push(t)});const out={};
+  Object.entries(g).forEach(([k,list])=>{const p=FL.P[k];if(!p)return;const n=list.length;
+    list.forEach((t,i)=>{if(p.bay){const sp=Math.min(26,(p.bay.w-30)/Math.max(1,n-1));out[t.id]={x:p.x+(i-(n-1)/2)*sp,y:p.y+6,d:1}}
+      else out[t.id]={x:p.x+(i-(n-1)/2)*26,y:p.y-30,d:p.d}})});return out}
+
+function renderFloor(bump){
+  const host=$('#map');
+  if(!FL||flWide!==(host.clientWidth>=760)){FL=computeFloor();flWide=FL.wide;host.innerHTML=`<svg id="floor" viewBox="0 0 ${FL.VW} ${FL.VH}" role="img" aria-label="Plant floor map"><g id="fStatic"></g><g id="fTrucks"></g></svg>`;prevOn=new Set()}
+  $('#fmv').innerHTML=can('move')?'<button class="go mv" data-index>Move line ▸</button>':'';
+  const on=S.trucks.filter(t=>t.k!=='done'),dn=S.trucks.filter(t=>t.k==='done');
+  const cnt={};on.forEach(t=>cnt[t.k]=(cnt[t.k]||0)+1);
+  const roadD=FL.roads.map(pts=>'M'+pts.map(p=>`${p.x} ${p.y}`).join('L')).join('');
+  let h=FL.labels.map(l=>`<text class="zl" x="${FL.svc.x+4}" y="${l.y}">${l.t}</text>${l.sub?`<text class="zs" x="${FL.svc.x+4}" y="${l.y+15}">${l.sub}</text>`:''}`).join('');
+  h+=FL.conns.map(d=>`<path class="conn" d="${d}"/>`).join('')+`<path class="road" d="${roadD}"/><path class="roadc" d="${roadD}"/>`;
+  const s=FL.svc;h+=`<rect class="svcbox" x="${s.x}" y="${s.y}" width="${s.w}" height="${s.h}" rx="12"/><rect x="${s.x+12}" y="${s.y-2}" width="${s.w-24}" height="4" rx="2" fill="url(#pg)"/>`;
+  FL.bays.forEach(k=>{const p=FL.P[k],b=p.bay,st=step(k),nc=comments(k).length;
+    h+=`<g class="bayg" data-k="${k}"><rect class="bay${pop===k?' on':''}${bump&&bump.has(k)?' pulse':''}" x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="8" style="--sc:${st.c}"/><rect x="${b.x}" y="${b.y}" width="${b.w}" height="4" rx="2" fill="${st.c}"/>
+      <text class="bayl${FL.wide?'':' sm'}" x="${b.x+(FL.wide?8:5)}" y="${b.y+19}">${esc(FL.wide?(S.info[k].n.length>16?S.info[k].n.slice(0,15)+'…':S.info[k].n):(S.info[k].n.length>9?S.info[k].n.slice(0,8)+'…':S.info[k].n))}</text>${cnt[k]&&FL.wide?`<text class="bays" x="${b.x+b.w-8}" y="${b.y+19}" text-anchor="end">${cnt[k]}</text>`:''}${nc?`<circle cx="${b.x+b.w-6}" cy="${b.y+b.h-6}" r="7" class="ncm"/><text class="ncmt" x="${b.x+b.w-6}" y="${b.y+b.h-6}">${nc}</text>`:''}</g>`});
+  STEPS.filter(x=>x.z!=='out').forEach(st=>{const p=FL.P[st.k],inf=S.info[st.k],nc=comments(st.k).length,named=st.z==='fin'||!isDef(st.k);
+    const lab=named?(inf.n.length>11?inf.n.slice(0,10)+'…':inf.n):(inf.sup?(inf.sup.length>11?inf.sup.slice(0,10)+'…':inf.sup):'');
+    h+=`<g class="node z-${st.z}${pop===st.k?' on':''}${bump&&bump.has(st.k)?' pulse':''}${cnt[st.k]?' has':''}" data-k="${st.k}" tabindex="0" role="button" aria-label="${esc(title(st.k))}"><circle class="hit" cx="${p.x}" cy="${p.y-8}" r="28"/><circle class="nc" cx="${p.x}" cy="${p.y}" r="14"/><circle class="hold" cx="${p.x}" cy="${p.y}" r="19" transform="rotate(-90 ${p.x} ${p.y})"/><text class="nt" x="${p.x}" y="${p.y+1}">${st.code}</text>${lab?`<text class="nl" x="${p.x}" y="${p.y+29}">${esc(lab)}</text>`:''}${nc?`<circle cx="${p.x+12}" cy="${p.y-11}" r="7" class="ncm"/><text class="ncmt" x="${p.x+12}" y="${p.y-11}">${nc}</text>`:''}</g>`});
+  const L=FL.lot;h+=`<g class="lotg" data-done tabindex="0" role="button" aria-label="Signed off trucks"><rect class="lot${bump&&bump.has('done')?' pulse':''}" x="${L.x}" y="${L.y}" width="${L.w}" height="${L.h}" rx="12"/><text class="lott" x="${L.x+18}" y="${L.y+L.h/2+1}">✓ Signed off</text><text class="lotn" x="${L.x+L.w-18}" y="${L.y+L.h/2+1}" text-anchor="end">${dn.length}</text></g>`;
+  $('#fStatic').innerHTML=`<defs><linearGradient id="pg"><stop offset="0" stop-color="#d7141a"/><stop offset=".3" stop-color="#ff7a00"/><stop offset=".55" stop-color="#ffd400"/><stop offset=".75" stop-color="#19a463"/><stop offset="1" stop-color="#1e7be5"/></linearGradient></defs>`+h;
+  // trucks: keep the same elements so they glide to new spots
+  const layer=$('#fTrucks'),spots=truckSpots(on),seen=new Set();
+  on.forEach(t=>{const sp=spots[t.id];if(!sp)return;seen.add(t.id);
+    let g=layer.querySelector(`[data-tid="${CSS.escape(t.id)}"]`);const fresh=!g;
+    if(fresh){g=document.createElementNS(SVGNS,'g');g.setAttribute('class','mt');g.dataset.tid=t.id;g.setAttribute('role','button');g.setAttribute('tabindex','0');
+      const inner=document.createElementNS(SVGNS,'g');inner.setAttribute('class','mti');const u=document.createElementNS(SVGNS,'use');u.setAttribute('x','-18');u.setAttribute('y','-11');u.setAttribute('width','36');u.setAttribute('height','21');inner.appendChild(u);g.appendChild(inner);
+      const tx=document.createElementNS(SVGNS,'text');tx.setAttribute('class','mtl');tx.setAttribute('y','-15');g.appendChild(tx);
+      const start=prevOn.size&&!prevOn.has(t.id)?spots[t.id]:sp;g.style.transform=`translate(${start.x}px,${start.y}px)`;layer.appendChild(g)}
+    g.querySelector('use').setAttribute('href','#v-'+vtype(t));g.querySelector('text').textContent=t.unit;g.setAttribute('aria-label',`${t.unit} at ${title(t.k)}`);
+    g.querySelector('.mti').style.transform=`scaleX(${sp.d<0?-1:1})`;
+    const cur=g.style.transform,next=`translate(${sp.x}px, ${sp.y}px)`;
+    if(!fresh&&cur.replace(/\s/g,'')!==next.replace(/\s/g,'')&&!reduce){g.classList.add('moving');clearTimeout(g._t);g._t=setTimeout(()=>g.classList.remove('moving'),950)}
+    g.classList.remove('gone');requestAnimationFrame(()=>{g.style.transform=next})});
+  layer.querySelectorAll('.mt').forEach(g=>{if(seen.has(g.dataset.tid))return;const t=find(g.dataset.tid);
+    if(t&&t.k==='done'&&!g.classList.contains('gone')){g.classList.add('gone','moving');g.style.transform=`translate(${FL.P.done.x}px,${FL.P.done.y}px)`;setTimeout(()=>g.remove(),950)}
+    else if(!g.classList.contains('gone'))g.remove()});
+  prevOn=seen;
+}
+new ResizeObserver(()=>{const w=$('#map').clientWidth>=760;if(FL&&w!==flWide)renderFloor()}).observe($('#map'));
+
+
+// ---------- station pop-up ----------
+let openedAt=0;
+function closeModal(m,fromBackdrop){if(!m)return;if(fromBackdrop&&Date.now()-openedAt<450)return;m.hidden=true;if(m.id==='mStn'){pop=null;stnEdit=false;renderFloor()}}
+function openStn(k,edit){openedAt=Date.now();pop=k;stnEdit=!!edit&&can('edit');$('#mStn').hidden=false;refreshStn(true);renderFloor();
+  if(stnEdit)setTimeout(()=>{const i=$('#fStn [name=sup]');if(i)i.focus()},120)}
+function refreshStn(force){if(!pop)return;const box=$('#stnSheet');
+  if(!force){if(stnEdit)return;const ta=box.querySelector('#fCm textarea');if(ta&&(ta.value||document.activeElement===ta))return}
+  const k=pop,s=step(k),inf=S.info[k],tr=at(k),cs=comments(k),td=iso(new Date());
+  const head=`<div class="shead"><div class="badge z-${s.z}">${s.code}</div><div><div class="k">${sub(k)} · ${tr.length} truck${tr.length===1?'':'s'} here</div><h2>${esc(title(k))}</h2></div><button type="button" data-close aria-label="Close">✕</button></div>`;
+  const crew=stnEdit&&can('edit')?`<form id="fStn" class="sbox"><label>Name<input name="n" value="${esc(inf.n)}" autocomplete="off"></label><label>Supervisor<input name="sup" value="${esc(inf.sup)}" placeholder="Supervisor's name" autocomplete="off"></label><label>Employees <span class="hint">one per line</span><textarea name="crew" rows="4" placeholder="Employee names">${esc(inf.crew.join('\n'))}</textarea></label><div class="row"><button type="button" data-stncancel>Cancel</button><button class="go" type="submit">Save</button></div></form>`
+    :`<div class="sbox"><div class="pmeta1"><div><span class="k">Supervisor</span><div style="font-weight:600">${inf.sup?esc(inf.sup):'<span class="k">None added yet</span>'}</div></div><div><span class="k">Employees (${inf.crew.length})</span>${inf.crew.length?`<ul class="chips">${inf.crew.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>`:'<div class="k">None added yet</div>'}</div></div>${can('edit')?'<button type="button" class="editbtn" data-stnedit>Edit station</button>':''}</div>`;
+  const trucks=`<div class="sbox"><h4>Trucks here <span>${tr.length}</span></h4>${tr.length?tr.map(t=>{const lm=lastMove(t),late=t.due&&t.due<td;return `<div class="strk">${icon(t,40,24)}<div class="strk1"><b>${esc(t.unit)}</b> <span class="k">${esc(t.model)}</span><div class="k">Here since ${fmtDT(lm&&lm.t)}${lm&&lm.by?' · '+esc(who(lm.by)):''}${late?' · <span style="color:var(--red)">late</span>':''}</div></div><button type="button" data-gocard="${esc(t.id)}">Open</button></div>`}).join(''):'<p class="k" style="margin:4px 0 0">No trucks here right now.</p>'}${k==='s1'&&can('move')?'<button class="go" style="width:100%;margin-top:8px" data-index>Move line ▸</button>':''}</div>`;
+  const cm=`<div class="sbox"><h4>Comments <span>${cs.length}</span></h4>${can('comment')?`<form id="fCm" class="cform"><textarea name="text" rows="2" maxlength="1000" placeholder="Add a comment for ${esc(short(k))}" aria-label="Comment" required></textarea><button class="go" type="submit">Post</button></form>`:''}${cs.length?`<ul class="clist">${cs.map(c=>`<li><div class="chead"><b>${esc(who(c.by)||'Someone')}</b><time>${fmtDT(c.t)}</time>${(c.by&&c.by===me)||can('edit')?`<button class="cdel" data-cdel="${esc(c.id)}" aria-label="Delete comment">Delete</button>`:''}</div><p>${esc(c.text)}</p></li>`).join('')}</ul>`:'<p class="k" style="margin:6px 0 0">No comments yet.</p>'}</div>`;
+  box.innerHTML=head+crew+trucks+cm}
+document.addEventListener('submit',e=>{if(e.target.id!=='fStn')return;e.preventDefault();if(!can('edit')||!pop)return;const f=e.target,inf=S.info[pop];
+  inf.n=f.n.value.trim()||step(pop).def;inf.sup=f.sup.value.trim();inf.crew=f.crew.value.split(/\n|,/).map(x=>x.trim()).filter(Boolean);
+  putInfo();stnEdit=false;undo=null;render();refreshStn(true);toast(`${short(pop)} saved`)});
+{const fl=$('#map');let hs=null;
+  const clear=()=>{clearTimeout(holdT);holdT=null;hs=null;document.querySelectorAll('#floor .holding').forEach(n=>n.classList.remove('holding'))};
+  const fire=nd=>{clear();longFired=true;try{navigator.vibrate&&navigator.vibrate(30)}catch(x){}openStn(nd.dataset.k,can('edit'))};
+  fl.addEventListener('pointerdown',e=>{const nd=e.target.closest('#floor [data-k]');if(!nd||e.button>0)return;longFired=false;clear();
+    hs={x:e.clientX,y:e.clientY,nd};nd.classList.add('holding');holdT=setTimeout(()=>fire(nd),500)});
+  fl.addEventListener('pointermove',e=>{if(hs&&Math.hypot(e.clientX-hs.x,e.clientY-hs.y)>14)clear()});
+  fl.addEventListener('pointerup',clear);
+  fl.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse')clear()});
+  fl.addEventListener('pointercancel',e=>{if(!hs)return;if(Math.hypot(e.clientX-hs.x,e.clientY-hs.y)>14)clear()});
+  fl.addEventListener('contextmenu',e=>{if(!e.target.closest('#floor'))return;e.preventDefault();const nd=e.target.closest('#floor [data-k]');if(nd&&!longFired)fire(nd)});
+  fl.addEventListener('touchend',e=>{if(longFired&&e.target.closest('#floor [data-k]'))e.preventDefault()},{passive:false});}
+
+// ---------- moves ----------
+function animateCard(t,toPos,dir,leave){const card=document.querySelector(`.card[data-id="${CSS.escape(t.id)}"]`);if(!card||reduce)return false;
+  const from=posOf(t.k),rig=card.querySelector('.rig');rig.classList.add('moving');if(dir<0)rig.classList.add('rev');rig.style.left=left(toPos);
+  card.querySelectorAll('.sg').forEach((g,j)=>{g.style.setProperty('--d',Math.abs(j-from)*18+'ms');g.classList.toggle('d',j<=toPos)});
+  if(leave)card.classList.add('leaving');return true}
+function afterAnim(ms,bump){animating++;setTimeout(()=>{animating--;pendingRender=false;render(bump)},ms)}
+
+function moveTo(t,k,msg){const zChange=k==='done'||step(k).z!==step(t.k).z,dir=posOf(k)>=posOf(t.k)?1:-1;
+  const moved=animateCard(t,posOf(k),dir,k==='done'||(sel&&k!==sel)||(zChange&&!sel));
+  remember([t.id]);setK(t,k);putTruck(t);toast(msg||`${t.unit} → ${title(k)}`);renderFloor(new Set([k]));
+  const bump=new Set([k]);moved?afterAnim(zChange?1150:820,bump):render(bump)}
+
+function indexLine(){if(!can('move'))return;
+  const last=at('s15');
+  if(last.length)pick('Move the line',`${last.map(t=>t.unit).join(', ')} at Station 15 leaves the line. Which outside service is it going to?`,STEPS.filter(s=>s.z==='out').map(s=>s.k),doIndex);
+  else doIndex(null)}
+function doIndex(dest){
+  const B=S.trucks.filter(t=>isBuild(t.k));
+  if(!B.length){toast('No trucks on the build line');return}
+  let any=false;
+  B.forEach(t=>{const n=+t.k.slice(1),nk=n===15?dest:'s'+(n+1);if(animateCard(t,posOf(nk),1,n===15||(sel&&sel!==nk)))any=true});
+  if(!reduce)document.querySelectorAll('.z-build .tl').forEach((el,i)=>{el.style.setProperty('--d',i*30+'ms');el.classList.add('shift')});
+  remember(B.map(t=>t.id));const bump=new Set();
+  B.forEach(t=>{const n=+t.k.slice(1),nk=n===15?dest:'s'+(n+1);setK(t,nk);bump.add(nk);putTruck(t)});renderFloor(bump);
+  if(sel&&isBuild(sel))sel=null;
+  toast(`Line moved${dest?' · '+B.filter(t=>t.k===dest).map(t=>t.unit).join(', ')+' → '+title(dest):''}`);
+  any?afterAnim(dest?1150:850,bump):render(bump)}
+
+function sign(t,k){const g=t.sig[k],l=SIGS.find(x=>x[0]===k)[1];remember([t.id]);
+  if(g){if(!(can('edit')||(g.by&&g.by===me)))return;t.sig[k]=null;t.h=t.h.concat({k:'unsig-'+k,t:now(),by:me||''});toast(`${l} cleared on ${t.unit}`)}
+  else{if(!can('sign'))return;t.sig[k]={t:now(),by:me||''};t.h=t.h.concat({k:'sig-'+k,t:now(),by:me||''});toast(`${l} signed on ${t.unit}`)}
+  putTruck(t);render()}
+
+function pick(t,msg,keys,cb,except){pickCb=cb;$('#mvTitle').textContent=t;$('#mvMsg').textContent=msg;
+  $('#mvList').innerHTML=ZONES.map(z=>{const ks=keys.filter(k=>k!=='done'&&step(k).z===z.z);if(!ks.length)return'';
+    return `<h3>${z.t}</h3>`+ks.map(k=>{const s=step(k),occ=occupied(k,except);return `<button class="pk" data-pick="${k}" ${occ?'disabled':''}><b>${s.code}</b><span>${esc(title(k))}</span>${occ?`<em>Has ${esc(at(k)[0].unit)}</em>`:''}</button>`}).join('')}).join('');
+  $('#mMove').hidden=false}
+$('#mvList').addEventListener('click',e=>{const b=e.target.closest('[data-pick]');if(!b||b.disabled)return;$('#mMove').hidden=true;const cb=pickCb;pickCb=null;if(cb)cb(b.dataset.pick)});
+
+function toast(m){$('#tMsg').textContent=m;$('#tUndo').hidden=!undo;$('#toast').classList.add('show');clearTimeout(tTimer);tTimer=setTimeout(()=>$('#toast').classList.remove('show'),5000)}
+$('#tUndo').addEventListener('click',doUndo);
+
+// ---------- forms ----------
+function openTruck(id){if(!can('edit'))return;editing=id||null;const t=id?find(id):null,f=$('#fTruck');
+  $('#tStep').innerHTML=ZONES.map(z=>`<optgroup label="${z.t}">${STEPS.filter(s=>s.z===z.z).map(s=>`<option value="${s.k}">${esc(title(s.k))}${occupied(s.k,editing)?' (has '+esc(at(s.k)[0].unit)+')':''}</option>`).join('')}</optgroup>`).join('')+'<optgroup label="Done"><option value="done">Signed off</option></optgroup>';
+  $('#tTitle').textContent=t?'Edit '+t.unit:'Add truck';$('#tErr').hidden=true;
+  f.unit.value=t?t.unit:'';f.model.value=t?t.model:'';f.vt.value=t?(t.vt||''):'';f.cust.value=t?t.cust:'';f.due.value=t?t.due:'';f.notes.value=t?t.notes:'';
+  f.k.value=t?t.k:(sel||(occupied('s1')?(STEPS.find(s=>s.z==='build'&&!occupied(s.k))||{k:'s1'}).k:'s1'));
+  $('#tDel').hidden=!t;$('#mTruck').hidden=false;setTimeout(()=>f.unit.focus(),50)}
+$('#fTruck').addEventListener('submit',e=>{e.preventDefault();const f=e.target,k=f.k.value;
+  if(occupied(k,editing)){$('#tErr').textContent=`${title(k)} already has ${at(k).find(t=>t.id!==editing).unit}. Each build station holds one truck.`;$('#tErr').hidden=false;return}
+  const v={unit:f.unit.value.trim(),model:f.model.value.trim(),vt:f.vt.value,cust:f.cust.value.trim(),due:f.due.value,notes:f.notes.value.trim()};
+  let t;if(editing){t=find(editing);remember([t.id]);if(t.k!==k)setK(t,k);Object.assign(t,v);toast(`Saved ${t.unit}`)}
+  else{t=normTruck({id:nid(),...v,k,h:[{k,t:now(),by:me||''}]});remember([t.id]);S.trucks.push(t);toast(`Added ${v.unit} at ${title(k)}`)}
+  putTruck(t);$('#mTruck').hidden=true;render(new Set([k]))});
+$('#tDel').addEventListener('click',()=>{const t=find(editing);if(!t)return;remember([t.id]);S.trucks=S.trucks.filter(x=>x.id!==editing);delTruck(t.id);$('#mTruck').hidden=true;render();toast(`Deleted ${t.unit}`)});
+
+function openSt(focus){if(!can('edit'))return;
+  const row=s=>{const inf=S.info[s.k];return `<details class="sed" ${s.k===focus?'open':''}><summary><b>${s.code}</b> <span>${esc(inf.n)}</span><em>${inf.sup?'· '+esc(inf.sup):''}</em></summary>
+    <label>Name<input data-f="n" data-k="${s.k}" value="${esc(inf.n)}"></label>
+    <label>Supervisor<input data-f="sup" data-k="${s.k}" value="${esc(inf.sup)}" placeholder="Supervisor's name"></label>
+    <label>Employees <span class="hint">one per line</span><textarea data-f="crew" data-k="${s.k}" rows="3" placeholder="Employee names">${esc(inf.crew.join('\n'))}</textarea></label></details>`};
+  $('#stEd').innerHTML=ZONES.map(z=>`<h3>${z.t}</h3>`+STEPS.filter(s=>s.z===z.z).map(row).join('')).join('');
+  $('#mSt').hidden=false;const o=$('#stEd details[open]');if(o)setTimeout(()=>o.scrollIntoView({block:'center'}),60)}
+$('#fSt').addEventListener('submit',e=>{e.preventDefault();
+  e.target.querySelectorAll('[data-f]').forEach(el=>{const k=el.dataset.k,inf=S.info[k],f=el.dataset.f;
+    if(f==='crew')inf.crew=el.value.split(/\n|,/).map(x=>x.trim()).filter(Boolean);else if(f==='n')inf.n=el.value.trim()||step(k).def;else inf.sup=el.value.trim()});
+  putInfo();$('#mSt').hidden=true;render();toast('Crews saved')});
+
+// ---------- events ----------
+const notBuild=()=>STEPS.filter(s=>s.z!=='build').map(s=>s.k);
+document.addEventListener('submit',e=>{if(e.target.id!=='fCm')return;e.preventDefault();if(!can('comment')||!pop)return;
+  const text=e.target.text.value.trim();if(!text)return;const c={id:nid(),k:pop,text:text.slice(0,1000),by:me||'',t:now()};C.push(c);putComment(c);e.target.reset();undo=null;render();refreshStn(true);toast('Comment posted')});
+document.addEventListener('click',e=>{
+  const a=e.target.closest('[data-showk]');if(a){e.preventDefault();openStn(a.dataset.showk,false);return}
+  const mt=e.target.closest('#floor [data-tid]');if(mt){const c=document.querySelector(`.card[data-id="${CSS.escape(mt.dataset.tid)}"]`);if(c){c.scrollIntoView({behavior:reduce?'auto':'smooth',block:'center'});c.classList.remove('flash');void c.offsetWidth;c.classList.add('flash')}else{const t=find(mt.dataset.tid);if(t&&t.k!=='done')openStn(t.k,false)}return}
+  const nd=e.target.closest('#floor [data-k]');if(nd){if(longFired){longFired=false;return}openStn(nd.dataset.k,false);return}
+  if(e.target.closest('#floor [data-done]')){$('#shipped').open=true;$('#shipped').scrollIntoView({behavior:reduce?'auto':'smooth'});return}
+  const b=e.target.closest('button,[data-close]');if(!b||b.closest('#mvList'))return;
+  if(b.hasAttribute('data-close')){closeModal(b.closest('.modal'));return}
+  if(b.hasAttribute('data-stnedit')){stnEdit=true;refreshStn(true);return}
+  if(b.hasAttribute('data-stncancel')){stnEdit=false;refreshStn(true);return}
+  if(b.dataset.gocard){const id=b.dataset.gocard;closeModal($('#mStn'));const c=document.querySelector(`.card[data-id="${CSS.escape(id)}"]`);if(c){c.scrollIntoView({behavior:reduce?'auto':'smooth',block:'center'});c.classList.remove('flash');void c.offsetWidth;c.classList.add('flash')}return}
+  if(b.dataset.prev){const v=b.dataset.prev==='admin'?null:b.dataset.prev;if(v===preview)return;preview=v;render();toast(preview==='emp'?'Showing what supervisors see':preview==='view'?'Showing what employees see (view only)':'Back to admin view');return}
+  if(b.hasAttribute('data-index')){indexLine();return}
+  if(b.dataset.cdel){const c=C.find(x=>x.id===b.dataset.cdel);if(c&&(can('edit')||c.by===me)){C=C.filter(x=>x.id!==c.id);delComment(c.id);render();toast('Comment deleted')}return}
+  if(b.dataset.k&&b.classList.contains('tl')){sel=sel===b.dataset.k?null:b.dataset.k;render();if(sel)$('#panel').scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});return}
+  if(b.hasAttribute('data-done')){$('#shipped').open=true;$('#shipped').scrollIntoView({behavior:reduce?'auto':'smooth'});return}
+  if(b.id==='clr'||b.id==='clr2'){sel=null;render();return}
+  if(b.dataset.editst){openSt(b.dataset.editst);return}
+  if(b.hasAttribute('data-addempty')){openTruck();return}
+  const c=b.closest('[data-id]');if(!c)return;const id=c.dataset.id,t=find(id);if(!t)return;
+  if(b.dataset.sig){sign(t,b.dataset.sig);return}
+  if(b.hasAttribute('data-edit'))openTruck(id);
+  else if(b.hasAttribute('data-pull')&&can('edit'))pick('Emergency pull',`Take ${t.unit} off Station 11. Where is it going?`,notBuild(),k=>moveTo(t,k,`${t.unit} pulled off Station 11 → ${title(k)}`));
+  else if(b.hasAttribute('data-moveto')&&can('move'))pick(`Move ${t.unit}`,'Where is it going next?',STEPS.map(s=>s.k).filter(k=>k!==t.k),k=>moveTo(t,k),t.id);
+  else if(b.hasAttribute('data-adv')&&can('move')){const i=FLOW.indexOf(t.k);if(t.k===SIGSTN&&!sigsDone(t)){toast('Station 18 needs both sigs first');return}if(i>=0&&i<FLOW.length-1)moveTo(t,FLOW[i+1])}
+  else if(b.hasAttribute('data-back')&&can('edit')){const i=FLOW.indexOf(t.k);if(i>0)moveTo(t,FLOW[i-1])}
+  else if(b.hasAttribute('data-return')&&can('edit')){remember([t.id]);setK(t,'f5');putTruck(t);render(new Set(['f5']));toast(`${t.unit} back at ${title('f5')}`)}});
+document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModal(m,true)}));
+document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.closest&&e.target.closest('#floor [data-k],#floor [data-tid],#floor [data-done]')){e.preventDefault();e.target.dispatchEvent(new MouseEvent('click',{bubbles:true}));return}if(e.key==='Escape')document.querySelectorAll('.modal').forEach(m=>{if(!m.hidden)closeModal(m)})});
+$('#bAdd').addEventListener('click',()=>openTruck());
+$('#bStations').addEventListener('click',()=>{if(can('edit'))openSt(sel);else openStn('s1',false)});
+$('#q').addEventListener('input',()=>render());
+$('#sort').addEventListener('change',()=>render());
+render();
+
+// ---------- accounts and shared data (Firebase) ----------
+const FB=window.C3FB;
+let users={},ownerUid=null,dataUnsubs=[],meUnsub=null,gateView='loading',authUser=null;
+const ROLE_MAP={admin:'admin',supervisor:'emp',employee:'view'};
+const ROLE_NAMES={admin:'Admin',supervisor:'Supervisor',employee:'Employee (view only)',pending:'No access yet'};
+const authErr=e=>{const c=(e&&e.code)||'';
+  if(/invalid-credential|wrong-password|user-not-found|invalid-login/.test(c))return'Wrong email or password.';
+  if(/email-already-in-use/.test(c))return'That email already has an account. Sign in instead.';
+  if(/weak-password/.test(c))return'Use at least 6 characters for your password.';
+  if(/invalid-email|missing-email/.test(c))return"That email doesn't look right.";
+  if(/too-many-requests/.test(c))return'Too many tries. Wait a minute, then try again.';
+  if(/network-request-failed/.test(c))return'No connection. Check your signal and try again.';
+  if(/unauthorized-domain|operation-not-allowed|configuration/.test(c))return'Sign-in is not set up for this web address yet. Tell your admin.';
+  return'Something went wrong. Try again.'};
+
+function gateShow(view,msg,ok){gateView=view;const g=$('#gate');g.hidden=false;document.body.classList.add('locked');
+  const em=esc(($('#gEmail')&&$('#gEmail').value)||'');
+  const card={
+    loading:`<p class="gmsg">Loading…</p>`,
+    signin:`<h2>Sign in</h2><form id="gForm" data-act="signin" novalidate><label>Email<input id="gEmail" type="email" autocomplete="email" value="${em}" required></label><label>Password<input id="gPass" type="password" autocomplete="current-password" required></label><p class="gerr" id="gErr" role="alert"></p><button class="go gbig" type="submit">Sign in</button></form><div class="glinks"><button type="button" class="glink" data-gv="reset">Forgot password?</button><button type="button" class="glink" data-gv="signup">Create an account</button></div>`,
+    signup:`<h2>Create account</h2><form id="gForm" data-act="signup" novalidate><label>Your name<input id="gName" autocomplete="name" required></label><label>Email<input id="gEmail" type="email" autocomplete="email" value="${em}" required></label><label>Password <span class="hint">at least 6 characters</span><input id="gPass" type="password" autocomplete="new-password" minlength="6" required></label><label>Type it again<input id="gPass2" type="password" autocomplete="new-password" required></label><p class="gerr" id="gErr" role="alert"></p><button class="go gbig" type="submit">Create account</button></form><p class="gnote">New accounts can't see anything until an admin gives them a role.</p><div class="glinks"><button type="button" class="glink" data-gv="signin">I already have an account</button></div>`,
+    reset:`<h2>Reset password</h2><form id="gForm" data-act="reset" novalidate><label>Email<input id="gEmail" type="email" autocomplete="email" value="${em}" required></label><p class="gerr" id="gErr" role="alert"></p><button class="go gbig" type="submit">Send reset link</button></form><div class="glinks"><button type="button" class="glink" data-gv="signin">Back to sign in</button></div>`,
+    pending:`<h2>Almost in</h2><p class="gmsg">Your account is made, but an admin still needs to give you a role. This page opens by itself once they do.</p><p class="gnote">Signed in as ${esc(authUser&&authUser.email||'')}</p><div class="glinks"><button type="button" class="glink" id="gOut">Sign out</button></div>`
+  }[view];
+  $('#gCard').innerHTML=card;
+  if(msg){const e=$('#gErr')||$('#gCard').appendChild(Object.assign(document.createElement('p'),{className:'gerr'}));e.textContent=msg;e.classList.toggle('ok',!!ok)}
+  const f=$('#gCard input:not([value]),#gCard input[value=""]');if(f&&view!=='loading')setTimeout(()=>f.focus(),60)}
+function gateHide(){$('#gate').hidden=true;document.body.classList.remove('locked')}
+
+$('#gate').addEventListener('click',e=>{const b=e.target.closest('[data-gv]');if(b){gateShow(b.dataset.gv);return}if(e.target.closest('#gOut'))FB.signOut()});
+$('#gate').addEventListener('submit',async e=>{e.preventDefault();const f=e.target,act=f.dataset.act,err=$('#gErr'),btn=f.querySelector('button[type=submit]');
+  const email=($('#gEmail').value||'').trim(),pass=$('#gPass')?$('#gPass').value:'';err.textContent='';err.classList.remove('ok');
+  if(!email){err.textContent='Enter your email.';return}
+  if(act!=='reset'&&!pass){err.textContent='Enter your password.';return}
+  if(act==='signup'){const name=$('#gName').value.trim();if(!name){err.textContent='Enter your name.';return}
+    if(pass.length<6){err.textContent='Use at least 6 characters for your password.';return}
+    if(pass!==$('#gPass2').value){err.textContent="The two passwords don't match.";return}}
+  btn.disabled=true;const old=btn.textContent;btn.textContent='One moment…';
+  try{
+    if(act==='signin')await FB.signIn(email,pass);
+    else if(act==='signup')await FB.signUp($('#gName').value.trim(),email,pass);
+    else{await FB.reset(email).catch(x=>{if(!/user-not-found/.test(x.code||''))throw x});err.textContent='If that email has an account, a reset link is on its way. Check your inbox and spam folder.';err.classList.add('ok')}
+  }catch(x){err.textContent=authErr(x)}
+  btn.disabled=false;btn.textContent=old});
+
+function stopData(){dataUnsubs.forEach(u=>{try{u()}catch(e){}});dataUnsubs=[]}
+function startData(){if(dataUnsubs.length)return;const sy=()=>$('#sync');
+  let tmr=setTimeout(()=>{if(sy())sy().textContent="Can't reach the line yet. Check your signal."},10000);
+  dataUnsubs.push(db.collection('trucks').onSnapshot(snap=>{S.trucks=snap.docs.map(x=>normTruck({...x.data(),id:x.id})).filter(Boolean);if(!snap.metadata.fromCache){clearTimeout(tmr);if(sy())sy().textContent='Live'}safeRender()},e=>{clearTimeout(tmr);if(sy())sy().textContent='Live updates stopped. Reopen to reconnect.'}));
+  dataUnsubs.push(db.doc('plant/crews').onSnapshot(snap=>{S.info=normInfo(snap.exists?(snap.data()||{}).info:{});safeRender()},()=>{}));
+  dataUnsubs.push(db.collection('comments').orderBy('t','desc').limit(500).onSnapshot(snap=>{C=snap.docs.map(x=>{const v=x.data()||{};return{id:x.id,k:String(v.k||''),text:String(v.text||''),by:String(v.by||''),t:String(v.t||'')}});safeRender()},()=>{}));
+  dataUnsubs.push(db.collection('users').onSnapshot(snap=>{users={};snap.docs.forEach(x=>{const v=x.data()||{};users[x.id]={name:String(v.name||''),email:String(v.email||''),role:String(v.role||'pending'),created:String(v.created||'')};names[x.id]=users[x.id].name});safeRender();if(!$('#mPeople').hidden)renderPeople()},()=>{}))}
+
+FB.onAuth(async user=>{
+  authUser=user;if(meUnsub){meUnsub();meUnsub=null}
+  if(!user){stopData();shared=false;me=null;role='view';preview=null;S={info:normInfo({}),trucks:[]};C=[];users={};render();gateShow('signin');return}
+  gateShow('loading');db=FB.db;me=user.uid;shared=true;
+  try{
+    const mine=await db.doc('users/'+me).get();
+    if(!mine.exists){let owner=false;
+      try{const o=await db.doc('meta/owner').get();if(!o.exists){await db.doc('meta/owner').set({uid:me});owner=true}else owner=(o.data()||{}).uid===me}catch(e){}
+      await db.doc('users/'+me).set({name:user.displayName||String(user.email||'').split('@')[0],email:user.email||'',role:owner?'admin':'pending',created:new Date().toISOString()})}
+    try{const o=await db.doc('meta/owner').get();ownerUid=o.exists?(o.data()||{}).uid:null}catch(e){}
+  }catch(e){gateShow('signin',"Couldn't load your account. Check your signal and try again.");return}
+  meUnsub=db.doc('users/'+me).onSnapshot(snap=>{const v=snap.exists?snap.data()||{}:{};names[me]=v.name||user.displayName||'';
+    const r=String(v.role||'pending');
+    if(!ROLE_MAP[r]){stopData();gateShow('pending');return}
+    role=ROLE_MAP[r];if(role!=='admin')preview=null;gateHide();startData();render()},()=>gateShow('signin',"Couldn't load your account. Try again."));
+});
+
+// ---------- People screen (admin) ----------
+function renderPeople(){const list=Object.entries(users).sort((a,b)=>{const o={pending:0,admin:1,supervisor:2,employee:3};return(o[a[1].role]-o[b[1].role])||a[1].name.localeCompare(b[1].name)});
+  const waiting=list.filter(([,u])=>u.role==='pending').length;
+  $('#pplList').innerHTML=(waiting?`<p class="pwait">${waiting} ${waiting===1?'person is':'people are'} waiting for a role</p>`:'')+list.map(([id,u])=>{const locked=id===me||id===ownerUid;
+    return `<div class="prow${u.role==='pending'?' pend':''}"><div class="pav">${esc((u.name||u.email||'?').trim().charAt(0).toUpperCase())}</div><div class="pinfo"><b>${esc(u.name||'No name')}${id===me?' (you)':''}</b><span class="k">${esc(u.email)}</span>${u.created?`<span class="k">Joined ${fmtDT(u.created)}</span>`:''}</div>
+      <select data-uid="${esc(id)}" aria-label="Role for ${esc(u.name||u.email)}" ${locked?'disabled':''}>${['pending','employee','supervisor','admin'].map(r=>`<option value="${r}" ${u.role===r?'selected':''}>${ROLE_NAMES[r]}</option>`).join('')}</select></div>`}).join('')||'<p class="k">No one has signed up yet.</p>'}
+$('#pplList').addEventListener('change',async e=>{const s=e.target.closest('select[data-uid]');if(!s||role!=='admin')return;const uid=s.dataset.uid,r=s.value;
+  try{await db.doc('users/'+uid).update({role:r});toast(`${users[uid]?users[uid].name:'User'} is now ${ROLE_NAMES[r]}`)}catch(x){toast("Couldn't change that role.");renderPeople()}});
+document.addEventListener('click',e=>{if(e.target.closest('#bPeople')){renderPeople();$('#mPeople').hidden=false}else if(e.target.closest('#bOut')){undo=null;FB.signOut();toast('Signed out')}});
+}
+</script>
+</body>
+</html>
