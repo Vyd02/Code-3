@@ -385,6 +385,10 @@ label{display:grid;gap:4px;font-size:14px;font-weight:600}
 <p class="k" style="margin:0">Admin: everything · Supervisor: move trucks and comment · Employee: view only</p>
 <div id="pplList" class="ppl"></div></div></div>
 <div class="modal" id="mStn" hidden><div class="sheet stn" id="stnSheet" role="dialog" aria-modal="true" aria-label="Station"></div></div>
+<div class="modal" id="mSig" hidden><form class="sheet" id="fSig" autocomplete="off"><h2 id="sigTitle">Signature</h2>
+<label>Who signed off?<input id="sigName" list="sigList" maxlength="60" placeholder="Type their name"></label><datalist id="sigList"></datalist>
+<p class="err" id="sigErr" hidden></p><p class="hint" style="margin:0">The time and your name are saved with it.</p>
+<div class="row"><button type="button" class="del" id="sigClear">Clear signature</button><button type="button" data-close>Cancel</button><button class="go" type="submit">Save</button></div></form></div>
 <div class="modal" id="mMove" hidden>
   <div class="sheet">
     <h2 id="mvTitle">Move truck</h2>
@@ -452,7 +456,7 @@ function normInfo(src){const info={};STEPS.forEach(s=>{const x=(src||{})[s.k]||{
 function normTruck(t){if(!t||!t.id)return null;const k=(t.k==='done'||STEPS.some(s=>s.k===t.k))?t.k:'s1';
   return{id:String(t.id),unit:String(t.unit||''),model:String(t.model||''),vt:String(t.vt||''),cust:String(t.cust||''),due:String(t.due||''),notes:String(t.notes||''),k,
     h:Array.isArray(t.h)?t.h.filter(e=>e&&e.k&&e.t).map(e=>({k:String(e.k),t:String(e.t),by:e.by?String(e.by):''})):[],
-    sig:{el:t.sig&&t.sig.el&&t.sig.el.t?{t:String(t.sig.el.t),by:String(t.sig.el.by||'')}:null,co:t.sig&&t.sig.co&&t.sig.co.t?{t:String(t.sig.co.t),by:String(t.sig.co.by||'')}:null}}}
+    sig:{el:t.sig&&t.sig.el&&t.sig.el.t?{t:String(t.sig.el.t),by:String(t.sig.el.by||''),name:String(t.sig.el.name||'')}:null,co:t.sig&&t.sig.co&&t.sig.co.t?{t:String(t.sig.co.t),by:String(t.sig.co.by||''),name:String(t.sig.co.name||'')}:null}}}
 function normOld(v){
   if(!v||typeof v!=='object')return{info:normInfo({}),trucks:[]};
   if(v.v!==4){const old=Array.isArray(v.stations)?v.stations:[],was3=v.v===3;
@@ -487,7 +491,7 @@ const isBuild=k=>/^s([1-9]|1[0-5])$/.test(k);
 const posOf=k=>k==='done'?DONEPOS:step(k).pos;
 const nm=k=>S.info[k].n;
 const isDef=k=>nm(k)===step(k).def;
-const title=k=>{if(k==='done')return'Signed off';if(k==='sig-el')return'Electrical sig signed';if(k==='sig-co')return'Cosmetic sig signed';if(k==='unsig-el')return'Electrical sig cleared';if(k==='unsig-co')return'Cosmetic sig cleared';const s=step(k);if(!s)return k;if(s.z==='build'||s.z==='final')return isDef(k)?nm(k):`Stn ${s.code} · ${nm(k)}`;return nm(k)};
+const title=k=>{if(k==='done')return'Signed off';if(k==='sig-el')return'Electrical sig entered';if(k==='sig-co')return'Cosmetic sig entered';if(k==='unsig-el')return'Electrical sig cleared';if(k==='unsig-co')return'Cosmetic sig cleared';const s=step(k);if(!s)return k;if(s.z==='build'||s.z==='final')return isDef(k)?nm(k):`Stn ${s.code} · ${nm(k)}`;return nm(k)};
 const short=k=>{if(k==='done')return'Signed off';const s=step(k);if(s.z==='build'||s.z==='final')return isDef(k)?'Stn '+s.code:nm(k);return nm(k)};
 const sub=k=>{const s=step(k);return s.z==='fin'?`Final Line ${s.code.slice(1)} of 5`:s.z==='out'?'Outside service':s.z==='final'?'TAG line':`Build line · ${s.code} of 15`};
 const moves=t=>t.h.filter(e=>!/sig-/.test(e.k));
@@ -559,7 +563,7 @@ function render(bump){
     else{const i=FLOW.indexOf(t.k),nx=FLOW[i+1],pv=FLOW[i-1],needSig=t.k===SIGSTN&&!sigsDone(t),full=nx&&occupied(nx,t.id),blocked=needSig||full;
       acts=(can('edit')?`<button data-back ${i===0||(pv&&occupied(pv,t.id))?'disabled':''} aria-label="Move back one step">◂</button>`:'')+E+(can('move')?`<button class="go" data-adv ${blocked?'disabled':''}>${needSig?'Needs both sigs':full?esc(short(nx))+' is full':nx==='done'?'Sign off ✓':'To '+esc(short(nx))+' ▸'}</button>`:'')}
     const sigs=t.k===SIGSTN?`<div class="sigs">${SIGS.map(([k,l])=>{const g=t.sig[k];const mayClear=g&&(can('edit')||(g.by&&g.by===me));
-      return `<button class="sig${g?' ok':''}" data-sig="${k}" ${(!g&&!can('sign'))||(g&&!mayClear)?'disabled':''}><span>${l}</span><b>${g?'✓ '+esc(who(g.by)||'Signed'):can('sign')?'Tap to sign':'Not signed yet'}</b>${g?`<small>${fmtDT(g.t)}${mayClear?' · tap to clear':''}</small>`:''}</button>`}).join('')}</div>`:'';
+      return `<button class="sig${g?' ok':''}" data-sig="${k}" ${(!g&&!can('sign'))||(g&&!mayClear)?'disabled':''}><span>${l}</span><b>${g?'✓ '+esc(g.name||who(g.by)||'Signed'):can('sign')?'Tap to enter name':'Not signed yet'}</b>${g?`<small>${fmtDT(g.t)}${g.name&&g.by?' · entered by '+esc(who(g.by)):''}${mayClear?' · tap to change':''}</small>`:''}</button>`}).join('')}</div>`:'';
     return `<article class="card z-${s.z}" data-id="${esc(t.id)}" style="animation-delay:${Math.min(n++,8)*40}ms">
       <div class="top"><div><h3>${esc(t.unit)}</h3><p>${esc([t.model,t.cust].filter(Boolean).join(' · '))||'&nbsp;'}</p></div>
       <div class="due${isLate?' late':''}">Due<b>${fmtDue(t.due)}${isLate?' · late':''}</b></div></div>
@@ -579,7 +583,7 @@ function render(bump){
   const dl=dn.slice().sort((a,b)=>String((lastMove(b)||{}).t).localeCompare(String((lastMove(a)||{}).t)));
   shEl.innerHTML=`<summary>Signed off (${dn.length})</summary>`+(dn.length?dl.map(t=>{const lm=lastMove(t)||{};return `<div class="srow" data-id="${esc(t.id)}"><div class="sv">${icon(t,44,26)}<div><b>${esc(t.unit)}</b> <span>${esc(t.model)}${t.cust?' · '+esc(t.cust):''}</span>
     <div class="signed">✓ Signed off <b>${fmtDT(lm.t)}</b>${lm.by?` by <b>${esc(who(lm.by))}</b>`:''}</div>
-    ${SIGS.map(([k,l])=>t.sig[k]?`<div class="k">${l}: ${esc(who(t.sig[k].by)||'signed')} · ${fmtDT(t.sig[k].t)}</div>`:'').join('')}
+    ${SIGS.map(([k,l])=>t.sig[k]?`<div class="k">${l}: ${esc(t.sig[k].name||who(t.sig[k].by)||'signed')} · ${fmtDT(t.sig[k].t)}</div>`:'').join('')}
     ${moves(t).length>1?`<div class="k">Started ${fmtDT(t.h[0].t)} · ${spanT(t.h[0].t,lm.t)} start to sign-off</div>`:''}</div></div>${can('edit')?'<button data-return>Back to signing</button>':''}${hist(t)}</div>`}).join(''):'<p class="note">No trucks signed off yet.</p>');
   shEl.open=wasOpen;
   resolveNames();
@@ -713,10 +717,17 @@ function doIndex(dest){
   toast(`Line moved${dest?' · '+B.filter(t=>t.k===dest).map(t=>t.unit).join(', ')+' → '+title(dest):''}`);
   any?afterAnim(dest?1150:850,bump):render(bump)}
 
-function sign(t,k){const g=t.sig[k],l=SIGS.find(x=>x[0]===k)[1];remember([t.id]);
-  if(g){if(!(can('edit')||(g.by&&g.by===me)))return;t.sig[k]=null;t.h=t.h.concat({k:'unsig-'+k,t:now(),by:me||''});toast(`${l} cleared on ${t.unit}`)}
-  else{if(!can('sign'))return;t.sig[k]={t:now(),by:me||''};t.h=t.h.concat({k:'sig-'+k,t:now(),by:me||''});toast(`${l} signed on ${t.unit}`)}
-  putTruck(t);render()}
+let sigCtx=null;
+function sign(t,k){if(!can('sign'))return;const g=t.sig[k],l=SIGS.find(x=>x[0]===k)[1];sigCtx={id:t.id,k};
+  const inf=S.info[SIGSTN],opts=[...new Set([inf.sup,...inf.crew].filter(Boolean))];
+  $('#sigTitle').textContent=`${l} · ${t.unit}`;$('#sigList').innerHTML=opts.map(n=>`<option value="${esc(n)}"></option>`).join('');
+  $('#sigName').value=g?(g.name||''):'';$('#sigErr').hidden=true;$('#sigClear').hidden=!g;$('#mSig').hidden=false;setTimeout(()=>$('#sigName').focus(),80)}
+$('#fSig').addEventListener('submit',e=>{e.preventDefault();if(!sigCtx||!can('sign'))return;const t=find(sigCtx.id);if(!t)return;const k=sigCtx.k,l=SIGS.find(x=>x[0]===k)[1];
+  const name=$('#sigName').value.trim();if(!name){$('#sigErr').textContent='Type the name of the person who signed.';$('#sigErr').hidden=false;return}
+  remember([t.id]);t.sig[k]={t:now(),by:me||'',name:name.slice(0,60)};t.h=t.h.concat({k:'sig-'+k,t:now(),by:me||''});putTruck(t);$('#mSig').hidden=true;render();toast(`${l} signed by ${name} on ${t.unit}`)});
+$('#sigName').addEventListener('input',()=>{$('#sigErr').hidden=true});
+$('#sigClear').addEventListener('click',()=>{if(!sigCtx||!can('sign'))return;const t=find(sigCtx.id);if(!t)return;const k=sigCtx.k,l=SIGS.find(x=>x[0]===k)[1];
+  remember([t.id]);t.sig[k]=null;t.h=t.h.concat({k:'unsig-'+k,t:now(),by:me||''});putTruck(t);$('#mSig').hidden=true;render();toast(`${l} cleared on ${t.unit}`)});
 
 function pick(t,msg,keys,cb,except){pickCb=cb;$('#mvTitle').textContent=t;$('#mvMsg').textContent=msg;
   $('#mvList').innerHTML=ZONES.map(z=>{const ks=keys.filter(k=>k!=='done'&&step(k).z===z.z);if(!ks.length)return'';
