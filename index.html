@@ -52,7 +52,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .sbar i{display:block;height:14px;border-radius:7px;background:#5b5f66;transform-origin:left;animation:grow .8s cubic-bezier(.2,.8,.2,1) both}.sbar.slow i{background:var(--red)}.sbar em{font-style:normal;color:var(--mut);text-align:right}
 .sbar.slow span{color:var(--red);font-weight:700}@keyframes grow{from{transform:scaleX(0)}}
 .alist{list-style:none;margin:0;padding:0;display:grid;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden}.alist li{display:grid;grid-template-columns:30px 1fr auto;gap:10px;align-items:center;padding:9px 10px;border-top:1px solid var(--line);animation:hin .3s both;cursor:pointer}.alist li:first-child{border-top:0}.alist li b{display:block;font-size:15px;line-height:1.25}.alist li time{color:var(--mut);font-size:12px;font-weight:600;white-space:nowrap;align-self:start;padding-top:2px}.alist small{font-size:13px}
-.aday{margin:16px 0 6px;font:800 13px 'Barlow Condensed',sans-serif;text-transform:uppercase;letter-spacing:.08em;color:var(--mut)}.afil{display:flex;gap:6px;overflow-x:auto;margin:2px -2px 0;padding:2px;scrollbar-width:none}.afil button{flex:none;min-height:36px;border-radius:18px;padding:0 14px;font-size:14px}.afil button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.aday{margin:16px 0 6px;font:800 13px 'Barlow Condensed',sans-serif;text-transform:uppercase;letter-spacing:.08em;color:var(--mut)}.afil{display:flex;flex-wrap:wrap;gap:6px;margin:2px -2px 0;padding:2px;scrollbar-width:none}.afil button{flex:none;min-height:36px;border-radius:18px;padding:0 14px;font-size:14px}.afil button em{font-style:normal;margin-left:6px;opacity:.6;font-size:12px}.alist .a-mv1 i{background:#3a3d42}.afil button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .alist li.new{box-shadow:inset 3px 0 0 var(--red)}.alist li i{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-style:normal;background:#2a2d31;color:#fff}
 .pushok{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:nowrap;margin-bottom:12px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,#19a463 14%,transparent);color:#19a463;font-weight:700}.pushok span{flex:1 1 200px}.pushok button{min-height:40px;padding:0 14px}
 .alist .a-line i{background:var(--red)}.alist .a-req i{background:#e0a32f;color:#111}.alist .a-hold i{background:#e11d2a}.alist .a-done i{background:#19a463}.alist .a-s18 i{background:#2f9be0}.alist small{display:block;color:var(--mut)}
@@ -1308,6 +1308,7 @@ function alertList(){if(!me)return[];const r=eff(),out=[],wk=Date.now()-7*864e5,
       if(e.k==='hold')out.push({t:e.t,c:'hold',i:'!',txt:`${t.unit} put on hold`,sub:(e.r||'No reason')+' · '+(who(e.by)||''),id:t.id,by:e.by});
       else if(e.k==='part')out.push({t:e.t,c:'done',i:'📦',txt:`${t.unit}: part arrived`,sub:(e.r||'')+' · '+(who(e.by)||''),id:t.id,by:e.by});
       else if(e.k==='unhold')out.push({t:e.t,c:'done',i:'✓',txt:`${t.unit} is off hold`,sub:who(e.by)||'',id:t.id,by:e.by});
+      else if(i>0&&step(e.k)&&e.k!==SIGSTN&&!WAIT[e.k])out.push({t:e.t,c:'mv1',i:'▸',txt:`${t.unit} → ${title(e.k)}`,sub:who(e.by)||'',id:t.id,by:e.by});
       else if(e.k==='done')out.push({t:e.t,c:'done',i:'✓',txt:`${t.unit} signed off`,sub:who(e.by)||'',id:t.id,by:e.by});
       else if(e.k===SIGSTN&&(r==='admin'||r==='insp'))out.push({t:e.t,c:'s18',i:'18',txt:`${t.unit} reached Station 18`,sub:'Ready for sigs',id:t.id,by:e.by});
       else if(/^sig-/.test(e.k)&&mgrish)out.push({t:e.t,c:'done',i:'✍',txt:`${t.unit}: ${title(e.k)}`,sub:who(e.by)||'',id:t.id,by:e.by})})});
@@ -1325,17 +1326,17 @@ function alertsTick(){const bb=$('#bMenu');if(!bb||!me)return;let seen=0,nt=0;tr
 // Alerts, organized: filter chips, grouped by day, repeated line moves merged
 let alF='';
 const AGRP={line:'mv',s18:'sig',req:'sig',done:'mv',hold:'hold'};
-function aGroup(a){if(a.ppl)return'ppl';if(a.c==='line')return'mv';if(/Down To|part arrived/.test(a.txt))return'dn';if(/sig|Station 18/.test(a.txt))return'sig';if(/hold|overdue|pulled/.test(a.txt))return'hold';return AGRP[a.c]||'mv'}
+function aGroup(a){if(a.g)return a.g;if(a.ppl)return'ppl';if(a.c==='line'||/pulled|undone/.test(a.txt))return'mv';if(/→ The Bubble/.test(a.txt))return'bub';if(/→ Next Truck/.test(a.txt))return'nxt';if(/→ Down To/.test(a.txt))return'dn';if(/part arrived/.test(a.txt))return'part';if(/signed off/.test(a.txt))return'done';if(/overdue/.test(a.txt))return'late';if(/sig|Station 18/.test(a.txt))return'sig';return'mv'}
 function alertsHtml(L,seen){if(!L.length)return'<p class="note">No alerts yet. Line moves, the Bubble, Next Truck, Down To, parts, sigs, sign-offs and overdue trucks show up here.</p>';
   L.forEach(a=>a.g=aGroup(a));
-  const F=[['','All'],['mv','Moves'],['dn','Down To'],['sig','Sigs'],['hold','Holds & late']].filter(([k])=>!k||L.some(a=>a.g===k));
+  const F=[['','All'],['mv','Moves'],['bub','Bubble'],['nxt','Next Truck'],['dn','Down To'],['part','Parts'],['sig','Sigs'],['done','Signed off'],['late','Late']].filter(([k])=>!k||L.some(a=>a.g===k)).map(([k,l])=>[k,l,k?L.filter(a=>a.g===k).length:L.length]);
   if(alF&&!F.some(([k])=>k===alF))alF='';
   // merge back-to-back line moves by the same person within 30 min
   const out=[];L.filter(a=>!alF||a.g===alF).forEach(a=>{const p=out[out.length-1];
     if(a.c==='line'&&p&&p.c==='line'&&p.by===a.by&&Math.abs(new Date(p.tEnd||p.t)-new Date(a.t))<30*6e4){p.n=(p.n||1)+1;p.tEnd=a.t;return}out.push({...a})});
   const dayKey=t=>{const d=new Date(t);d.setHours(0,0,0,0);return+d},today=dayKey(Date.now()),dayName=k=>k===today?'Today':k===today-864e5?'Yesterday':new Date(k).toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'});
   const tm=t=>new Date(t).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
-  let h=`<div class="afil">${F.map(([k,l])=>`<button type="button" class="${alF===k?'on':''}" data-alf="${k}">${l}</button>`).join('')}</div>`,cur=null,i=0;
+  let h=`<div class="afil">${F.map(([k,l,n])=>`<button type="button" class="${alF===k?'on':''}" data-alf="${k}">${l}<em>${n}</em></button>`).join('')}</div>`,cur=null,i=0;
   out.forEach(a=>{const k=dayKey(a.t);if(k!==cur){if(cur!==null)h+='</ul>';h+=`<h4 class="aday">${dayName(k)}</h4><ul class="alist">`;cur=k}
     const many=a.n>1,txt=many?`The line moved ${a.n} times`:a.txt,sub=many?`${who(a.by)||'Someone'} · ${tm(a.tEnd)===tm(a.t)?tm(a.t):tm(a.tEnd)+' – '+tm(a.t)}`:a.sub;
     h+=`<li class="a-${a.c}${+new Date(a.t)>seen&&a.by!==me?' new':''}" data-aid="${esc(a.id)}"${a.ppl?' data-ppl="1"':''} style="animation-delay:${Math.min(i++,10)*25}ms"><i>${a.i}</i><div><b>${esc(txt)}</b><small>${esc(sub)}</small></div><time>${many?'':tm(a.t)}</time></li>`});
