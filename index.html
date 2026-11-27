@@ -1052,7 +1052,8 @@ $('#fPart').addEventListener('submit',e=>{e.preventDefault();const t=find(partId
   const P=partsOf(t).map(({legacy,...x})=>x);P.push({id:nid(),n:n.slice(0,80),o:$('#partO').value||'',a:'',by:me||''});$('#mPart').hidden=true;partsSave(t,P);toast(`Added ${n} to ${t.unit}`)});
 $('#fPh').addEventListener('submit',async e=>{e.preventDefault();const P=phPending;if(!P)return;const b=$('#phSave');b.disabled=true;b.textContent='Saving…';
   const doc={d:P.d,w:P.w,h:P.h,k:$('#phK').value||'',c:$('#phCap').value.trim().slice(0,120),by:me||'',t:now()};
-  try{if(shared)await db.collection(`trucks/${P.tid}/photos`).doc(nid()).set(doc);else{PH[P.tid]=[{id:nid(),...doc}].concat(PH[P.tid]||[]);phPaint()}$('#mPhAdd').hidden=true;phPending=null;toast('Photo saved')}
+  try{if(shared){const ref=db.collection(`trucks/${P.tid}/photos`).doc(nid());
+      try{await ref.set(doc)}catch(x){if(x&&x.code==='permission-denied'&&doc.k){const{k,...old}=doc;await ref.set(old);$('#mPhAdd').hidden=true;phPending=null;toast('Photo saved under Other. Paste the new Firebase rules so photos keep their station.');return}throw x}}else{PH[P.tid]=[{id:nid(),...doc}].concat(PH[P.tid]||[]);phPaint()}$('#mPhAdd').hidden=true;phPending=null;toast('Photo saved')}
   catch(x){writeFail(x)}finally{b.disabled=false;b.textContent='Save photo'}});
 $('#phDel').addEventListener('click',async()=>{const v=phView;if(!v)return;$('#mPh').hidden=true;phView=null;
   try{if(shared)await db.collection(`trucks/${v.tid}/photos`).doc(v.id).delete();else{PH[v.tid]=(PH[v.tid]||[]).filter(x=>x.id!==v.id);phPaint()}toast('Photo deleted')}catch(x){writeFail(x)}});
