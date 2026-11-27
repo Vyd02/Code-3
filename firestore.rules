@@ -9,7 +9,8 @@ service cloud.firestore {
       let p = /databases/$(database)/documents/users/$(request.auth.uid);
       return exists(p) ? get(p).data.role : 'none';
     }
-    function isAdmin() { return isOwner() || (signedIn() && myRole() == 'admin'); }
+    function isCoOwner() { return signedIn() && myRole() == 'coowner'; }
+    function isAdmin() { return isOwner() || (signedIn() && myRole() in ['admin', 'coowner']); }
     function isSupervisor() { return isAdmin() || (signedIn() && myRole() == 'supervisor'); }
     function isInspector() { return isAdmin() || (signedIn() && myRole() == 'inspector'); }
     function isMember() { return isSupervisor() || (signedIn() && myRole() in ['inspector', 'employee']); }
@@ -21,13 +22,16 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    // People and their roles: only the owner can change roles
+    // People and roles: owner changes anyone; co-owners change everyone except the owner and co-owners
     match /users/{uid} {
       allow read: if signedIn() && (request.auth.uid == uid || isMember());
       allow create: if signedIn() && request.auth.uid == uid
         && request.resource.data.keys().hasOnly(['name', 'email', 'role', 'created'])
         && (request.resource.data.role == 'pending' || (request.resource.data.role == 'admin' && isOwner()));
       allow update: if isOwner()
+        || (isCoOwner() && uid != get(ownerDoc()).data.uid && resource.data.role != 'coowner'
+            && request.resource.data.role != 'coowner'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role']))
         || (request.auth.uid == uid && request.resource.data.role == resource.data.role);
       allow delete: if isOwner();
     }
