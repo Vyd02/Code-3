@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Code 3</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#121315">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -864,5 +868,6 @@ $('#pplList').addEventListener('change',async e=>{const s=e.target.closest('sele
 document.addEventListener('click',e=>{if(e.target.closest('#bPeople')){renderPeople();$('#mPeople').hidden=false}else if(e.target.closest('#bOut')){undo=null;FB.signOut();toast('Signed out')}});
 }
 </script>
+<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});</script>
 </body>
 </html>
