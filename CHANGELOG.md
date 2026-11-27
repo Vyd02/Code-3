@@ -28,6 +28,7 @@ Every change is its own commit, so any one can be undone without touching the ot
 | 13 | Bubble can't go back | `cce9472` | Trucks in the Bubble can't be moved back to Stations 1–15. |
 | 14 | Photos by station | `1694e17` | Each photo saves its station; the Photos section groups them by station in line order. Needs the updated rules. |
 | 15 | Accounts on stations | `440d33c` | Admins check off people with accounts on each station. Non-admins can only add photos for their own stations. Needs the updated rules. |
+| 16 | People: stations + search | `ccb5006` | Assign stations to each person from People, search people by name or email, and the Remove button is no longer squished. |
 
 ### Database rules changed
 - Photos: new `match /trucks/{id}/photos/{pid}` block (feature 8).
