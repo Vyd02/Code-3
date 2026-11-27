@@ -1036,17 +1036,23 @@ function offerPin(){if(!me||pinFor(me)||lsGet('c3-pin-noask-'+me))return;setTime
 document.addEventListener('click',e=>{if(e.target.closest('#bPin'))pinModal(pinFor(me)?'manage':'choose');
   else if(e.target.closest('#bLock')){stopData();ssSet('c3-open',null);pinBuf='';gateShow('pin')}});
 
+
+// ---------- private emails (owner and co-owners only) ----------
+let emails={},privUnsub=null;const scrubbed=new Set();
+function syncPrivate(){if(isMgr()&&!privUnsub){privUnsub=db.collection('private').onSnapshot(snap=>{emails={};snap.docs.forEach(x=>{emails[x.id]=String((x.data()||{}).email||'')});Object.keys(users).forEach(id=>{users[id].email=emails[id]||''});if(!$('#mPeople').hidden)renderPeople()},()=>{})}
+  else if(!isMgr()&&privUnsub){privUnsub();privUnsub=null;emails={};Object.keys(users).forEach(id=>{users[id].email=''})}}
+async function scrubEmail(id,v){if(scrubbed.has(id))return;scrubbed.add(id);try{if(v.email)await db.doc('private/'+id).set({email:String(v.email)});await db.doc('users/'+id).set({name:String(v.name||''),role:String(v.role||'pending'),created:String(v.created||'')})}catch(e){scrubbed.delete(id)}}
 function stopData(){dataUnsubs.forEach(u=>{try{u()}catch(e){}});dataUnsubs=[]}
 function startData(){if(dataUnsubs.length)return;const sy=()=>$('#sync');
   let tmr=setTimeout(()=>{if(sy())sy().textContent="Can't reach the line yet. Check your signal."},10000);
   dataUnsubs.push(db.collection('trucks').onSnapshot(snap=>{S.trucks=snap.docs.map(x=>normTruck({...x.data(),id:x.id})).filter(Boolean);if(!snap.metadata.fromCache){clearTimeout(tmr);if(sy())sy().textContent='Live'}safeRender()},e=>{clearTimeout(tmr);if(sy())sy().textContent='Live updates stopped. Reopen to reconnect.'}));
   dataUnsubs.push(db.doc('plant/crews').onSnapshot(snap=>{S.info=normInfo(snap.exists?(snap.data()||{}).info:{});safeRender()},()=>{}));
   dataUnsubs.push(db.collection('comments').orderBy('t','desc').limit(500).onSnapshot(snap=>{C=snap.docs.map(x=>{const v=x.data()||{};return{id:x.id,k:String(v.k||''),text:String(v.text||''),by:String(v.by||''),t:String(v.t||'')}});safeRender()},()=>{}));
-  dataUnsubs.push(db.collection('users').onSnapshot(snap=>{users={};snap.docs.forEach(x=>{const v=x.data()||{};users[x.id]={name:String(v.name||''),email:String(v.email||''),role:String(v.role||'pending'),created:String(v.created||'')};names[x.id]=users[x.id].name});safeRender();if(!$('#mPeople').hidden)renderPeople()},()=>{}))}
+  dataUnsubs.push(db.collection('users').onSnapshot(snap=>{users={};snap.docs.forEach(x=>{const v=x.data()||{};users[x.id]={name:String(v.name||''),email:emails[x.id]||'',role:String(v.role||'pending'),created:String(v.created||'')};names[x.id]=users[x.id].name;if(v.email!==undefined&&me&&me===ownerId)scrubEmail(x.id,v)});safeRender();if(!$('#mPeople').hidden)renderPeople()},()=>{}))}
 
 FB.onAuth(async user=>{
   authUser=user;if(meUnsub){meUnsub();meUnsub=null}
-  if(!user){stopData();shared=false;me=null;role='view';preview=null;S={info:normInfo({}),trucks:[]};C=[];users={};render();gateShow('signin',gateNote);gateNote=null;return}
+  if(!user){stopData();if(privUnsub){privUnsub();privUnsub=null}emails={};$('#pplList').innerHTML='';$('#mPeople').hidden=true;['#mStn','#mSig','#mTruck','#mSt','#mMove','#mInv','#mPin'].forEach(q=>{const m=$(q);if(m)m.hidden=true});shared=false;me=null;role='view';preview=null;S={info:normInfo({}),trucks:[]};C=[];users={};render();gateShow('signin',gateNote);gateNote=null;return}
   if(!ssGet('c3-open')){if(pinFor(user.uid)){pinBuf='';gateShow('pin');return}FB.signOut();return}
   enterApp(user)});
 async function enterApp(user){
@@ -1056,13 +1062,15 @@ async function enterApp(user){
     const mine=await db.doc('users/'+me).get();
     if(!mine.exists){let owner=false;
       try{const o=await db.doc('meta/owner').get();if(!o.exists){await db.doc('meta/owner').set({uid:me});owner=true}else owner=(o.data()||{}).uid===me}catch(e){}
-      await db.doc('users/'+me).set({name:user.displayName||String(user.email||'').split('@')[0],email:user.email||'',role:owner?'admin':'pending',created:new Date().toISOString()})}
+      await db.doc('users/'+me).set({name:user.displayName||String(user.email||'').split('@')[0],role:owner?'admin':'pending',created:new Date().toISOString()})}
+    else{const v=mine.data()||{};if(v.email!==undefined){try{await db.doc('users/'+me).set({name:String(v.name||''),role:String(v.role||'pending'),created:String(v.created||'')})}catch(e){}}}
+    try{await db.doc('private/'+me).set({email:user.email||''})}catch(e){}
     try{const o=await db.doc('meta/owner').get();ownerUid=o.exists?(o.data()||{}).uid:null;ownerId=ownerUid}catch(e){}
   }catch(e){gateShow('signin',/permission/.test((e&&e.code)||'')?"Signed in, but the database is still locked. The admin needs to publish the Firestore rules, then sign in again.":"Couldn't load your account. Check your signal and try again.");return}
   meUnsub=db.doc('users/'+me).onSnapshot(snap=>{const v=snap.exists?snap.data()||{}:{};names[me]=v.name||user.displayName||'';
     const r=String(v.role||'pending');
     if(!ROLE_MAP[r]){stopData();gateShow('pending');return}
-    myRaw=r;role=ROLE_MAP[r];if(!isMgr())preview=null;const first=$('#gate').hidden===false;gateHide();startData();render();if(first)firstRun()},()=>gateShow('signin',"Couldn't load your account. Try again."));
+    myRaw=r;role=ROLE_MAP[r];if(!isMgr())preview=null;syncPrivate();const first=$('#gate').hidden===false;gateHide();startData();render();if(first)firstRun()},()=>gateShow('signin',"Couldn't load your account. Try again."));
 }
 
 // ---------- People screen (admin) ----------

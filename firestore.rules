@@ -26,13 +26,22 @@ service cloud.firestore {
     match /users/{uid} {
       allow read: if signedIn() && (request.auth.uid == uid || isMember());
       allow create: if signedIn() && request.auth.uid == uid
-        && request.resource.data.keys().hasOnly(['name', 'email', 'role', 'created'])
+        && request.resource.data.keys().hasOnly(['name', 'role', 'created'])
         && (request.resource.data.role == 'pending' || (request.resource.data.role == 'admin' && isOwner()));
       allow update: if isOwner()
         || (isCoOwner() && uid != get(ownerDoc()).data.uid && resource.data.role != 'coowner'
             && request.resource.data.role != 'coowner'
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role']))
-        || (request.auth.uid == uid && request.resource.data.role == resource.data.role);
+        || (request.auth.uid == uid && request.resource.data.role == resource.data.role
+            && request.resource.data.keys().hasOnly(['name', 'role', 'created']));
+      allow delete: if isOwner();
+    }
+
+    // Emails: only the person, the owner and co-owners can read them
+    match /private/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isOwner() || isCoOwner());
+      allow create, update: if signedIn() && (request.auth.uid == uid || isOwner())
+        && request.resource.data.keys().hasOnly(['email']);
       allow delete: if isOwner();
     }
 
