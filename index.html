@@ -970,7 +970,7 @@ function moveTo(t,k,msg){const zChange=k==='done'||step(k).z!==step(t.k).z,dir=p
   remember([t.id]);setK(t,k);putTruck(t);toast(msg||`${t.unit} → ${title(k)}`);renderFloor(new Set([k]));
   const bump=new Set([k]);moved?afterAnim(zChange?1150:820,bump):render(bump)}
 
-function movePick(t){if(!can('move')||(WAIT[t.k]&&!can('edit')))return;pick(`Move ${t.unit}`,'Where is it going next?',STEPS.map(s=>s.k).filter(k=>k!==t.k&&(!WAIT[k]||can('edit'))),k=>{if(occupied(k,t.id)){toast(WAIT[k]?`${WAIT[k].t} is full`:`${title(k)} already has ${at(k)[0].unit}. Move that truck first.`);return}moveTo(t,k)},t.id)}
+function movePick(t){if(!can('move')||(WAIT[t.k]&&!can('edit')))return;pick(`Move ${t.unit}`,'Where is it going next?',STEPS.map(s=>s.k).filter(k=>k!==t.k&&(!WAIT[k]||can('edit'))&&!(t.k==='bubble'&&isBuild(k))),k=>{if(occupied(k,t.id)){toast(WAIT[k]?`${WAIT[k].t} is full`:`${title(k)} already has ${at(k)[0].unit}. Move that truck first.`);return}moveTo(t,k)},t.id)}
 // One Move button: works out where the truck goes next (feature 1)
 function nextMove(t){if(!can('move')||t.k==='done')return null;const s=step(t.k),admin=can('edit');if(WAIT[t.k]&&!admin)return null;
   const go=k=>()=>moveTo(t,k),full=k=>occupied(k,t.id);
