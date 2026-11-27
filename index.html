@@ -638,6 +638,8 @@ let S={info:{},trucks:[]},C=[];             // C = comments
 let db=null,U=null,me=null,role='admin',preview=null,shared=false;
 let ownerId=null,myRaw='',users={},sel=null,pop=null,stnEdit=false,holdT=null,longFired=false,undo=null,editing=null,tTimer=null,pickCb=null,animating=0,pendingRender=false;
 let names={};
+// Hold removed (Nov 27): Down To covers it. Set to true to bring Hold back.
+const HOLDS=false;
 const eff=()=>role==='admin'&&preview&&me&&me===ownerId?preview:role;
 const isMgr=()=>!!me&&(me===ownerId||myRaw==='coowner');
 const can=a=>{const r=eff();if(r==='admin')return true;if(r==='emp')return['move','comment','request'].includes(a);if(r==='insp')return['sign'].includes(a);return false};
@@ -774,7 +776,7 @@ function render(bump){queueMicrotask(alertsTick);
   {const mine=eff()==='insp'||eff()==='admin'?S.trucks.flatMap(t=>t.k===SIGSTN?SIGS.filter(([k])=>t.req[k]&&t.req[k].uid===me&&!t.sig[k]).map(([k,l])=>({t,l})):[]):[];
    $('#note').innerHTML=mine.length?`<div class="reqban"><b>${mine.length} signature${mine.length===1?'':'s'} waiting on you</b>${mine.map(x=>`<button data-gocard="${esc(x.t.id)}">${esc(x.t.unit)} · ${x.l}</button>`).join('')}</div>`:''}
   const q=$('#q').value.trim().toLowerCase(),srt=$('#sort').value;
-  const isL=t=>t.due&&t.due<td,needMe=t=>t.k===SIGSTN&&SIGS.some(([k])=>t.req[k]&&t.req[k].uid===me&&!t.sig[k]),heldT=t=>t.hold&&t.k!=='down';
+  const isL=t=>t.due&&t.due<td,needMe=t=>t.k===SIGSTN&&SIGS.some(([k])=>t.req[k]&&t.req[k].uid===me&&!t.sig[k]),heldT=t=>HOLDS&&t.hold&&t.k!=='down';
   const soon=t=>{const n=daysLeft(t.due);return n!=null&&n>=0&&n<=7};
   const AT={late:isL,soon,down:t=>t.k==='down',sig:needMe,hold:heldT};
   {const c={late:on.filter(isL).length,soon:on.filter(soon).length,down:on.filter(AT.down).length,sig:on.filter(needMe).length,hold:on.filter(heldT).length},lab={late:'overdue',soon:'due this week',down:'Down To',sig:c.sig===1?'needs your sig':'need your sig',hold:'on hold'};
@@ -797,7 +799,7 @@ function render(bump){queueMicrotask(alertsTick);
       else if(rq){cls+=' rq';main='Waiting on '+esc(rq.uid===me?'you':(users[rq.uid]?users[rq.uid].name:who(rq.uid))||'someone');small='Asked by '+esc(who(rq.by)||'someone')+' · '+fmtDT(rq.t);on=r!=='view'}
       else{main=r==='admin'?'Tap to sign':r==='insp'?'Tap to sign':r==='emp'?'Tap to request':'Not signed yet';on=r!=='view'}
       return `<button class="${cls}" data-sig="${k}" ${on?'':'disabled'}><span>${l}</span><b>${main}</b>${small?`<small>${small}</small>`:''}</button>`}).join('')}</div>`:'';
-    return `<article class="card z-${s.z}${t.hold&&t.k!=='down'&&t.k!=='done'?' held':''}${isLate?' late':''}" data-id="${esc(t.id)}" style="animation-delay:${Math.min(n++,8)*40}ms">
+    return `<article class="card z-${s.z}${HOLDS&&t.hold&&t.k!=='down'&&t.k!=='done'?' held':''}${isLate?' late':''}" data-id="${esc(t.id)}" style="animation-delay:${Math.min(n++,8)*40}ms">
       <div class="top"><div><h3>${esc(t.unit)}</h3><p>${esc(t.cust)||'&nbsp;'}</p></div>
       <div class="due${isLate?' late':''}">${t.mon?`<span class="monb">Month ${t.mon}</span>`:''}Due<b>${fmtDue(t.due)}</b>${!isLate&&daysLeft(t.due)!=null?`<span class="cd${daysLeft(t.due)<=7?' soon':''}${daysLeft(t.due)<=2?' hot':''}">${leftTxt(daysLeft(t.due))}</span>`:''}</div></div>
       ${isLate?`<div class="overdue"><b>Overdue</b><span>${(n=>n===1?'1 day':n+' days')(Math.max(1,Math.round((new Date(td)-new Date(t.due))/864e5)))} past the due date</span></div>`:''}
@@ -809,8 +811,8 @@ function render(bump){queueMicrotask(alertsTick);
       ${single(t.k)&&S.trucks.some(x=>x.k===t.k&&x.id!==t.id)?`<p class="dup">⚠ Shares ${esc(short(t.k))} with ${esc(S.trucks.filter(x=>x.k===t.k&&x.id!==t.id).map(x=>x.unit).join(', '))}. Only one truck fits here. ${can('edit')?'Tap Edit and move one to an open spot.':'Ask an admin to fix it.'}</p>`:''}
       ${t.notes?`<p class="notes">${esc(t.notes)}</p>`:''}
       ${t.k==='down'?partsBox(t):''}
-      ${t.hold&&t.k!=='down'&&t.k!=='done'?`<div class="holdbar"><b>On hold</b><span>${esc(t.hold.r||'No reason given')}</span><small>${esc(who(t.hold.by)||'')}${t.hold.by?' · ':''}${fmtDT(t.hold.t)} · ${spanT(t.hold.t,Date.now())}</small></div>`:''}
-      ${acts}${t.k!=='done'&&t.k!=='down'&&can('move')?`<button class="holdb${t.hold?' on':''}" data-hold>${t.hold?'Release hold':'Put on hold'}</button>`:''}${hist(t)}</article>`};
+      ${HOLDS&&t.hold&&t.k!=='down'&&t.k!=='done'?`<div class="holdbar"><b>On hold</b><span>${esc(t.hold.r||'No reason given')}</span><small>${esc(who(t.hold.by)||'')}${t.hold.by?' · ':''}${fmtDT(t.hold.t)} · ${spanT(t.hold.t,Date.now())}</small></div>`:''}
+      ${acts}${HOLDS&&t.k!=='done'&&t.k!=='down'&&can('move')?`<button class="holdb${t.hold?' on':''}" data-hold>${t.hold?'Release hold':'Put on hold'}</button>`:''}${hist(t)}</article>`};
   const row=t=>{const s=step(t.k),late=isL(t),dd=late?Math.max(1,Math.round((new Date(td)-new Date(t.due))/864e5)):0;
     const dl=daysLeft(t.due),tag=late?`<span class="tag t-late">Overdue ${dd}d</span>`:dl!=null&&dl<=7?`<span class="tag t-soon${dl<=2?' hot':''}">${leftTxt(dl)}</span>`:t.k==='down'?`<span class="tag t-down">${partsTag(t)}</span>`:heldT(t)?`<span class="tag t-hold">On hold</span>`:t.k===SIGSTN&&!sigsDone(t)?`<span class="tag t-sig">${SIGS.filter(([k])=>t.sig[k]).length} of 2 sigs</span>`:t.mon?`<small>Month ${esc(t.mon)}</small>`:'';
     return `<button class="trow${late?' late':''}" data-open="${esc(t.id)}" style="animation-delay:${Math.min(n++,10)*30}ms"><span class="st z-${s.z}">${esc(s.code.replace(/^S/,''))}</span><span class="mid"><b>${esc(t.unit)}</b><span>${esc([t.cust,title(t.k)].filter(Boolean).join(' · '))}</span></span><span class="rt">${tag}<small>Due ${fmtDue(t.due)}</small></span></button>`};
@@ -913,7 +915,7 @@ function renderFloor(bump){
       const inner=document.createElementNS(SVGNS,'g');inner.setAttribute('class','mti');const u=document.createElementNS(SVGNS,'use');u.setAttribute('x','-18');u.setAttribute('y','-11');u.setAttribute('width','36');u.setAttribute('height','21');inner.appendChild(u);g.appendChild(inner);
       const tx=document.createElementNS(SVGNS,'text');tx.setAttribute('class','mtl');tx.setAttribute('y','-15');g.appendChild(tx);
       const start=prevOn.size&&!prevOn.has(t.id)?spots[t.id]:sp;g.style.transform=`translate(${start.x}px,${start.y}px)`;layer.appendChild(g)}
-    g.classList.toggle('held',!!t.hold&&t.k!=='down'&&t.k!=='done');if(!g.querySelector('.hb')){const c=document.createElementNS(SVGNS,'circle');c.setAttribute('class','hb');c.setAttribute('cx','15');c.setAttribute('cy','-10');c.setAttribute('r','5');g.appendChild(c)}g.querySelector('use').setAttribute('href','#v-'+vtype(t));g.querySelector('text').textContent=t.unit;g.setAttribute('aria-label',`${t.unit} at ${title(t.k)}`);
+    g.classList.toggle('held',HOLDS&&!!t.hold&&t.k!=='down'&&t.k!=='done');if(!g.querySelector('.hb')){const c=document.createElementNS(SVGNS,'circle');c.setAttribute('class','hb');c.setAttribute('cx','15');c.setAttribute('cy','-10');c.setAttribute('r','5');g.appendChild(c)}g.querySelector('use').setAttribute('href','#v-'+vtype(t));g.querySelector('text').textContent=t.unit;g.setAttribute('aria-label',`${t.unit} at ${title(t.k)}`);
     g.querySelector('.mti').style.transform=`scaleX(${sp.d<0?-1:1})`;
     const cur=g.style.transform,next=`translate(${sp.x}px, ${sp.y}px)`,nk=next.replace(/\s/g,''),was=g._to;g._to=nk;
     if(!fresh&&was!==nk&&cur.replace(/\s/g,'')!==nk&&!reduce){const d=lag.get(t.id)||0;g.style.transitionDelay=d+'ms';g.classList.add('moving');clearTimeout(g._t);g._t=setTimeout(()=>{g.classList.remove('moving');g.style.transitionDelay=''},1050+d);
@@ -1277,7 +1279,7 @@ function openStats(){const T=S.trucks,nowD=new Date(),wk=new Date(nowD);wk.setHo
   const rows=STEPS.filter(x=>per[x.k]&&per[x.k].length).map(x=>({k:x.k,n:per[x.k].length,a:per[x.k].reduce((a,b)=>a+b,0)/per[x.k].length}));
   const mx=Math.max(1,...rows.map(r=>r.a)),slow=rows.length?rows.reduce((a,b)=>b.a>a.a?b:a):null;
   $('#statsBody').innerHTML=`<div class="stg"><div><b>${dw}</b><span>Signed off this week</span></div><div><b>${dm}</b><span>Signed off this month</span></div><div><b>${done.length}</b><span>Signed off all time</span></div>
-    <div><b>${onLine.length}</b><span>On the line now</span></div><div><b style="color:${held?'#e11d2a':'inherit'}">${held}</b><span>On hold</span></div><div><b style="color:${late?'var(--red)':'inherit'}">${late}</b><span>Past due</span></div></div>
+    <div><b>${onLine.length}</b><span>On the line now</span></div>${HOLDS?`<div><b style="color:${held?'#e11d2a':'inherit'}">${held}</b><span>On hold</span></div>`:''}<div><b style="color:${late?'var(--red)':'inherit'}">${late}</b><span>Past due</span></div></div>
     <div class="sth">Average build time</div><p style="margin:0;font-size:15px"><b style="font:800 26px 'Barlow Condensed',sans-serif">${fmtMin(avgB)}</b> <span class="k">start to sign-off${builds.length?` · from ${builds.length} truck${builds.length===1?'':'s'}`:''}</span></p>
     ${slow?`<div class="sth">Slowest spot</div><p style="margin:0;font-size:15px"><b style="color:var(--red)">${esc(title(slow.k))}</b> · trucks sit there about ${fmtMin(slow.a)} on average</p>`:''}
     <div class="sth">Average time at each spot</div>${rows.length?`<div class="sbars">${rows.map((r,i)=>`<div class="sbar${slow&&r.k===slow.k?' slow':''}"><span>${esc(short(r.k))}</span><i style="width:${Math.max(3,r.a/mx*100)}%;animation-delay:${i*40}ms"></i><em>${fmtMin(r.a)}</em></div>`).join('')}</div>`:'<p class="note">Not enough moves yet. Stats fill in as trucks move down the line.</p>'}
@@ -1302,6 +1304,7 @@ function alertList(){if(!me)return[];const r=eff(),out=[],wk=Date.now()-7*864e5,
       if(e.lm){const L=lines[e.lm]=lines[e.lm]||{t:e.t,by:e.by,n:0,out:[]};L.n++;if(e.k&&!isBuild(e.k))L.out.push(`${t.unit} → ${title(e.k)}`);return}
       if(e.em){out.push({t:e.t,c:'hold',i:'⚠',txt:`${t.unit} pulled off Station 11`,sub:`Emergency pull → ${title(e.k)} · ${who(e.by)||''}`,id:t.id,by:e.by});return}
       if(i>0&&WAIT[e.k]){out.push({t:e.t,c:e.k==='down'?'hold':'s18',i:e.k==='down'?'⏳':'◎',txt:`${t.unit} → ${WAIT[e.k].t}`,sub:(e.k==='down'?(e.r?(/^waiting on/i.test(e.r)?e.r:'Waiting on '+e.r):'Waiting on OEM parts')+' · ':'')+(who(e.by)||''),id:t.id,by:e.by});return}
+      if(!HOLDS&&(e.k==='hold'||e.k==='unhold'))return;
       if(e.k==='hold')out.push({t:e.t,c:'hold',i:'!',txt:`${t.unit} put on hold`,sub:(e.r||'No reason')+' · '+(who(e.by)||''),id:t.id,by:e.by});
       else if(e.k==='part')out.push({t:e.t,c:'done',i:'📦',txt:`${t.unit}: part arrived`,sub:(e.r||'')+' · '+(who(e.by)||''),id:t.id,by:e.by});
       else if(e.k==='unhold')out.push({t:e.t,c:'done',i:'✓',txt:`${t.unit} is off hold`,sub:who(e.by)||'',id:t.id,by:e.by});
@@ -1323,7 +1326,7 @@ function alertsTick(){const bb=$('#bMenu');if(!bb||!me)return;let seen=0,nt=0;tr
 let alF='';
 const AGRP={line:'mv',s18:'sig',req:'sig',done:'mv',hold:'hold'};
 function aGroup(a){if(a.ppl)return'ppl';if(a.c==='line')return'mv';if(/Down To|part arrived/.test(a.txt))return'dn';if(/sig|Station 18/.test(a.txt))return'sig';if(/hold|overdue|pulled/.test(a.txt))return'hold';return AGRP[a.c]||'mv'}
-function alertsHtml(L,seen){if(!L.length)return'<p class="note">No alerts yet. Line moves, holds, overdue trucks, Down To, sign-offs and sig requests show up here.</p>';
+function alertsHtml(L,seen){if(!L.length)return'<p class="note">No alerts yet. Line moves, the Bubble, Next Truck, Down To, parts, sigs, sign-offs and overdue trucks show up here.</p>';
   L.forEach(a=>a.g=aGroup(a));
   const F=[['','All'],['mv','Moves'],['dn','Down To'],['sig','Sigs'],['hold','Holds & late']].filter(([k])=>!k||L.some(a=>a.g===k));
   if(alF&&!F.some(([k])=>k===alF))alF='';
