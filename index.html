@@ -212,7 +212,7 @@ html.nosc,html.nosc body{overflow:hidden;overscroll-behavior:none}body.nosc{posi
 .sbox h4{margin:0;font:800 18px "Barlow Condensed",sans-serif;text-transform:uppercase;display:flex;gap:8px;align-items:center}.sbox h4 span{font:600 14px Barlow;color:var(--mut)}
 .pmeta1{display:grid;gap:10px}.chips{list-style:none;margin:4px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px}.chips li{background:var(--bg);border:1px solid var(--line);border-radius:20px;padding:3px 12px;font-size:15px}
 .editbtn{justify-self:start}
-.strk{display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px solid var(--line)}.strk:first-of-type{border-top:0}.strk svg{flex:none}.strk1{flex:1}
+.strk{display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px solid var(--line)}.strk:first-of-type{border-top:0}.strk svg{flex:none}.strk1{flex:1;min-width:0}.stb{display:flex;gap:6px;flex:none}.stb button{min-height:44px;padding:0 14px}
 .strk button{min-height:38px}
 
 .floorwrap{padding-top:20px}
@@ -863,7 +863,7 @@ function refreshStn(force){if(!pop)return;const box=$('#stnSheet');
   const head=`<div class="shead"><div class="badge z-${s.z}">${s.code}</div><div><div class="k">${sub(k)} · ${tr.length} truck${tr.length===1?'':'s'} here</div><h2>${esc(title(k))}</h2></div><button type="button" data-close aria-label="Close">✕</button></div>`;
   const crew=stnEdit&&can('edit')?`<form id="fStn" class="sbox"><label>Name<input name="n" value="${esc(inf.n)}" autocomplete="off"></label><label>Supervisor<input name="sup" value="${esc(inf.sup)}" placeholder="Supervisor's name" autocomplete="off"></label><label>Employees <span class="hint">one per line</span><textarea name="crew" rows="4" placeholder="Employee names">${esc(inf.crew.join('\n'))}</textarea></label><div class="row"><button type="button" data-stncancel>Cancel</button><button class="go" type="submit">Save</button></div></form>`
     :`<div class="sbox"><div class="pmeta1"><div><span class="k">Supervisor</span><div style="font-weight:600">${inf.sup?esc(inf.sup):'<span class="k">None added yet</span>'}</div></div><div><span class="k">Employees (${inf.crew.length})</span>${inf.crew.length?`<ul class="chips">${inf.crew.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>`:'<div class="k">None added yet</div>'}</div></div>${can('edit')?'<button type="button" class="editbtn" data-stnedit>Edit station</button>':''}</div>`;
-  const trucks=`<div class="sbox"><h4>Trucks here <span>${tr.length}</span></h4>${tr.length?tr.map(t=>{const lm=lastMove(t),late=t.due&&t.due<td;return `<div class="strk">${icon(t,40,24)}<div class="strk1"><b>${esc(t.unit)}</b> <span class="k">${esc(t.cust)}</span><div class="k">Here since ${fmtDT(lm&&lm.t)}${lm&&lm.by?' · '+esc(who(lm.by)):''}${late?' · <span style="color:var(--red)">late</span>':''}</div></div><button type="button" data-gocard="${esc(t.id)}">Open</button></div>`}).join(''):'<p class="k" style="margin:4px 0 0">No trucks here right now.</p>'}${k==='s1'&&can('move')?'<button class="go" style="width:100%;margin-top:8px" data-index>Move line ▸</button>':''}</div>`;
+  const trucks=`<div class="sbox"><h4>Trucks here <span>${tr.length}</span></h4>${tr.length?tr.map(t=>{const lm=lastMove(t),late=t.due&&t.due<td;return `<div class="strk">${icon(t,40,24)}<div class="strk1"><b>${esc(t.unit)}</b> <span class="k">${esc(t.cust)}</span><div class="k">Here since ${fmtDT(lm&&lm.t)}${lm&&lm.by?' · '+esc(who(lm.by)):''}${late?' · <span style="color:var(--red)">late</span>':''}</div></div><div class="stb">${can('move')&&(!WAIT[t.k]||can('edit'))&&t.k!=='done'?`<button type="button" class="go" data-stmove="${esc(t.id)}">Move ▸</button>`:''}<button type="button" data-gocard="${esc(t.id)}">Open</button></div></div>`}).join(''):'<p class="k" style="margin:4px 0 0">No trucks here right now.</p>'}${k==='s1'&&can('move')?'<button class="go" style="width:100%;margin-top:8px" data-index>Move line ▸</button>':''}</div>`;
   const cm=`<div class="sbox"><h4>Comments <span>${cs.length}</span></h4>${can('comment')?`<form id="fCm" class="cform"><textarea name="text" rows="2" maxlength="1000" placeholder="Add a comment for ${esc(short(k))}" aria-label="Comment" required></textarea><button class="go" type="submit">Post</button></form>`:''}${cs.length?`<ul class="clist">${cs.map(c=>`<li><div class="chead"><b>${esc(who(c.by)||'Someone')}</b><time>${fmtDT(c.t)}</time>${(c.by&&c.by===me)||can('edit')?`<button class="cdel" data-cdel="${esc(c.id)}" aria-label="Delete comment">Delete</button>`:''}</div><p>${esc(c.text)}</p></li>`).join('')}</ul>`:'<p class="k" style="margin:6px 0 0">No comments yet.</p>'}</div>`;
   box.innerHTML=head+crew+trucks+cm}
 document.addEventListener('submit',e=>{if(e.target.id!=='fStn')return;e.preventDefault();if(!can('edit')||!pop)return;const f=e.target,inf=S.info[pop];
@@ -893,6 +893,7 @@ function moveTo(t,k,msg){const zChange=k==='done'||step(k).z!==step(t.k).z,dir=p
   remember([t.id]);setK(t,k);putTruck(t);toast(msg||`${t.unit} → ${title(k)}`);renderFloor(new Set([k]));
   const bump=new Set([k]);moved?afterAnim(zChange?1150:820,bump):render(bump)}
 
+function movePick(t){if(!can('move')||(WAIT[t.k]&&!can('edit')))return;pick(`Move ${t.unit}`,'Where is it going next?',STEPS.map(s=>s.k).filter(k=>k!==t.k&&(!WAIT[k]||can('edit'))),k=>{if(occupied(k,t.id)){toast(WAIT[k]?`${WAIT[k].t} is full`:`${title(k)} already has ${at(k)[0].unit}. Move that truck first.`);return}moveTo(t,k)},t.id)}
 function indexLine(){if(!can('move'))return;
   const last=at('s15');
   if(last.length)pick('Move the line',`${last.map(t=>t.unit).join(', ')} at Station 15 leaves the line. Where is it going?`,STEPS.filter(s=>s.z==='out'||(s.z==='bub'&&can('edit'))).map(s=>s.k),doIndex);
@@ -991,6 +992,7 @@ document.addEventListener('click',e=>{
   if(b.hasAttribute('data-close')){closeModal(b.closest('.modal'));return}
   if(b.hasAttribute('data-stnedit')){stnEdit=true;refreshStn(true);return}
   if(b.hasAttribute('data-stncancel')){stnEdit=false;refreshStn(true);return}
+  if(b.dataset.stmove){const t2=find(b.dataset.stmove);if(!t2)return;closeModal($('#mStn'));setTimeout(()=>movePick(t2),60);return}
   if(b.dataset.gocard){const id=b.dataset.gocard;closeModal($('#mStn'));const c=document.querySelector(`.card[data-id="${CSS.escape(id)}"]`);if(c){c.scrollIntoView({behavior:reduce?'auto':'smooth',block:'center'});c.classList.remove('flash');void c.offsetWidth;c.classList.add('flash')}return}
   if(b.dataset.prev){if(!(me&&me===ownerId))return;const v=b.dataset.prev==='admin'?null:b.dataset.prev;if(v===preview)return;preview=v;render();toast(preview==='emp'?'Showing what supervisors see':preview==='view'?'Showing what employees see (view only)':'Back to admin view');return}
   if(b.hasAttribute('data-index')){indexLine();return}
@@ -1005,7 +1007,7 @@ document.addEventListener('click',e=>{
   if(b.hasAttribute('data-hold')&&can('move')){if(t.hold){remember([t.id]);t.hold=null;t.h.push({k:'unhold',t:now(),by:me||''});putTruck(t);render();toast(`${t.unit} is off hold`)}else openHold(t);return}
   if(b.hasAttribute('data-edit'))openTruck(id);
   else if(b.hasAttribute('data-pull')&&can('edit'))pick('Emergency pull',`Take ${t.unit} off Station 11. Where is it going?`,notBuild(),k=>{t._em=1;moveTo(t,k,`${t.unit} pulled off Station 11 → ${title(k)}`)});
-  else if(b.hasAttribute('data-moveto')&&can('move')){if(WAIT[t.k]&&!can('edit'))return;pick(`Move ${t.unit}`,'Where is it going next?',STEPS.map(s=>s.k).filter(k=>k!==t.k&&(!WAIT[k]||can('edit'))),k=>{if(occupied(k,t.id)){toast(WAIT[k]?`${WAIT[k].t} is full`:`${title(k)} already has ${at(k)[0].unit}. Move that truck first.`);return}moveTo(t,k)},t.id)}
+  else if(b.hasAttribute('data-moveto')&&can('move')){movePick(t)}
   else if(b.hasAttribute('data-todown')&&can('edit')){if(occupied('down',t.id)){toast('Down To is full (30).');return}openDown(t)}
   else if(b.hasAttribute('data-signoff')&&can('edit')){moveTo(t,'done',`${t.unit} signed off ✓`)}
   else if(b.hasAttribute('data-tonext')&&can('edit')){if(!sigsDone(t)){toast('Station 18 needs both sigs first');return}if(occupied('next',t.id)){toast(`Next Truck is full (${WAIT.next.max}).`);return}moveTo(t,'next',`${t.unit} → Next Truck`)}
