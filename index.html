@@ -320,7 +320,7 @@ body.tabs #bMenu{display:none!important}body.tabs .toast{bottom:96px;z-index:55}
 .trow .st.z-out{background:#2b1d10;color:#f5a04a}.trow .st.z-final{background:#20232a}.trow .st.z-fin{background:#2a1315;color:#ff6b70}.trow .st.z-bub{background:#0f2233;color:#4fb2f0}.trow .st.z-nxt{background:#10261b;color:#3ccf86}.trow .st.z-dwn{background:#2b1d10;color:#f5a04a}
 .trow .mid{flex:1;min-width:0;display:flex;flex-direction:column}.trow .mid b{font:800 22px/1.1 "Barlow Condensed",sans-serif}.trow .mid span{font-size:14px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .trow .rt{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none}.trow .rt small{font-size:13px;color:var(--mut)}
-.tag{padding:3px 8px;border-radius:7px;font-size:12px;font-weight:700;white-space:nowrap}.tag.t-late{background:#e11d2a;color:#fff}.tag.t-down{background:#2b1d10;color:#f5a04a}.tag.t-sig{background:#2a2410;color:#f0c64a}.tag.t-hold{background:#3a1316;color:#ff6b70}
+.tag{padding:3px 8px;border-radius:7px;font-size:12px;font-weight:700;white-space:nowrap}.tag.t-late{background:#e11d2a;color:#fff}.tag.t-down{background:#2b1d10;color:#f5a04a}.tag.t-sig{background:#2a2410;color:#f0c64a}.tag.t-hold{background:#3a1316;color:#ff6b70}.tag.t-soon{background:#2a2410;color:#f0c64a}.tag.t-soon.hot{background:#f0c64a;color:#1a1505;animation:odp 2s ease-in-out infinite}.att .a-soon{background:#2a2410;color:#f0c64a}.cd{display:block;font-weight:700;font-size:12px;color:var(--mut)}.cd.soon{color:#d9a400}.cd.hot{display:inline-block;margin-top:2px;padding:1px 7px;border-radius:6px;background:#f0c64a;color:#1a1505}
 .tkpage{align-items:stretch!important;padding:0!important}.tksheet{display:block!important;max-width:640px;width:100%;margin:0 auto;height:100%;max-height:100%!important;border-radius:0!important;padding:10px 16px 40px!important;overflow-y:auto;animation:tkin .28s cubic-bezier(.2,.8,.2,1) both}@keyframes tkin{from{transform:translateX(30px);opacity:0}}
 .tktop{display:flex;align-items:center;gap:10px;margin-bottom:8px;position:sticky;top:-10px;z-index:2;background:inherit;padding:6px 0}.tktop span{font-weight:600;color:var(--mut)}
 .tkback{width:44px;height:44px;border-radius:50%;border:0;background:color-mix(in srgb,currentColor 10%,transparent);color:inherit;font-size:28px;line-height:1;padding:0 0 4px}
@@ -686,6 +686,9 @@ const moves=t=>t.h.filter(e=>e.k==='done'||!!step(e.k));
 const lastMove=t=>{const m=moves(t);return m[m.length-1]||null};
 const days=t=>{const l=lastMove(t);return l?Math.max(0,Math.floor((Date.now()-new Date(l.t))/864e5)):0};
 const left=p=>p>=DONEPOS?'115%':(p/(SEGS-1)*100)+'%';
+// Feature 6: due date countdown
+const daysLeft=d=>d?Math.round((new Date(d+'T12:00')-new Date(iso(new Date())+'T12:00'))/864e5):null;
+const leftTxt=n=>n===0?'Due today':n===1?'1 day left':n+' days left';
 const fmtDue=d=>d?new Date(d+'T12:00').toLocaleDateString(undefined,{month:'short',day:'numeric'}):'—';
 const fmtDT=x=>{if(!x)return'—';const d=new Date(x);if(isNaN(d))return'—';return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:d.getFullYear()!==new Date().getFullYear()?'numeric':undefined})+', '+d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'})};
 const spanT=(a,b)=>{const m=Math.max(0,Math.round((new Date(b)-new Date(a))/6e4));if(m<60)return m+' min';const h=Math.round(m/60);if(h<48)return h+' hr';return Math.round(h/24)+' days'};
@@ -763,8 +766,9 @@ function render(bump){queueMicrotask(alertsTick);
    $('#note').innerHTML=mine.length?`<div class="reqban"><b>${mine.length} signature${mine.length===1?'':'s'} waiting on you</b>${mine.map(x=>`<button data-gocard="${esc(x.t.id)}">${esc(x.t.unit)} · ${x.l}</button>`).join('')}</div>`:''}
   const q=$('#q').value.trim().toLowerCase(),srt=$('#sort').value;
   const isL=t=>t.due&&t.due<td,needMe=t=>t.k===SIGSTN&&SIGS.some(([k])=>t.req[k]&&t.req[k].uid===me&&!t.sig[k]),heldT=t=>t.hold&&t.k!=='down';
-  const AT={late:isL,down:t=>t.k==='down',sig:needMe,hold:heldT};
-  {const c={late:on.filter(isL).length,down:on.filter(AT.down).length,sig:on.filter(needMe).length,hold:on.filter(heldT).length},lab={late:'overdue',down:'Down To',sig:c.sig===1?'needs your sig':'need your sig',hold:'on hold'};
+  const soon=t=>{const n=daysLeft(t.due);return n!=null&&n>=0&&n<=7};
+  const AT={late:isL,soon,down:t=>t.k==='down',sig:needMe,hold:heldT};
+  {const c={late:on.filter(isL).length,soon:on.filter(soon).length,down:on.filter(AT.down).length,sig:on.filter(needMe).length,hold:on.filter(heldT).length},lab={late:'overdue',soon:'due this week',down:'Down To',sig:c.sig===1?'needs your sig':'need your sig',hold:'on hold'};
    const chips=Object.keys(c).filter(k=>c[k]).map(k=>`<button class="a-${k}${attF===k?' on':''}" data-att="${k}">${c[k]} ${lab[k]}</button>`).join('');
    $('#att').innerHTML=chips?chips+(attF?'<button class="a-clear" data-att="">Show all</button>':''):'<button class="a-ok" disabled>✓ Nothing needs attention</button>';
    if(attF&&!c[attF])attF=''}
@@ -786,7 +790,7 @@ function render(bump){queueMicrotask(alertsTick);
       return `<button class="${cls}" data-sig="${k}" ${on?'':'disabled'}><span>${l}</span><b>${main}</b>${small?`<small>${small}</small>`:''}</button>`}).join('')}</div>`:'';
     return `<article class="card z-${s.z}${t.hold&&t.k!=='down'&&t.k!=='done'?' held':''}${isLate?' late':''}" data-id="${esc(t.id)}" style="animation-delay:${Math.min(n++,8)*40}ms">
       <div class="top"><div><h3>${esc(t.unit)}</h3><p>${esc(t.cust)||'&nbsp;'}</p></div>
-      <div class="due${isLate?' late':''}">${t.mon?`<span class="monb">Month ${t.mon}</span>`:''}Due<b>${fmtDue(t.due)}</b></div></div>
+      <div class="due${isLate?' late':''}">${t.mon?`<span class="monb">Month ${t.mon}</span>`:''}Due<b>${fmtDue(t.due)}</b>${!isLate&&daysLeft(t.due)!=null?`<span class="cd${daysLeft(t.due)<=7?' soon':''}${daysLeft(t.due)<=2?' hot':''}">${leftTxt(daysLeft(t.due))}</span>`:''}</div></div>
       ${isLate?`<div class="overdue"><b>Overdue</b><span>${(n=>n===1?'1 day':n+' days')(Math.max(1,Math.round((new Date(td)-new Date(t.due))/864e5)))} past the due date</span></div>`:''}
       <div class="where"><strong>${esc(title(t.k))}</strong><span>${d===0?'Today':d+(d===1?' day':' days')+' here'}${inf.sup?' · Sup: '+esc(inf.sup):''}${nc?` · <a href="#" data-showk="${t.k}">${nc} comment${nc===1?'':'s'}</a>`:''}</span></div>
       <div class="when"><span>Moved here <b>${fmtDT(lm&&lm.t)}</b>${lm&&lm.by?` by <b>${esc(who(lm.by))}</b>`:''}</span>${moves(t).length>1?`<span>Started <b>${fmtDT(t.h[0].t)}</b></span>`:''}</div>
@@ -799,7 +803,7 @@ function render(bump){queueMicrotask(alertsTick);
       ${t.hold&&t.k!=='down'&&t.k!=='done'?`<div class="holdbar"><b>On hold</b><span>${esc(t.hold.r||'No reason given')}</span><small>${esc(who(t.hold.by)||'')}${t.hold.by?' · ':''}${fmtDT(t.hold.t)} · ${spanT(t.hold.t,Date.now())}</small></div>`:''}
       ${acts}${t.k!=='done'&&t.k!=='down'&&can('move')?`<button class="holdb${t.hold?' on':''}" data-hold>${t.hold?'Release hold':'Put on hold'}</button>`:''}${hist(t)}</article>`};
   const row=t=>{const s=step(t.k),late=isL(t),dd=late?Math.max(1,Math.round((new Date(td)-new Date(t.due))/864e5)):0;
-    const tag=late?`<span class="tag t-late">Overdue ${dd}d</span>`:t.k==='down'?`<span class="tag t-down">${partsTag(t)}</span>`:heldT(t)?`<span class="tag t-hold">On hold</span>`:t.k===SIGSTN&&!sigsDone(t)?`<span class="tag t-sig">${SIGS.filter(([k])=>t.sig[k]).length} of 2 sigs</span>`:t.mon?`<small>Month ${esc(t.mon)}</small>`:'';
+    const dl=daysLeft(t.due),tag=late?`<span class="tag t-late">Overdue ${dd}d</span>`:dl!=null&&dl<=7?`<span class="tag t-soon${dl<=2?' hot':''}">${leftTxt(dl)}</span>`:t.k==='down'?`<span class="tag t-down">${partsTag(t)}</span>`:heldT(t)?`<span class="tag t-hold">On hold</span>`:t.k===SIGSTN&&!sigsDone(t)?`<span class="tag t-sig">${SIGS.filter(([k])=>t.sig[k]).length} of 2 sigs</span>`:t.mon?`<small>Month ${esc(t.mon)}</small>`:'';
     return `<button class="trow${late?' late':''}" data-open="${esc(t.id)}" style="animation-delay:${Math.min(n++,10)*30}ms"><span class="st z-${s.z}">${esc(s.code.replace(/^S/,''))}</span><span class="mid"><b>${esc(t.unit)}</b><span>${esc([t.cust,title(t.k)].filter(Boolean).join(' · '))}</span></span><span class="rt">${tag}<small>Due ${fmtDue(t.due)}</small></span></button>`};
   window.__card=card;
   const big=cardMode()==='full';
