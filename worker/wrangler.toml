@@ -1,0 +1,12 @@
+name = "code3-push"
+main = "index.js"
+compatibility_date = "2025-01-01"
+workers_dev = true
+
+[vars]
+PROJECT_ID = "code-3-e7140"
+ALLOW_ORIGIN = "https://vyd02.github.io"
+
+# Every morning at 7:05 AM Eastern (12:05 UTC): alert about trucks that just went overdue
+[triggers]
+crons = ["5 12 * * *"]

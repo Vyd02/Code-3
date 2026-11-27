@@ -1,8 +1,33 @@
 name: Deploy alert server
 on:
+  push:
+    branches: [main]
+    paths: ['worker/**', '.github/workflows/push-server.yml']
   workflow_dispatch:
 jobs:
-  noop:
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      - run: echo ok
+      - uses: actions/checkout@v4
+      - name: Check secrets are set
+        env:
+          CF: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          ACC: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          SA: ${{ secrets.FIREBASE_SA }}
+        run: |
+          [ -n "$CF" ] || { echo "Missing CLOUDFLARE_API_TOKEN"; exit 1; }
+          [ -n "$ACC" ] || { echo "Missing CLOUDFLARE_ACCOUNT_ID"; exit 1; }
+          printf '%s' "$SA" | python3 -c "import json,sys; d=json.load(sys.stdin); assert d.get('private_key') and d.get('client_email'); print('Server key looks right for', d.get('project_id'))" || { echo "FIREBASE_SA must be the whole key file"; exit 1; }
+      - name: Deploy to Cloudflare
+        id: deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: worker
+          secrets: |
+            FIREBASE_SA
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
+      - name: Server address
+        run: echo "URL=${{ steps.deploy.outputs.deployment-url }}"
