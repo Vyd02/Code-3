@@ -162,7 +162,7 @@ body.touring{overflow:hidden}
 .reqban b{flex-basis:100%}.reqban button{min-height:38px}
 
 .dup{margin:0;padding:8px 10px;border-radius:8px;background:color-mix(in srgb,var(--red) 14%,var(--bg));color:var(--red);font-size:14px;font-weight:600}
-body.locked{overflow:hidden}input[name=plate]:not(:placeholder-shown){text-transform:uppercase}
+body.locked{overflow:hidden}
 html.nosc,html.nosc body{overflow:hidden;overscroll-behavior:none}body.nosc{position:fixed;left:0;right:0;width:100%}
 .modal,.drawer{overscroll-behavior:contain;touch-action:none}.sheet,.dpanel{overscroll-behavior:contain;touch-action:pan-y}
 .gate{position:fixed;inset:0;z-index:50;background:#121315;color:#fff;overflow:auto;display:flex;align-items:center;justify-content:center;padding:24px 16px}
@@ -465,8 +465,8 @@ label{display:grid;gap:4px;font-size:14px;font-weight:600}
 <div class="drawer" id="drawer" hidden><div class="dback" data-dclose></div><aside class="dpanel" role="dialog" aria-label="Menu"><div class="dtop"><b>Code 3</b><button class="dx" data-dclose aria-label="Close menu">✕</button></div><div class="me" id="me"></div></aside></div>
 <div class="wrap floorwrap"><div class="fhead"><h2>Plant floor</h2><span class="k fhint">Tap a station to open · hold to edit</span><div class="topacts"><button class="go" id="bAdd">+ Add truck</button><span id="fmv"></span></div></div><div id="map"></div></div>
 <div class="bar"><div class="wrap">
-  <input id="q" type="search" placeholder="Search unit, plate, customer" aria-label="Search trucks">
-  <select id="sort" aria-label="Sort trucks"><option value="st">Line order</option><option value="due">Due date</option><option value="unit">Unit #</option></select>
+  <input id="q" type="search" placeholder="Search plate #, customer" aria-label="Search trucks">
+  <select id="sort" aria-label="Sort trucks"><option value="st">Line order</option><option value="due">Due date</option><option value="unit">Plate #</option></select>
   <span id="fchip"></span>
   <button id="bStations">Crews</button>
 </div></div>
@@ -481,9 +481,8 @@ label{display:grid;gap:4px;font-size:14px;font-weight:600}
 <div class="modal" id="mTruck" hidden>
   <form class="sheet" id="fTruck">
     <h2 id="tTitle">Add truck</h2>
-    <label>Unit / job number<input name="unit" required autocomplete="off" placeholder="e.g. 24117"></label>
+    <label>License plate #<input name="unit" required autocomplete="off" placeholder="e.g. 24117"></label>
     <div class="two">
-      <label>License plate<input name="plate" autocomplete="off" autocapitalize="characters" placeholder="e.g. ABC-1234"></label>
     </div>
     <div class="two">
       <label>Customer<input name="cust" autocomplete="off"></label>
@@ -708,7 +707,7 @@ function render(bump){queueMicrotask(alertsTick);
   {const mine=eff()==='insp'||eff()==='admin'?S.trucks.flatMap(t=>t.k===SIGSTN?SIGS.filter(([k])=>t.req[k]&&t.req[k].uid===me&&!t.sig[k]).map(([k,l])=>({t,l})):[]):[];
    $('#note').innerHTML=mine.length?`<div class="reqban"><b>${mine.length} signature${mine.length===1?'':'s'} waiting on you</b>${mine.map(x=>`<button data-gocard="${esc(x.t.id)}">${esc(x.t.unit)} · ${x.l}</button>`).join('')}</div>`:''}
   const q=$('#q').value.trim().toLowerCase(),srt=$('#sort').value;
-  const L=on.filter(t=>(!q||(t.unit+' '+t.plate+' '+t.cust).toLowerCase().includes(q)));
+  const L=on.filter(t=>(!q||(t.unit+' '+t.cust).toLowerCase().includes(q)));
   L.sort(srt==='unit'?(a,b)=>String(a.unit).localeCompare(String(b.unit),undefined,{numeric:true}):srt==='due'?(a,b)=>(a.due||'9999').localeCompare(b.due||'9999'):(a,b)=>posOf(a.k)-posOf(b.k));
   let n=0;
   const card=t=>{const s=step(t.k),inf=S.info[t.k],d=days(t),isLate=t.due&&t.due<td,p=s.pos,lm=lastMove(t),nc=comments(t.k).length;
@@ -726,7 +725,7 @@ function render(bump){queueMicrotask(alertsTick);
       else{main=r==='admin'?'Tap to sign':r==='insp'?'Tap to sign':r==='emp'?'Tap to request':'Not signed yet';on=r!=='view'}
       return `<button class="${cls}" data-sig="${k}" ${on?'':'disabled'}><span>${l}</span><b>${main}</b>${small?`<small>${small}</small>`:''}</button>`}).join('')}</div>`:'';
     return `<article class="card z-${s.z}${t.hold?' held':''}" data-id="${esc(t.id)}" style="animation-delay:${Math.min(n++,8)*40}ms">
-      <div class="top"><div><h3>${esc(t.unit)}</h3><p>${esc([t.plate?'Plate '+t.plate:'',t.cust].filter(Boolean).join(' · '))||'&nbsp;'}</p></div>
+      <div class="top"><div><h3>${esc(t.unit)}</h3><p>${esc(t.cust)||'&nbsp;'}</p></div>
       <div class="due${isLate?' late':''}">Due<b>${fmtDue(t.due)}${isLate?' · late':''}</b></div></div>
       <div class="where"><strong>${esc(title(t.k))}</strong><span>${d===0?'Today':d+(d===1?' day':' days')+' here'}${inf.sup?' · Sup: '+esc(inf.sup):''}${nc?` · <a href="#" data-showk="${t.k}">${nc} comment${nc===1?'':'s'}</a>`:''}</span></div>
       <div class="when"><span>Moved here <b>${fmtDT(lm&&lm.t)}</b>${lm&&lm.by?` by <b>${esc(who(lm.by))}</b>`:''}</span>${moves(t).length>1?`<span>Started <b>${fmtDT(t.h[0].t)}</b></span>`:''}</div>
@@ -745,7 +744,7 @@ function render(bump){queueMicrotask(alertsTick);
    $('#credits').innerHTML=own?`Code 3 · built by <b>${esc(own)}</b>${cos.length?` with co-owner${cos.length>1?'s':''} <b>${cos.map(esc).join('</b>, <b>')}</b>`:''}`:''}
   const shEl=$('#shipped'),wasOpen=shEl.open;shEl.hidden=!dn.length;
   const dl=dn.slice().sort((a,b)=>String((lastMove(b)||{}).t).localeCompare(String((lastMove(a)||{}).t)));
-  shEl.innerHTML=`<summary>Signed off (${dn.length})</summary>`+(dn.length?dl.map(t=>{const lm=lastMove(t)||{};return `<div class="srow" data-id="${esc(t.id)}"><div class="sv">${icon(t,44,26)}<div><b>${esc(t.unit)}</b> <span>${esc([t.plate?'Plate '+t.plate:'',t.cust].filter(Boolean).join(' · '))}</span>
+  shEl.innerHTML=`<summary>Signed off (${dn.length})</summary>`+(dn.length?dl.map(t=>{const lm=lastMove(t)||{};return `<div class="srow" data-id="${esc(t.id)}"><div class="sv">${icon(t,44,26)}<div><b>${esc(t.unit)}</b> <span>${esc(t.cust)}</span>
     <div class="signed">✓ Signed off <b>${fmtDT(lm.t)}</b>${lm.by?` by <b>${esc(who(lm.by))}</b>`:''}</div>
     ${SIGS.map(([k,l])=>t.sig[k]?`<div class="k">${l}: ${esc(t.sig[k].name||who(t.sig[k].by)||'signed')} · ${fmtDT(t.sig[k].t)}</div>`:'').join('')}
     ${moves(t).length>1?`<div class="k">Started ${fmtDT(t.h[0].t)} · ${spanT(t.h[0].t,lm.t)} start to sign-off</div>`:''}</div></div>${can('edit')?'<button data-return>Back to signing</button>':''}${hist(t)}</div>`}).join(''):'<p class="note">No trucks signed off yet.</p>');
@@ -849,7 +848,7 @@ function refreshStn(force){if(!pop)return;const box=$('#stnSheet');
   const head=`<div class="shead"><div class="badge z-${s.z}">${s.code}</div><div><div class="k">${sub(k)} · ${tr.length} truck${tr.length===1?'':'s'} here</div><h2>${esc(title(k))}</h2></div><button type="button" data-close aria-label="Close">✕</button></div>`;
   const crew=stnEdit&&can('edit')?`<form id="fStn" class="sbox"><label>Name<input name="n" value="${esc(inf.n)}" autocomplete="off"></label><label>Supervisor<input name="sup" value="${esc(inf.sup)}" placeholder="Supervisor's name" autocomplete="off"></label><label>Employees <span class="hint">one per line</span><textarea name="crew" rows="4" placeholder="Employee names">${esc(inf.crew.join('\n'))}</textarea></label><div class="row"><button type="button" data-stncancel>Cancel</button><button class="go" type="submit">Save</button></div></form>`
     :`<div class="sbox"><div class="pmeta1"><div><span class="k">Supervisor</span><div style="font-weight:600">${inf.sup?esc(inf.sup):'<span class="k">None added yet</span>'}</div></div><div><span class="k">Employees (${inf.crew.length})</span>${inf.crew.length?`<ul class="chips">${inf.crew.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>`:'<div class="k">None added yet</div>'}</div></div>${can('edit')?'<button type="button" class="editbtn" data-stnedit>Edit station</button>':''}</div>`;
-  const trucks=`<div class="sbox"><h4>Trucks here <span>${tr.length}</span></h4>${tr.length?tr.map(t=>{const lm=lastMove(t),late=t.due&&t.due<td;return `<div class="strk">${icon(t,40,24)}<div class="strk1"><b>${esc(t.unit)}</b> <span class="k">${t.plate?'Plate '+esc(t.plate):''}</span><div class="k">Here since ${fmtDT(lm&&lm.t)}${lm&&lm.by?' · '+esc(who(lm.by)):''}${late?' · <span style="color:var(--red)">late</span>':''}</div></div><button type="button" data-gocard="${esc(t.id)}">Open</button></div>`}).join(''):'<p class="k" style="margin:4px 0 0">No trucks here right now.</p>'}${k==='s1'&&can('move')?'<button class="go" style="width:100%;margin-top:8px" data-index>Move line ▸</button>':''}</div>`;
+  const trucks=`<div class="sbox"><h4>Trucks here <span>${tr.length}</span></h4>${tr.length?tr.map(t=>{const lm=lastMove(t),late=t.due&&t.due<td;return `<div class="strk">${icon(t,40,24)}<div class="strk1"><b>${esc(t.unit)}</b> <span class="k">${esc(t.cust)}</span><div class="k">Here since ${fmtDT(lm&&lm.t)}${lm&&lm.by?' · '+esc(who(lm.by)):''}${late?' · <span style="color:var(--red)">late</span>':''}</div></div><button type="button" data-gocard="${esc(t.id)}">Open</button></div>`}).join(''):'<p class="k" style="margin:4px 0 0">No trucks here right now.</p>'}${k==='s1'&&can('move')?'<button class="go" style="width:100%;margin-top:8px" data-index>Move line ▸</button>':''}</div>`;
   const cm=`<div class="sbox"><h4>Comments <span>${cs.length}</span></h4>${can('comment')?`<form id="fCm" class="cform"><textarea name="text" rows="2" maxlength="1000" placeholder="Add a comment for ${esc(short(k))}" aria-label="Comment" required></textarea><button class="go" type="submit">Post</button></form>`:''}${cs.length?`<ul class="clist">${cs.map(c=>`<li><div class="chead"><b>${esc(who(c.by)||'Someone')}</b><time>${fmtDT(c.t)}</time>${(c.by&&c.by===me)||can('edit')?`<button class="cdel" data-cdel="${esc(c.id)}" aria-label="Delete comment">Delete</button>`:''}</div><p>${esc(c.text)}</p></li>`).join('')}</ul>`:'<p class="k" style="margin:6px 0 0">No comments yet.</p>'}</div>`;
   box.innerHTML=head+crew+trucks+cm}
 document.addEventListener('submit',e=>{if(e.target.id!=='fStn')return;e.preventDefault();if(!can('edit')||!pop)return;const f=e.target,inf=S.info[pop];
@@ -941,12 +940,12 @@ $('#tUndo').addEventListener('click',doUndo);
 function openTruck(id){if(!can('edit'))return;editing=id||null;const t=id?find(id):null,f=$('#fTruck');
   $('#tStep').innerHTML=ZONES.map(z=>`<optgroup label="${z.t}">${STEPS.filter(s=>s.z===z.z).map(s=>`<option value="${s.k}">${esc(title(s.k))}${occupied(s.k,editing)?' (has '+esc(at(s.k)[0].unit)+')':''}</option>`).join('')}</optgroup>`).join('')+'<optgroup label="Done"><option value="done">Signed off</option></optgroup>';
   $('#tTitle').textContent=t?'Edit '+t.unit:'Add truck';$('#tErr').hidden=true;
-  f.unit.value=t?t.unit:'';f.plate.value=t?t.plate:'';f.cust.value=t?t.cust:'';f.due.value=t?t.due:'';f.notes.value=t?t.notes:'';
+  f.unit.value=t?t.unit:'';f.cust.value=t?t.cust:'';f.due.value=t?t.due:'';f.notes.value=t?t.notes:'';
   f.k.value=t?t.k:(sel||(occupied('s1')?(STEPS.find(s=>s.z==='build'&&!occupied(s.k))||{k:'s1'}).k:'s1'));
   $('#tDel').hidden=!t;$('#mTruck').hidden=false;setTimeout(()=>f.unit.focus(),50)}
 $('#fTruck').addEventListener('submit',e=>{e.preventDefault();const f=e.target,k=f.k.value;
   if(occupied(k,editing)){$('#tErr').textContent=WAIT[k]?`${WAIT[k].t} is full (${WAIT[k].max} trucks). Bring one out first.`:`${title(k)} already has ${at(k).find(t=>t.id!==editing).unit}. Each station holds one truck. Pick an open spot.`;$('#tErr').hidden=false;return}
-  const v={unit:f.unit.value.trim(),plate:f.plate.value.trim().toUpperCase(),model:'',vt:'amb',cust:f.cust.value.trim(),due:f.due.value,notes:f.notes.value.trim()};
+  const v={unit:f.unit.value.trim(),model:'',vt:'amb',cust:f.cust.value.trim(),due:f.due.value,notes:f.notes.value.trim()};
   let t;if(editing){t=find(editing);remember([t.id]);if(t.k!==k)setK(t,k);Object.assign(t,v);toast(`Saved ${t.unit}`)}
   else{t=normTruck({id:nid(),...v,k,h:[{k,t:now(),by:me||''}]});remember([t.id]);S.trucks.push(t);toast(`Added ${v.unit} at ${title(k)}`)}
   putTruck(t);$('#mTruck').hidden=true;render(new Set([k]))});
@@ -1128,11 +1127,11 @@ function openStats(){const T=S.trucks,nowD=new Date(),wk=new Date(nowD);wk.setHo
   openedAt=Date.now();$('#mStats').hidden=false}
 
 // ---------- export ----------
-function exportCSV(){const q=v=>{v=v==null?'':String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};const out=[['Unit','License plate','Customer','Due','Now at','On hold','Event','Where','When','By','Time there']];
+function exportCSV(){const q=v=>{v=v==null?'':String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};const out=[['License plate #','Customer','Due','Now at','On hold','Event','Where','When','By','Time there']];
   const ord=S.trucks.slice().sort((a,b)=>String(a.unit).localeCompare(String(b.unit),undefined,{numeric:true}));
   ord.forEach(t=>{const h=t.h||[],mv=h.map((e,i)=>i).filter(i=>isMvK(h[i].k));
     h.forEach((e,i)=>{const isM=isMvK(e.k),ni=mv.find(j=>j>i),nx=ni!=null?h[ni]:null;
-      out.push([t.unit,t.plate,t.cust,t.due,title(t.k),t.hold?(t.hold.r||'Yes'):'',isM?(e.k==='done'?'Signed off':'Moved'):title(e.k)+(e.r?': '+e.r:''),isM?title(e.k):'',new Date(e.t).toLocaleString(),who(e.by)==='you'?(names[me]||'you'):who(e.by),isM&&e.k!=='done'?fmtMin(((nx?new Date(nx.t):new Date())-new Date(e.t))/6e4)+(nx?'':' so far'):''])})});
+      out.push([t.unit,t.cust,t.due,title(t.k),t.hold?(t.hold.r||'Yes'):'',isM?(e.k==='done'?'Signed off':'Moved'):title(e.k)+(e.r?': '+e.r:''),isM?title(e.k):'',new Date(e.t).toLocaleString(),who(e.by)==='you'?(names[me]||'you'):who(e.by),isM&&e.k!=='done'?fmtMin(((nx?new Date(nx.t):new Date())-new Date(e.t))/6e4)+(nx?'':' so far'):''])})});
   const csv='﻿'+out.map(r=>r.map(q).join(',')).join('\r\n'),blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');
   a.href=URL.createObjectURL(blob);a.download=`code3-history-${new Date().toISOString().slice(0,10)}.csv`;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);toast('Spreadsheet downloaded')}
 
