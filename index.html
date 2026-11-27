@@ -351,9 +351,9 @@ body.locked{overflow:hidden}
 .lk::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--mut);opacity:.5}
 .mv{min-height:54px;padding:0 22px;font-size:18px;font-weight:800;border-radius:14px;box-shadow:0 6px 18px color-mix(in srgb,var(--red) 35%,transparent)}
 #fmv{display:flex}#fmv .mv{flex:1}
-#bAdd{flex:1 1 160px;min-height:54px;font-size:18px;font-weight:800;border-radius:14px;box-shadow:0 6px 18px color-mix(in srgb,var(--red) 35%,transparent)}
+#bAdd{min-height:54px;font-size:18px;font-weight:800;border-radius:14px;box-shadow:0 6px 18px color-mix(in srgb,var(--red) 35%,transparent)}
 #bStations,.bar select{min-height:54px;flex:1 1 0}
-@media (max-width:640px){#fmv{flex-basis:100%;order:3}}
+.topacts{display:flex;gap:10px;flex-basis:100%}.topacts>*{flex:1 1 0}.topacts #bAdd[hidden],.topacts #fmv:empty{display:none}#fmv .mv{width:100%}
 .tl svg.mi{position:absolute;right:5px;bottom:20px;width:30px;height:18px}
 .tl.full span{color:var(--ink);font-weight:600}.tl.full.on span{color:inherit}
 .tl.shift{animation:shift .55s ease both;animation-delay:var(--d,0ms)}
@@ -461,12 +461,12 @@ label{display:grid;gap:4px;font-size:14px;font-weight:600}
   </div>
 </section>
 <div class="drawer" id="drawer" hidden><div class="dback" data-dclose></div><aside class="dpanel" role="dialog" aria-label="Menu"><div class="dtop"><b>Code 3</b><button class="dx" data-dclose aria-label="Close menu">✕</button></div><div class="me" id="me"></div></aside></div>
-<div class="wrap floorwrap"><div class="fhead"><h2>Plant floor</h2><span class="k fhint">Tap a station to open · hold to edit</span><span id="fmv"></span></div><div id="map"></div></div>
+<div class="wrap floorwrap"><div class="fhead"><h2>Plant floor</h2><span class="k fhint">Tap a station to open · hold to edit</span><div class="topacts"><button class="go" id="bAdd">+ Add truck</button><span id="fmv"></span></div></div><div id="map"></div></div>
 <div class="bar"><div class="wrap">
   <input id="q" type="search" placeholder="Search unit, model, customer" aria-label="Search trucks">
   <select id="sort" aria-label="Sort trucks"><option value="st">Line order</option><option value="due">Due date</option><option value="unit">Unit #</option></select>
   <span id="fchip"></span>
-  <button id="bStations">Crews</button><button class="go" id="bAdd">+ Add truck</button>
+  <button id="bStations">Crews</button>
 </div></div>
 <main class="wrap">
   <div id="panel"></div>
