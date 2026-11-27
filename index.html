@@ -179,6 +179,8 @@ body.locked{overflow:hidden}
 .shead1{display:flex;justify-content:space-between;align-items:center}.shead1 button{width:44px;padding:0}
 .ppl{display:grid;gap:8px}
 .pwait{margin:0;background:color-mix(in srgb,var(--red) 12%,var(--bg));color:var(--red);border-radius:10px;padding:8px 12px;font-weight:600;font-size:14px}
+.bye{text-align:center;display:grid;gap:10px;justify-items:center}.byeamb{animation:byedrive 2.4s ease-in-out infinite}.byel{animation:byeblink .8s steps(1) infinite}
+@keyframes byedrive{0%,100%{transform:translateX(-6px)}50%{transform:translateX(6px)}}@keyframes byeblink{50%{fill:#2f9be0}}
 .prm,.prs{grid-column:2;justify-self:start;min-height:38px;padding:0 14px;border-radius:10px;background:transparent;border:1.5px solid #e11d2a;color:#e11d2a;font-weight:700}
 .prm.arm{background:#e11d2a;color:#fff;animation:shk .3s}.prs{border-color:#19a463;color:#19a463}@keyframes shk{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
 .prh{margin:18px 0 8px;font:800 15px "Barlow Condensed",sans-serif;text-transform:uppercase;letter-spacing:.06em;color:var(--mut)}.prow.gone{opacity:.75;border-style:dashed}
@@ -1018,6 +1020,8 @@ function gateShow(view,msg,ok){gateView=view;const g=$('#gate');g.hidden=false;d
     signin:`<h2>Sign in</h2><form id="gForm" data-act="signin" novalidate><label>Email<input id="gEmail" type="email" autocomplete="email" value="${em}" required></label><label>Password<input id="gPass" type="password" autocomplete="current-password" required></label><label class="gchk"><input type="checkbox" id="gRem" ${lsGet('c3-email')!==''?'checked':''}> Remember my email</label><p class="gerr" id="gErr" role="alert"></p><button class="go gbig" type="submit">Sign in</button></form><p class="gnote">Closing the app signs you out. Set a PIN after you sign in to get back in fast.</p><div class="glinks"><button type="button" class="glink" data-gv="reset">Forgot password?</button><button type="button" class="glink" data-gv="signup">Create an account</button></div>`,
     signup:`<h2>Create account</h2><form id="gForm" data-act="signup" novalidate><label>Your name<input id="gName" autocomplete="name" required></label><label>Email<input id="gEmail" type="email" autocomplete="email" value="${em}" required></label><label>Password <span class="hint">at least 6 characters</span><input id="gPass" type="password" autocomplete="new-password" minlength="6" required></label><label>Type it again<input id="gPass2" type="password" autocomplete="new-password" required></label><p class="gerr" id="gErr" role="alert"></p><button class="go gbig" type="submit">Create account</button></form><p class="gnote">New accounts can't see anything until an admin gives them a role.</p><div class="glinks"><button type="button" class="glink" data-gv="signin">I already have an account</button></div>`,
     reset:`<h2>Reset password</h2><form id="gForm" data-act="reset" novalidate><label>Email<input id="gEmail" type="email" autocomplete="email" value="${em}" required></label><p class="gerr" id="gErr" role="alert"></p><button class="go gbig" type="submit">Send reset link</button></form><div class="glinks"><button type="button" class="glink" data-gv="signin">Back to sign in</button></div>`,
+    bye:`<div class="bye"><svg class="byeamb" viewBox="0 0 120 60" width="150" height="75" aria-hidden="true"><rect x="6" y="14" width="70" height="32" rx="4" fill="#f4f5f6" stroke="#9aa0a6" stroke-width="2"/><path d="M76 22h20l14 14v10H76z" fill="#f4f5f6" stroke="#9aa0a6" stroke-width="2" stroke-linejoin="round"/><rect x="6" y="30" width="104" height="5" fill="#d71920"/><rect x="82" y="25" width="13" height="9" rx="1.5" fill="#2a2d31"/><circle cx="26" cy="48" r="7" fill="#2a2d31"/><circle cx="92" cy="48" r="7" fill="#2a2d31"/><rect x="38" y="9" width="10" height="5" rx="2" fill="#d71920" class="byel"/></svg>
+      <h2>We're sorry to see you go</h2><p class="gmsg">Your access to Code 3 has been removed. Thanks for everything you did on the line.</p><p class="gnote">If you think this is a mistake, talk to the owner.</p><button type="button" class="go" data-gv="signin" style="width:100%">OK</button></div>`,
     pending:`<h2>Almost in</h2><p class="gmsg">Your account is made, but an admin still needs to give you a role. This page opens by itself once they do.</p><p class="gnote">Signed in as ${esc(authUser&&authUser.email||'')}</p><div class="glinks"><button type="button" class="glink" id="gOut">Sign out</button></div>`
   }[view];
   $('#gCard').innerHTML=card;
@@ -1231,7 +1235,7 @@ function startData(){if(dataUnsubs.length)return;const sy=()=>$('#sync');
 
 FB.onAuth(async user=>{
   authUser=user;if(meUnsub){meUnsub();meUnsub=null}
-  if(!user){stopData();if(privUnsub){privUnsub();privUnsub=null}if(blkUnsub){blkUnsub();blkUnsub=null}blocked={};emails={};$('#pplList').innerHTML='';$('#mPeople').hidden=true;['#mStn','#mSig','#mTruck','#mSt','#mMove','#mInv','#mPin'].forEach(q=>{const m=$(q);if(m)m.hidden=true});shared=false;me=null;role='view';preview=null;S={info:normInfo({}),trucks:[]};C=[];users={};render();gateShow('signin',gateNote);gateNote=null;return}
+  if(!user){stopData();if(privUnsub){privUnsub();privUnsub=null}if(blkUnsub){blkUnsub();blkUnsub=null}blocked={};emails={};$('#pplList').innerHTML='';$('#mPeople').hidden=true;['#mStn','#mSig','#mTruck','#mSt','#mMove','#mInv','#mPin'].forEach(q=>{const m=$(q);if(m)m.hidden=true});shared=false;me=null;role='view';preview=null;S={info:normInfo({}),trucks:[]};C=[];users={};render();if(gateNote==='__bye__')gateShow('bye');else gateShow('signin',gateNote);gateNote=null;return}
   if(!ssGet('c3-open')){if(pinFor(user.uid)){pinBuf='';gateShow('pin');return}FB.signOut();return}
   enterApp(user)});
 async function enterApp(user){
@@ -1240,7 +1244,7 @@ async function enterApp(user){
   try{
     const mine=await db.doc('users/'+me).get();
     if(!mine.exists){let gone=false;try{gone=(await db.doc('blocked/'+me).get()).exists}catch(e){}
-      if(gone){gateNote='Your access to Code 3 was removed. Ask the owner if you need it back.';FB.signOut();return}
+      if(gone){gateNote='__bye__';FB.signOut();return}
       let owner=false;
       try{const o=await db.doc('meta/owner').get();if(!o.exists){await db.doc('meta/owner').set({uid:me});owner=true}else owner=(o.data()||{}).uid===me}catch(e){}
       await db.doc('users/'+me).set({name:user.displayName||String(user.email||'').split('@')[0],role:owner?'admin':'pending',created:new Date().toISOString()})}
@@ -1248,7 +1252,7 @@ async function enterApp(user){
     try{await db.doc('private/'+me).set({email:user.email||''})}catch(e){}
     try{const o=await db.doc('meta/owner').get();ownerUid=o.exists?(o.data()||{}).uid:null;ownerId=ownerUid}catch(e){}
   }catch(e){gateShow('signin',/permission/.test((e&&e.code)||'')?"Signed in, but the database is still locked. The admin needs to publish the Firestore rules, then sign in again.":"Couldn't load your account. Check your signal and try again.");return}
-  meUnsub=db.doc('users/'+me).onSnapshot(snap=>{if(!snap.exists&&!snap.metadata.hasPendingWrites&&!snap.metadata.fromCache){stopData();gateNote='Your access to Code 3 was removed. Ask the owner if you need it back.';FB.signOut();return}const v=snap.exists?snap.data()||{}:{};names[me]=v.name||user.displayName||'';
+  meUnsub=db.doc('users/'+me).onSnapshot(snap=>{if(!snap.exists&&!snap.metadata.hasPendingWrites&&!snap.metadata.fromCache){stopData();gateNote='__bye__';FB.signOut();return}const v=snap.exists?snap.data()||{}:{};names[me]=v.name||user.displayName||'';
     const r=String(v.role||'pending');
     if(!ROLE_MAP[r]){stopData();gateShow('pending');return}
     myRaw=r;role=ROLE_MAP[r];if(!(me&&me===ownerId))preview=null;syncPrivate();const first=$('#gate').hidden===false;gateHide();startData();render();if(first)firstRun()},()=>gateShow('signin',"Couldn't load your account. Try again."));
