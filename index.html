@@ -53,7 +53,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .sbar.slow span{color:var(--red);font-weight:700}@keyframes grow{from{transform:scaleX(0)}}
 .alist{list-style:none;margin:0;padding:0;display:grid;gap:8px}.alist li{display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:start;padding:10px;border:1px solid var(--line);border-radius:12px;animation:hin .3s both}
 .alist li.new{border-color:var(--red)}.alist li i{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-style:normal;background:#2a2d31;color:#fff}
-.alist .a-req i{background:#e0a32f;color:#111}.alist .a-hold i{background:#e11d2a}.alist .a-done i{background:#19a463}.alist .a-s18 i{background:#2f9be0}.alist small{display:block;color:var(--mut)}
+.alist .a-line i{background:var(--red)}.alist .a-req i{background:#e0a32f;color:#111}.alist .a-hold i{background:#e11d2a}.alist .a-done i{background:#19a463}.alist .a-s18 i{background:#2f9be0}.alist small{display:block;color:var(--mut)}
 
 .menub{width:44px;height:44px;flex:0 0 44px;border-radius:12px;border:1.5px solid #4a4d52;background:transparent;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;padding:0}
 .menub i{display:block;width:20px;height:2.5px;border-radius:2px;background:#fff;transition:transform .25s}
@@ -602,7 +602,7 @@ const can=a=>{const r=eff();if(r==='admin')return true;if(r==='emp')return['move
 function normInfo(src){const info={};STEPS.forEach(s=>{const x=(src||{})[s.k]||{};info[s.k]={n:String(x.n||'').trim()||s.def,sup:String(x.sup||''),crew:Array.isArray(x.crew)?x.crew.map(String).filter(Boolean):[]}});return info}
 function normTruck(t){if(!t||!t.id)return null;const k=(t.k==='done'||STEPS.some(s=>s.k===t.k))?t.k:'s1';
   return{id:String(t.id),unit:String(t.unit||''),model:String(t.model||''),plate:String(t.plate||'').toUpperCase(),dn:t.dn&&t.dn.t?{r:String(t.dn.r||'').slice(0,80),by:String(t.dn.by||''),t:String(t.dn.t)}:null,mon:/^(1[0-2]|[1-9])$/.test(String(t.mon||''))?String(t.mon):'',vt:String(t.vt||''),cust:String(t.cust||''),due:String(t.due||''),notes:String(t.notes||''),k,
-    h:Array.isArray(t.h)?t.h.filter(e=>e&&e.k&&e.t).map(e=>{const o={k:String(e.k),t:String(e.t),by:e.by?String(e.by):''};if(e.r)o.r=String(e.r).slice(0,80);return o}):[],
+    h:Array.isArray(t.h)?t.h.filter(e=>e&&e.k&&e.t).map(e=>{const o={k:String(e.k),t:String(e.t),by:e.by?String(e.by):''};if(e.r)o.r=String(e.r).slice(0,80);if(e.lm)o.lm=String(e.lm);if(e.em)o.em=1;return o}):[],
     hold:t.hold&&t.hold.t?{r:String(t.hold.r||'').slice(0,80),by:String(t.hold.by||''),t:String(t.hold.t)}:null,
     sig:{el:t.sig&&t.sig.el&&t.sig.el.t?{t:String(t.sig.el.t),by:String(t.sig.el.by||''),name:String(t.sig.el.name||''),uid:String(t.sig.el.uid||'')}:null,co:t.sig&&t.sig.co&&t.sig.co.t?{t:String(t.sig.co.t),by:String(t.sig.co.by||''),name:String(t.sig.co.name||''),uid:String(t.sig.co.uid||'')}:null},
     req:{el:t.req&&t.req.el&&t.req.el.uid?{uid:String(t.req.el.uid),by:String(t.req.el.by||''),t:String(t.req.el.t||'')}:null,co:t.req&&t.req.co&&t.req.co.uid?{uid:String(t.req.co.uid),by:String(t.req.co.by||''),t:String(t.req.co.t||'')}:null}}}
@@ -663,7 +663,7 @@ const waitCount=(k,except)=>S.trucks.filter(t=>t.k===k&&t.id!==except).length;co
 const occupied=(k,except)=>WAIT[k]?waitCount(k,except)>=WAIT[k].max:single(k)&&S.trucks.some(t=>t.k===k&&t.id!==except);
 const holder=(k,except)=>S.trucks.find(t=>t.k===k&&t.id!==except);
 const fullMsg=(k,except)=>`${short(k)} already has ${holder(k,except).unit}. Move that truck first.`;
-const setK=(t,k)=>{if(k!=='down')t.dn=null;t.k=k;t.h=t.h.concat({k,t:now(),by:me||''})};
+const setK=(t,k)=>{if(k!=='down')t.dn=null;t.k=k;const e={k,t:now(),by:me||''};if(t._lm){e.lm=t._lm;delete t._lm}if(t._em){e.em=1;delete t._em}t.h=t.h.concat(e)};
 const sigsDone=t=>!!(t.sig.el&&t.sig.co);
 const comments=k=>C.filter(c=>c.k===k).sort((a,b)=>String(b.t).localeCompare(String(a.t)));
 const histEv=t=>{const ev=[],h=t.h||[],isMv=k=>k==='done'||STEPS.some(x=>x.k===k);
@@ -903,8 +903,8 @@ function doIndex(dest){
   let any=false;
   B.forEach(t=>{const n=+t.k.slice(1),nk=n===15?dest:'s'+(n+1);if(animateCard(t,posOf(nk),1,n===15||(sel&&sel!==nk)))any=true});
   if(!reduce)document.querySelectorAll('.z-build .tl').forEach((el,i)=>{el.style.setProperty('--d',i*30+'ms');el.classList.add('shift')});
-  remember(B.map(t=>t.id));const bump=new Set();
-  B.forEach(t=>{const n=+t.k.slice(1),nk=n===15?dest:'s'+(n+1);setK(t,nk);bump.add(nk);putTruck(t)});renderFloor(bump);
+  remember(B.map(t=>t.id));const bump=new Set(),lmId=String(Date.now());
+  B.forEach(t=>{t._lm=lmId;const n=+t.k.slice(1),nk=n===15?dest:'s'+(n+1);setK(t,nk);bump.add(nk);putTruck(t)});renderFloor(bump);
   if(sel&&isBuild(sel))sel=null;
   toast(`Line moved${dest?' · '+B.filter(t=>t.k===dest).map(t=>t.unit).join(', ')+' → '+title(dest):''}`);
   any?afterAnim(dest?1150:850,bump):render(bump)}
@@ -1004,7 +1004,7 @@ document.addEventListener('click',e=>{
   if(b.dataset.sig){sign(t,b.dataset.sig);return}
   if(b.hasAttribute('data-hold')&&can('move')){if(t.hold){remember([t.id]);t.hold=null;t.h.push({k:'unhold',t:now(),by:me||''});putTruck(t);render();toast(`${t.unit} is off hold`)}else openHold(t);return}
   if(b.hasAttribute('data-edit'))openTruck(id);
-  else if(b.hasAttribute('data-pull')&&can('edit'))pick('Emergency pull',`Take ${t.unit} off Station 11. Where is it going?`,notBuild(),k=>moveTo(t,k,`${t.unit} pulled off Station 11 → ${title(k)}`));
+  else if(b.hasAttribute('data-pull')&&can('edit'))pick('Emergency pull',`Take ${t.unit} off Station 11. Where is it going?`,notBuild(),k=>{t._em=1;moveTo(t,k,`${t.unit} pulled off Station 11 → ${title(k)}`)});
   else if(b.hasAttribute('data-moveto')&&can('move')){if(WAIT[t.k]&&!can('edit'))return;pick(`Move ${t.unit}`,'Where is it going next?',STEPS.map(s=>s.k).filter(k=>k!==t.k&&(!WAIT[k]||can('edit'))),k=>{if(occupied(k,t.id)){toast(WAIT[k]?`${WAIT[k].t} is full`:`${title(k)} already has ${at(k)[0].unit}. Move that truck first.`);return}moveTo(t,k)},t.id)}
   else if(b.hasAttribute('data-todown')&&can('edit')){if(occupied('down',t.id)){toast('Down To is full (30).');return}openDown(t)}
   else if(b.hasAttribute('data-signoff')&&can('edit')){moveTo(t,'done',`${t.unit} signed off ✓`)}
@@ -1160,13 +1160,21 @@ function exportCSV(){const q=v=>{v=v==null?'':String(v);return /[",\n]/.test(v)?
 
 // ---------- alerts ----------
 const seenKey=()=>'c3-seen-'+(me||''),notKey=()=>'c3-notified-'+(me||'');
-function alertList(){if(!me)return[];const r=eff(),out=[],wk=Date.now()-7*864e5;
+function alertList(){if(!me)return[];const r=eff(),out=[],wk=Date.now()-7*864e5,lines={},td=new Date().toISOString().slice(0,10),mgrish=r==='admin'||r==='emp';
   S.trucks.forEach(t=>{SIGS.forEach(([k,l])=>{const q=t.req&&t.req[k];if(q&&q.uid===me&&!(t.sig&&t.sig[k]))out.push({t:q.t,c:'req',i:'✍',txt:`${t.unit} needs your ${l}`,sub:`Asked by ${who(q.by)||'someone'}`,id:t.id,by:q.by})});
-    (t.h||[]).forEach(e=>{if(new Date(e.t)<wk)return;
+    if(t.k!=='done'&&t.due&&t.due<td){const od=new Date(t.due+'T00:00:00');od.setDate(od.getDate()+1);if(+od>wk)out.push({t:od.toISOString(),c:'hold',i:'!',txt:`${t.unit} is overdue`,sub:`Was due ${fmtDue(t.due)} · now at ${title(t.k)}`,id:t.id,by:''})}
+    (t.h||[]).forEach((e,i)=>{if(new Date(e.t)<wk)return;
+      if(e.lm){const L=lines[e.lm]=lines[e.lm]||{t:e.t,by:e.by,n:0,out:[]};L.n++;if(e.k&&!isBuild(e.k))L.out.push(`${t.unit} → ${title(e.k)}`);return}
+      if(e.em){out.push({t:e.t,c:'hold',i:'⚠',txt:`${t.unit} pulled off Station 11`,sub:`Emergency pull → ${title(e.k)} · ${who(e.by)||''}`,id:t.id,by:e.by});return}
+      if(i>0&&WAIT[e.k]){out.push({t:e.t,c:e.k==='down'?'hold':'s18',i:e.k==='down'?'⏳':'◎',txt:`${t.unit} → ${WAIT[e.k].t}`,sub:(e.k==='down'?(e.r?'Waiting on '+e.r:'Waiting on OEM parts')+' · ':'')+(who(e.by)||''),id:t.id,by:e.by});return}
       if(e.k==='hold')out.push({t:e.t,c:'hold',i:'!',txt:`${t.unit} put on hold`,sub:(e.r||'No reason')+' · '+(who(e.by)||''),id:t.id,by:e.by});
+      else if(e.k==='unhold')out.push({t:e.t,c:'done',i:'✓',txt:`${t.unit} is off hold`,sub:who(e.by)||'',id:t.id,by:e.by});
       else if(e.k==='done')out.push({t:e.t,c:'done',i:'✓',txt:`${t.unit} signed off`,sub:who(e.by)||'',id:t.id,by:e.by});
-      else if(e.k===SIGSTN&&(r==='admin'||r==='insp'))out.push({t:e.t,c:'s18',i:'18',txt:`${t.unit} reached Station 18`,sub:'Ready for sigs',id:t.id,by:e.by})})});
-  return out.sort((a,b)=>new Date(b.t)-new Date(a.t)).slice(0,40)}
+      else if(e.k===SIGSTN&&(r==='admin'||r==='insp'))out.push({t:e.t,c:'s18',i:'18',txt:`${t.unit} reached Station 18`,sub:'Ready for sigs',id:t.id,by:e.by});
+      else if(/^sig-/.test(e.k)&&mgrish)out.push({t:e.t,c:'done',i:'✍',txt:`${t.unit}: ${title(e.k)}`,sub:who(e.by)||'',id:t.id,by:e.by})})});
+  Object.values(lines).forEach(L=>out.push({t:L.t,c:'line',i:'▸',txt:'The line moved',sub:`${who(L.by)||'Someone'} · ${L.n} truck${L.n===1?'':'s'} moved up${L.out.length?' · '+L.out.join(', '):''}`,id:'',by:L.by}));
+  if(isMgr())Object.entries(users).forEach(([id,u])=>{if(u.role==='pending'&&u.created&&new Date(u.created)>wk)out.push({t:u.created,c:'req',i:'+',txt:`${u.name||'Someone'} is waiting for a role`,sub:'Open People to give them access',id:'',by:'',ppl:1})});
+  return out.sort((a,b)=>new Date(b.t)-new Date(a.t)).slice(0,60)}
 let lastBell=-1;
 function alertsTick(){const bb=$('#bMenu');if(!bb||!me)return;let seen=0,nt=0;try{seen=+localStorage.getItem(seenKey())||0;nt=+localStorage.getItem(notKey())||0}catch(e){}
   const L=alertList(),fresh=L.filter(a=>+new Date(a.t)>seen&&a.by!==me),n=fresh.length,el=$('#bellN'),el2=$('#bellN2');el.hidden=!n;el.textContent=n>9?'9+':n;if(el2){el2.hidden=!n;el2.textContent=n>9?'9+':n}
@@ -1177,14 +1185,15 @@ function alertsTick(){const bb=$('#bMenu');if(!bb||!me)return;let seen=0,nt=0;tr
   try{localStorage.setItem(notKey(),Date.now())}catch(e){}}
 function openAlerts(){let seen=0;try{seen=+localStorage.getItem(seenKey())||0}catch(e){}const L=alertList(),perm='Notification' in window?Notification.permission:'unsupported';
   $('#alertsBody').innerHTML=(perm==='default'?`<button class="go" id="bNotif" style="width:100%;margin-bottom:12px">Turn on phone alerts</button>`:perm==='denied'?`<p class="k" style="margin:0 0 10px">Phone alerts are blocked. Turn them on for this site in your browser's settings.</p>`:'')+
-    (L.length?`<ul class="alist">${L.map(a=>`<li class="a-${a.c}${+new Date(a.t)>seen&&a.by!==me?' new':''}" data-aid="${esc(a.id)}"><i>${a.i}</i><div><b>${esc(a.txt)}</b><small>${esc(a.sub)} · ${fmtDT(a.t)}</small></div></li>`).join('')}</ul>`:'<p class="note">No alerts yet. You\'ll see sig requests for you, holds and sign-offs here.</p>');
+    (L.length?`<ul class="alist">${L.map(a=>`<li class="a-${a.c}${+new Date(a.t)>seen&&a.by!==me?' new':''}" data-aid="${esc(a.id)}"${a.ppl?' data-ppl="1"':''}><i>${a.i}</i><div><b>${esc(a.txt)}</b><small>${esc(a.sub)} · ${fmtDT(a.t)}</small></div></li>`).join('')}</ul>`:'<p class="note">No alerts yet. Line moves, holds, overdue trucks, Down To, sign-offs and sig requests show up here.</p>');
   try{localStorage.setItem(seenKey(),Date.now())}catch(e){}lastBell=0;$('#bellN').hidden=true;if($('#bellN2'))$('#bellN2').hidden=true;openedAt=Date.now();$('#mAlerts').hidden=false}
 document.addEventListener('click',e=>{
   if(e.target.closest('#bStats')){openStats();return}
   if(e.target.closest('#bExp,#bExp2')){exportCSV();return}
   if(e.target.closest('#bBell')){openAlerts();return}
   if(e.target.closest('#bNotif')){Notification.requestPermission().then(p=>{if(p==='granted'){toast('Phone alerts on');navigator.serviceWorker&&navigator.serviceWorker.ready.then(r=>r.showNotification('Code 3 alerts are on',{body:'You\'ll get alerts while Code 3 is open.',icon:'icon-192.png'}))}openAlerts()});return}
-  const li=e.target.closest('#alertsBody [data-aid]');if(li){$('#mAlerts').hidden=true;const c=document.querySelector(`.card[data-id="${CSS.escape(li.dataset.aid)}"]`);if(c){c.scrollIntoView({behavior:reduce?'auto':'smooth',block:'center'});c.classList.remove('flash');void c.offsetWidth;c.classList.add('flash')}}});
+  const pl=e.target.closest('#alertsBody [data-ppl]');if(pl){$('#mAlerts').hidden=true;renderPeople();$('#mPeople').hidden=false;return}const ln=e.target.closest('#alertsBody .a-line');if(ln){$('#mAlerts').hidden=true;$('#map').scrollIntoView({behavior:reduce?'auto':'smooth'});return}
+  const li=e.target.closest('#alertsBody [data-aid]');if(li&&li.dataset.aid){$('#mAlerts').hidden=true;const c=document.querySelector(`.card[data-id="${CSS.escape(li.dataset.aid)}"]`);if(c){c.scrollIntoView({behavior:reduce?'auto':'smooth',block:'center'});c.classList.remove('flash');void c.offsetWidth;c.classList.add('flash')}}});
 function openDrawer(){const d=$('#drawer');d.hidden=false;requestAnimationFrame(()=>requestAnimationFrame(()=>d.classList.add('open')));$('#bMenu').setAttribute('aria-expanded','true')}
 function closeDrawer(){const d=$('#drawer');if(!d||d.hidden)return;d.classList.remove('open');const mb=$('#bMenu');if(mb)mb.setAttribute('aria-expanded','false');setTimeout(()=>{if(!d.classList.contains('open'))d.hidden=true},280)}
 document.addEventListener('click',e=>{if(e.target.closest('#bMenu')){openDrawer();return}if(e.target.closest('[data-dclose]')){closeDrawer();return}if(e.target.closest('#me button')&&!e.target.closest('.seg'))closeDrawer()},true);
