@@ -63,6 +63,15 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .sig small{font-size:12px;color:var(--mut);font-weight:400}
 .sig:disabled{opacity:1;cursor:default}
 .by{color:var(--mut)}
+.sig.rq{border-style:solid;border-color:#d89a00;background:color-mix(in srgb,#ffc400 12%,var(--bg))}.sig.rq b{color:#b07d00}
+:root[data-theme=dark] .sig.rq b{color:#ffc94d}
+.prks{display:grid;gap:6px;max-height:42vh;overflow:auto}
+.prk{display:flex;gap:10px;align-items:center;border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;font-weight:400;cursor:pointer}
+.prk:has(input:checked){border-color:var(--red);background:color-mix(in srgb,var(--red) 8%,var(--bg))}
+.prk input{width:20px;height:20px;accent-color:var(--red);min-height:0}.prk span{display:grid}.prk em{font-style:normal;font-size:13px;color:var(--mut)}
+.reqban{margin-top:16px;border:2px solid #d89a00;border-radius:12px;padding:10px 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:color-mix(in srgb,#ffc400 10%,var(--bg))}
+.reqban b{flex-basis:100%}.reqban button{min-height:38px}
+
 .dup{margin:0;padding:8px 10px;border-radius:8px;background:color-mix(in srgb,var(--red) 14%,var(--bg));color:var(--red);font-size:14px;font-weight:600}
 body.locked{overflow:hidden}
 .gate{position:fixed;inset:0;z-index:50;background:#121315;color:#fff;overflow:auto;display:flex;align-items:center;justify-content:center;padding:24px 16px}
@@ -385,10 +394,9 @@ label{display:grid;gap:4px;font-size:14px;font-weight:600}
 <p class="k" style="margin:0">Admin: everything · Supervisor: move trucks and comment · Employee: view only</p>
 <div id="pplList" class="ppl"></div></div></div>
 <div class="modal" id="mStn" hidden><div class="sheet stn" id="stnSheet" role="dialog" aria-modal="true" aria-label="Station"></div></div>
-<div class="modal" id="mSig" hidden><form class="sheet" id="fSig" autocomplete="off"><h2 id="sigTitle">Signature</h2>
-<label>Who signed off?<input id="sigName" list="sigList" maxlength="60" placeholder="Type their name"></label><datalist id="sigList"></datalist>
-<p class="err" id="sigErr" hidden></p><p class="hint" style="margin:0">The time and your name are saved with it.</p>
-<div class="row"><button type="button" class="del" id="sigClear">Clear signature</button><button type="button" data-close>Cancel</button><button class="go" type="submit">Save</button></div></form></div>
+<div class="modal" id="mSig" hidden><form class="sheet" id="fSig" autocomplete="off"><div class="shead1"><h2 id="sigTitle">Signature</h2><button type="button" data-close aria-label="Close">✕</button></div>
+<div id="sigBody" style="display:grid;gap:10px"></div><p class="err" id="sigErr" hidden></p>
+<div class="row"><span id="sigExtra" style="margin-right:auto"></span><button type="button" data-close>Cancel</button><button class="go" type="submit" id="sigGo">Save</button></div></form></div>
 <div class="modal" id="mMove" hidden>
   <div class="sheet">
     <h2 id="mvTitle">Move truck</h2>
@@ -398,15 +406,7 @@ label{display:grid;gap:4px;font-size:14px;font-weight:600}
   </div>
 </div>
 
-<div class="modal" id="mSig" hidden>
-  <form class="sheet" id="fSig">
-    <h2 id="sgTitle">Signature</h2>
-    <p class="hint" id="sgMsg" style="margin:0;font-size:15px"></p>
-    <label>Signed by<input name="by" list="sgNames" autocomplete="off" placeholder="Name"></label>
-    <datalist id="sgNames"></datalist>
-    <div class="row"><button type="button" class="del" id="sgDel">Remove sig</button><button type="button" data-close>Cancel</button><button class="go" type="submit" id="sgGo">Sign</button></div>
-  </form>
-</div>
+
 
 <div class="toast" id="toast" role="status"><span id="tMsg"></span><button id="tUndo">Undo</button></div>
 
@@ -450,13 +450,14 @@ let db=null,U=null,me=null,role='admin',preview=null,shared=false;
 let sel=null,pop=null,stnEdit=false,holdT=null,longFired=false,undo=null,editing=null,tTimer=null,pickCb=null,animating=0,pendingRender=false;
 let names={};
 const eff=()=>role==='admin'&&preview?preview:role;
-const can=a=>{const r=eff();if(r==='admin')return true;if(r==='emp')return['move','comment'].includes(a);return false};
+const can=a=>{const r=eff();if(r==='admin')return true;if(r==='emp')return['move','comment','request'].includes(a);if(r==='insp')return['sign'].includes(a);return false};
 
 function normInfo(src){const info={};STEPS.forEach(s=>{const x=(src||{})[s.k]||{};info[s.k]={n:String(x.n||'').trim()||s.def,sup:String(x.sup||''),crew:Array.isArray(x.crew)?x.crew.map(String).filter(Boolean):[]}});return info}
 function normTruck(t){if(!t||!t.id)return null;const k=(t.k==='done'||STEPS.some(s=>s.k===t.k))?t.k:'s1';
   return{id:String(t.id),unit:String(t.unit||''),model:String(t.model||''),vt:String(t.vt||''),cust:String(t.cust||''),due:String(t.due||''),notes:String(t.notes||''),k,
     h:Array.isArray(t.h)?t.h.filter(e=>e&&e.k&&e.t).map(e=>({k:String(e.k),t:String(e.t),by:e.by?String(e.by):''})):[],
-    sig:{el:t.sig&&t.sig.el&&t.sig.el.t?{t:String(t.sig.el.t),by:String(t.sig.el.by||''),name:String(t.sig.el.name||'')}:null,co:t.sig&&t.sig.co&&t.sig.co.t?{t:String(t.sig.co.t),by:String(t.sig.co.by||''),name:String(t.sig.co.name||'')}:null}}}
+    sig:{el:t.sig&&t.sig.el&&t.sig.el.t?{t:String(t.sig.el.t),by:String(t.sig.el.by||''),name:String(t.sig.el.name||''),uid:String(t.sig.el.uid||'')}:null,co:t.sig&&t.sig.co&&t.sig.co.t?{t:String(t.sig.co.t),by:String(t.sig.co.by||''),name:String(t.sig.co.name||''),uid:String(t.sig.co.uid||'')}:null},
+    req:{el:t.req&&t.req.el&&t.req.el.uid?{uid:String(t.req.el.uid),by:String(t.req.el.by||''),t:String(t.req.el.t||'')}:null,co:t.req&&t.req.co&&t.req.co.uid?{uid:String(t.req.co.uid),by:String(t.req.co.by||''),t:String(t.req.co.t||'')}:null}}}
 function normOld(v){
   if(!v||typeof v!=='object')return{info:normInfo({}),trucks:[]};
   if(v.v!==4){const old=Array.isArray(v.stations)?v.stations:[],was3=v.v===3;
@@ -474,7 +475,8 @@ function writeFail(e){const code=e&&e.code;
   if(code==='invalid_argument'||code==='permission-denied'){toast("You don't have permission to change this");render()}
   else if(code==='quota_exceeded')toast('Storage is full. Delete some old signed-off trucks.');
   else toast("Couldn't save. Check your connection.")}
-async function putTruck(t){if(!shared){saveLocal();return}try{await db.collection('trucks').doc(t.id).set(clone(t))}catch(e){writeFail(e)}}
+async function putTruck(t){if(!shared){saveLocal();return}const d=clone(t);try{const ref=db.collection('trucks').doc(t.id);
+  if(role==='emp')await ref.update({k:d.k,h:d.h,req:d.req});else if(role==='insp')await ref.update({sig:d.sig,req:d.req,h:d.h});else await ref.set(d)}catch(e){writeFail(e)}}
 async function delTruck(id){if(!shared){saveLocal();return}try{await db.collection('trucks').doc(id).delete()}catch(e){writeFail(e)}}
 async function putInfo(){if(!shared){saveLocal();return}try{await db.doc('plant/crews').set({info:S.info})}catch(e){writeFail(e)}}
 async function putComment(c){if(!shared){saveLocal();return}try{await db.collection('comments').doc(c.id).set(c)}catch(e){writeFail(e)}}
@@ -491,10 +493,10 @@ const isBuild=k=>/^s([1-9]|1[0-5])$/.test(k);
 const posOf=k=>k==='done'?DONEPOS:step(k).pos;
 const nm=k=>S.info[k].n;
 const isDef=k=>nm(k)===step(k).def;
-const title=k=>{if(k==='done')return'Signed off';if(k==='sig-el')return'Electrical sig entered';if(k==='sig-co')return'Cosmetic sig entered';if(k==='unsig-el')return'Electrical sig cleared';if(k==='unsig-co')return'Cosmetic sig cleared';const s=step(k);if(!s)return k;if(s.z==='build'||s.z==='final')return isDef(k)?nm(k):`Stn ${s.code} · ${nm(k)}`;return nm(k)};
+const title=k=>{if(k==='done')return'Signed off';if(k==='sig-el')return'Electrical sig signed';if(k==='sig-co')return'Cosmetic sig signed';if(k==='req-el')return'Electrical sig requested';if(k==='req-co')return'Cosmetic sig requested';if(k==='unreq-el'||k==='unreq-co')return'Sig request canceled';if(k==='unsig-el')return'Electrical sig cleared';if(k==='unsig-co')return'Cosmetic sig cleared';const s=step(k);if(!s)return k;if(s.z==='build'||s.z==='final')return isDef(k)?nm(k):`Stn ${s.code} · ${nm(k)}`;return nm(k)};
 const short=k=>{if(k==='done')return'Signed off';const s=step(k);if(s.z==='build'||s.z==='final')return isDef(k)?'Stn '+s.code:nm(k);return nm(k)};
 const sub=k=>{const s=step(k);return s.z==='fin'?`Final Line ${s.code.slice(1)} of 5`:s.z==='out'?'Outside service':s.z==='final'?'TAG line':`Build line · ${s.code} of 15`};
-const moves=t=>t.h.filter(e=>!/sig-/.test(e.k));
+const moves=t=>t.h.filter(e=>e.k==='done'||!!step(e.k));
 const lastMove=t=>{const m=moves(t);return m[m.length-1]||null};
 const days=t=>{const l=lastMove(t);return l?Math.max(0,Math.floor((Date.now()-new Date(l.t))/864e5)):0};
 const left=p=>p>=DONEPOS?'115%':(p/(SEGS-1)*100)+'%';
@@ -535,8 +537,8 @@ function tile(s,cnt,bump){const c=cnt[s.k]||0,inf=S.info[s.k],on=sel===s.k,b=bum
   return `<button class="tl${c?' has':''}${on?' on':''}${b}" data-k="${s.k}" aria-pressed="${on}" title="${esc(inf.n)}"${s.c?` style="--sc:${s.c}"`:''}><b>${s.code}</b><span>${s.z==='fin'||s.z==='out'||!isDef(s.k)?esc(inf.n):(inf.sup?esc(inf.sup):'&nbsp;')}</span><i>${c||''}</i>${cm}</button>`}
 
 function renderMe(){const r=eff();
-  const label={admin:'Admin',emp:'Supervisor',view:'Employee · view only'}[r];
-  $('#me').innerHTML=!shared?'':`<span>${me?esc(names[me]||'Signed in'):'Signed in'}</span><span class="role ${r==='admin'?'admin':r==='view'?'view':''}">${label}</span>${role==='admin'?`<div class="seg" role="group" aria-label="View as">${[['admin','Admin'],['emp','Supervisor'],['view','Employee']].map(([v,l])=>`<button data-prev="${v}" class="${(preview||'admin')===v?'on':''}" aria-pressed="${(preview||'admin')===v}">${l}</button>`).join('')}</div>`:''}<span class="hbtns">${role==='admin'?'<button id="bPeople">People</button>':''}<button id="bOut">Sign out</button></span><span class="sync" id="sync"></span>`;
+  const label={admin:'Admin',emp:'Supervisor',insp:'Inspector',view:'Employee · view only'}[r];
+  $('#me').innerHTML=!shared?'':`<span>${me?esc(names[me]||'Signed in'):'Signed in'}</span><span class="role ${r==='admin'?'admin':r==='view'?'view':''}">${label}</span>${role==='admin'?`<div class="seg" role="group" aria-label="View as">${[['admin','Admin'],['emp','Supervisor'],['insp','Inspector'],['view','Employee']].map(([v,l])=>`<button data-prev="${v}" class="${(preview||'admin')===v?'on':''}" aria-pressed="${(preview||'admin')===v}">${l}</button>`).join('')}</div>`:''}<span class="hbtns">${role==='admin'?'<button id="bPeople">People</button>':''}<button id="bOut">Sign out</button></span><span class="sync" id="sync"></span>`;
   $('#bAdd').hidden=!can('edit');$('#bStations').textContent=can('edit')?'Crews':'Crews';}
 
 function safeRender(b){if(animating){pendingRender=true;return}render(b)}
@@ -550,7 +552,8 @@ function render(bump){
   const zoneHtml=z=>`<section class="zone z-${z.z}"><header><h3>${z.t}</h3><span>${z.sub}</span><b>${zc(z.z)}</b>${z.z==='build'&&can('move')?'<button class="go mv" data-index>Move line ▸</button>':''}</header><div class="tiles">${STEPS.filter(s=>s.z===z.z).map(s=>tile(s,cnt,bump)).join('')}${z.z==='fin'?`<button class="tl dn${bump&&bump.has('done')?' bump':''}" data-done><b>✓</b><span>Signed off</span><i>${dn.length||''}</i></button>`:''}</div></section>`;
   renderFloor(bump);
   $('#panel').innerHTML='';$('#fchip').innerHTML='';if(pop&&!$('#mStn').hidden)refreshStn();
-  $('#note').innerHTML='';
+  {const mine=eff()==='insp'||eff()==='admin'?S.trucks.flatMap(t=>t.k===SIGSTN?SIGS.filter(([k])=>t.req[k]&&t.req[k].uid===me&&!t.sig[k]).map(([k,l])=>({t,l})):[]):[];
+   $('#note').innerHTML=mine.length?`<div class="reqban"><b>${mine.length} signature${mine.length===1?'':'s'} waiting on you</b>${mine.map(x=>`<button data-gocard="${esc(x.t.id)}">${esc(x.t.unit)} · ${x.l}</button>`).join('')}</div>`:''}
   const q=$('#q').value.trim().toLowerCase(),srt=$('#sort').value;
   const L=on.filter(t=>(!q||(t.unit+' '+t.model+' '+t.cust).toLowerCase().includes(q)));
   L.sort(srt==='unit'?(a,b)=>String(a.unit).localeCompare(String(b.unit),undefined,{numeric:true}):srt==='due'?(a,b)=>(a.due||'9999').localeCompare(b.due||'9999'):(a,b)=>posOf(a.k)-posOf(b.k));
@@ -562,8 +565,12 @@ function render(bump){
     else if(s.z==='out')acts=E+(can('move')?`<button class="go" data-moveto>Move to… ▸</button>`:'');
     else{const i=FLOW.indexOf(t.k),nx=FLOW[i+1],pv=FLOW[i-1],needSig=t.k===SIGSTN&&!sigsDone(t),full=nx&&occupied(nx,t.id),blocked=needSig||full;
       acts=(can('edit')?`<button data-back ${i===0||(pv&&occupied(pv,t.id))?'disabled':''} aria-label="Move back one step">◂</button>`:'')+E+(can('move')?`<button class="go" data-adv ${blocked?'disabled':''}>${needSig?'Needs both sigs':full?esc(short(nx))+' is full':nx==='done'?'Sign off ✓':'To '+esc(short(nx))+' ▸'}</button>`:'')}
-    const sigs=t.k===SIGSTN?`<div class="sigs">${SIGS.map(([k,l])=>{const g=t.sig[k];const mayClear=g&&(can('edit')||(g.by&&g.by===me));
-      return `<button class="sig${g?' ok':''}" data-sig="${k}" ${(!g&&!can('sign'))||(g&&!mayClear)?'disabled':''}><span>${l}</span><b>${g?'✓ '+esc(g.name||who(g.by)||'Signed'):can('sign')?'Tap to enter name':'Not signed yet'}</b>${g?`<small>${fmtDT(g.t)}${g.name&&g.by?' · entered by '+esc(who(g.by)):''}${mayClear?' · tap to change':''}</small>`:''}</button>`}).join('')}</div>`:'';
+    const sigs=t.k===SIGSTN?`<div class="sigs">${SIGS.map(([k,l])=>{const g=t.sig[k],rq=t.req[k],r=eff();
+      let cls='sig',main,small='',on=false;
+      if(g){cls+=' ok';main='✓ '+esc(g.name||who(g.uid||g.by)||'Signed');small=fmtDT(g.t)+(g.by&&g.by!==g.uid?' · entered by '+esc(who(g.by)):'');on=r==='admin'||(r==='insp'&&g.uid===me)}
+      else if(rq){cls+=' rq';main='Waiting on '+esc(rq.uid===me?'you':(users[rq.uid]?users[rq.uid].name:who(rq.uid))||'someone');small='Asked by '+esc(who(rq.by)||'someone')+' · '+fmtDT(rq.t);on=r!=='view'}
+      else{main=r==='admin'?'Tap to sign':r==='insp'?'Tap to sign':r==='emp'?'Tap to request':'Not signed yet';on=r!=='view'}
+      return `<button class="${cls}" data-sig="${k}" ${on?'':'disabled'}><span>${l}</span><b>${main}</b>${small?`<small>${small}</small>`:''}</button>`}).join('')}</div>`:'';
     return `<article class="card z-${s.z}" data-id="${esc(t.id)}" style="animation-delay:${Math.min(n++,8)*40}ms">
       <div class="top"><div><h3>${esc(t.unit)}</h3><p>${esc([t.model,t.cust].filter(Boolean).join(' · '))||'&nbsp;'}</p></div>
       <div class="due${isLate?' late':''}">Due<b>${fmtDue(t.due)}${isLate?' · late':''}</b></div></div>
@@ -718,16 +725,35 @@ function doIndex(dest){
   any?afterAnim(dest?1150:850,bump):render(bump)}
 
 let sigCtx=null;
-function sign(t,k){if(!can('sign'))return;const g=t.sig[k],l=SIGS.find(x=>x[0]===k)[1];sigCtx={id:t.id,k};
-  const inf=S.info[SIGSTN],opts=[...new Set([inf.sup,...inf.crew].filter(Boolean))];
-  $('#sigTitle').textContent=`${l} · ${t.unit}`;$('#sigList').innerHTML=opts.map(n=>`<option value="${esc(n)}"></option>`).join('');
-  $('#sigName').value=g?(g.name||''):'';$('#sigErr').hidden=true;$('#sigClear').hidden=!g;$('#mSig').hidden=false;setTimeout(()=>$('#sigName').focus(),80)}
-$('#fSig').addEventListener('submit',e=>{e.preventDefault();if(!sigCtx||!can('sign'))return;const t=find(sigCtx.id);if(!t)return;const k=sigCtx.k,l=SIGS.find(x=>x[0]===k)[1];
-  const name=$('#sigName').value.trim();if(!name){$('#sigErr').textContent='Type the name of the person who signed.';$('#sigErr').hidden=false;return}
-  remember([t.id]);t.sig[k]={t:now(),by:me||'',name:name.slice(0,60)};t.h=t.h.concat({k:'sig-'+k,t:now(),by:me||''});putTruck(t);$('#mSig').hidden=true;render();toast(`${l} signed by ${name} on ${t.unit}`)});
-$('#sigName').addEventListener('input',()=>{$('#sigErr').hidden=true});
-$('#sigClear').addEventListener('click',()=>{if(!sigCtx||!can('sign'))return;const t=find(sigCtx.id);if(!t)return;const k=sigCtx.k,l=SIGS.find(x=>x[0]===k)[1];
-  remember([t.id]);t.sig[k]=null;t.h=t.h.concat({k:'unsig-'+k,t:now(),by:me||''});putTruck(t);$('#mSig').hidden=true;render();toast(`${l} cleared on ${t.unit}`)});
+const signers=()=>Object.entries(users).filter(([,u])=>u.role==='inspector'||u.role==='admin').sort((a,b)=>(a[1].role==='inspector'?0:1)-(b[1].role==='inspector'?0:1)||a[1].name.localeCompare(b[1].name));
+const members=()=>Object.entries(users).filter(([,u])=>u.role&&u.role!=='pending').sort((a,b)=>(a[1].role==='inspector'?0:1)-(b[1].role==='inspector'?0:1)||a[1].name.localeCompare(b[1].name));
+const pickRows=(list,cur)=>list.length?list.map(([id,u])=>`<label class="prk"><input type="radio" name="who" value="${esc(id)}" ${cur===id?'checked':''}><span><b>${esc(u.name||u.email)}${id===me?' (you)':''}</b><em>${esc(ROLE_NAMES[u.role]||u.role)}</em></span></label>`).join(''):'';
+function sign(t,k){const g=t.sig[k],rq=t.req[k],l=SIGS.find(x=>x[0]===k)[1],r=eff();sigCtx={id:t.id,k,mode:''};
+  let body='',go='',extra='';
+  if(r==='admin'){sigCtx.mode='admin';
+    body=`<p class="hint" style="margin:0">Pick who signed, or type a name.</p><div class="prks">${pickRows(members(),g&&g.uid)}</div><label>Or type a name<input id="sigName" maxlength="60" placeholder="Name" value="${esc(g&&!g.uid?g.name:'')}"></label>`;
+    go='Save signature';if(g)extra='<button type="button" class="del" data-sigact="clear">Clear signature</button>';else if(rq)extra='<button type="button" class="del" data-sigact="unreq">Cancel request</button>'}
+  else if(r==='insp'){sigCtx.mode='insp';
+    if(g){body=`<p class="gmsg">You signed this on ${fmtDT(g.t)}.</p>`;extra='<button type="button" class="del" data-sigact="clear">Remove my signature</button>'}
+    else{body=`<p class="gmsg">Sign the <b>${l}</b> for truck <b>${esc(t.unit)}</b> as <b>${esc(names[me]||'you')}</b>?</p>${rq?`<p class="hint" style="margin:0">Asked by ${esc(who(rq.by)||'someone')} · ${fmtDT(rq.t)}</p>`:''}`;go='Sign'}}
+  else if(r==='emp'){sigCtx.mode='sup';const list=signers();
+    body=list.length?`<p class="hint" style="margin:0">Pick who should sign. They'll see the request when they open Code 3.</p><div class="prks">${pickRows(list,rq&&rq.uid)}</div>`:`<p class="gmsg">No one can sign yet. An admin needs to give someone the Inspector role.</p>`;
+    if(list.length)go=rq?'Change request':'Send request';if(rq)extra='<button type="button" class="del" data-sigact="unreq">Cancel request</button>'}
+  else return;
+  $('#sigTitle').textContent=`${l} · ${t.unit}`;$('#sigBody').innerHTML=body;$('#sigErr').hidden=true;
+  $('#sigGo').hidden=!go;$('#sigGo').textContent=go;$('#sigExtra').innerHTML=extra;$('#mSig').hidden=false}
+$('#sigBody').addEventListener('input',e=>{$('#sigErr').hidden=true;if(e.target.id==='sigName'&&e.target.value)document.querySelectorAll('#sigBody input[name=who]').forEach(x=>x.checked=false);if(e.target.name==='who'&&$('#sigName'))$('#sigName').value=''});
+$('#fSig').addEventListener('submit',e=>{e.preventDefault();if(!sigCtx)return;const t=find(sigCtx.id);if(!t)return;const k=sigCtx.k,l=SIGS.find(x=>x[0]===k)[1],m=sigCtx.mode;
+  const picked=($('#sigBody input[name=who]:checked')||{}).value||'';const err=x=>{$('#sigErr').textContent=x;$('#sigErr').hidden=false};
+  if(m==='admin'){const typed=($('#sigName')||{}).value?$('#sigName').value.trim():'';if(!picked&&!typed)return err('Pick a person or type a name.');
+    const name=picked?(users[picked]?users[picked].name:''):typed.slice(0,60);remember([t.id]);t.sig[k]={t:now(),by:me||'',name,uid:picked||''};t.req[k]=null;t.h=t.h.concat({k:'sig-'+k,t:now(),by:me||''});toast(`${l} signed by ${name} on ${t.unit}`)}
+  else if(m==='insp'){if(!can('sign'))return;remember([t.id]);t.sig[k]={t:now(),by:me||'',name:names[me]||'',uid:me||''};t.req[k]=null;t.h=t.h.concat({k:'sig-'+k,t:now(),by:me||''});toast(`You signed the ${l} on ${t.unit}`)}
+  else if(m==='sup'){if(!can('request'))return;if(!picked)return err('Pick who should sign.');remember([t.id]);t.req[k]={uid:picked,by:me||'',t:now()};t.h=t.h.concat({k:'req-'+k,t:now(),by:me||''});toast(`Asked ${users[picked]?users[picked].name:'them'} to sign the ${l}`)}
+  putTruck(t);$('#mSig').hidden=true;render()});
+$('#sigExtra').addEventListener('click',e=>{const b=e.target.closest('[data-sigact]');if(!b||!sigCtx)return;const t=find(sigCtx.id);if(!t)return;const k=sigCtx.k,l=SIGS.find(x=>x[0]===k)[1];remember([t.id]);
+  if(b.dataset.sigact==='clear'){t.sig[k]=null;t.h=t.h.concat({k:'unsig-'+k,t:now(),by:me||''});toast(`${l} cleared on ${t.unit}`)}
+  else{t.req[k]=null;t.h=t.h.concat({k:'unreq-'+k,t:now(),by:me||''});toast('Request canceled')}
+  putTruck(t);$('#mSig').hidden=true;render()});
 
 function pick(t,msg,keys,cb,except){pickCb=cb;$('#mvTitle').textContent=t;$('#mvMsg').textContent=msg;
   $('#mvList').innerHTML=ZONES.map(z=>{const ks=keys.filter(k=>k!=='done'&&step(k).z===z.z);if(!ks.length)return'';
@@ -806,8 +832,8 @@ render();
 // ---------- accounts and shared data (Firebase) ----------
 const FB=window.C3FB;
 let users={},ownerUid=null,dataUnsubs=[],meUnsub=null,gateView='loading',authUser=null;
-const ROLE_MAP={admin:'admin',supervisor:'emp',employee:'view'};
-const ROLE_NAMES={admin:'Admin',supervisor:'Supervisor',employee:'Employee (view only)',pending:'No access yet'};
+const ROLE_MAP={admin:'admin',supervisor:'emp',inspector:'insp',employee:'view'};
+const ROLE_NAMES={admin:'Admin',supervisor:'Supervisor',inspector:'Inspector (signs Station 18)',employee:'Employee (view only)',pending:'No access yet'};
 const authErr=e=>{const c=(e&&e.code)||'';
   if(/invalid-credential|wrong-password|user-not-found|invalid-login/.test(c))return'Wrong email or password.';
   if(/email-already-in-use/.test(c))return'That email already has an account. Sign in instead.';
@@ -874,11 +900,11 @@ FB.onAuth(async user=>{
 });
 
 // ---------- People screen (admin) ----------
-function renderPeople(){const list=Object.entries(users).sort((a,b)=>{const o={pending:0,admin:1,supervisor:2,employee:3};return(o[a[1].role]-o[b[1].role])||a[1].name.localeCompare(b[1].name)});
+function renderPeople(){const list=Object.entries(users).sort((a,b)=>{const o={pending:0,admin:1,supervisor:2,inspector:3,employee:4};return(o[a[1].role]-o[b[1].role])||a[1].name.localeCompare(b[1].name)});
   const waiting=list.filter(([,u])=>u.role==='pending').length;
   $('#pplList').innerHTML=(waiting?`<p class="pwait">${waiting} ${waiting===1?'person is':'people are'} waiting for a role</p>`:'')+list.map(([id,u])=>{const locked=id===me||id===ownerUid;
     return `<div class="prow${u.role==='pending'?' pend':''}"><div class="pav">${esc((u.name||u.email||'?').trim().charAt(0).toUpperCase())}</div><div class="pinfo"><b>${esc(u.name||'No name')}${id===me?' (you)':''}</b><span class="k">${esc(u.email)}</span>${u.created?`<span class="k">Joined ${fmtDT(u.created)}</span>`:''}</div>
-      <select data-uid="${esc(id)}" aria-label="Role for ${esc(u.name||u.email)}" ${locked?'disabled':''}>${['pending','employee','supervisor','admin'].map(r=>`<option value="${r}" ${u.role===r?'selected':''}>${ROLE_NAMES[r]}</option>`).join('')}</select></div>`}).join('')||'<p class="k">No one has signed up yet.</p>'}
+      <select data-uid="${esc(id)}" aria-label="Role for ${esc(u.name||u.email)}" ${locked?'disabled':''}>${['pending','employee','inspector','supervisor','admin'].map(r=>`<option value="${r}" ${u.role===r?'selected':''}>${ROLE_NAMES[r]}</option>`).join('')}</select></div>`}).join('')||'<p class="k">No one has signed up yet.</p>'}
 $('#pplList').addEventListener('change',async e=>{const s=e.target.closest('select[data-uid]');if(!s||role!=='admin')return;const uid=s.dataset.uid,r=s.value;
   try{await db.doc('users/'+uid).update({role:r});toast(`${users[uid]?users[uid].name:'User'} is now ${ROLE_NAMES[r]}`)}catch(x){toast("Couldn't change that role.");renderPeople()}});
 document.addEventListener('click',e=>{if(e.target.closest('#bPeople')){renderPeople();$('#mPeople').hidden=false}else if(e.target.closest('#bOut')){undo=null;FB.signOut();toast('Signed out')}});

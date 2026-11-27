@@ -11,7 +11,8 @@ service cloud.firestore {
     }
     function isAdmin() { return isOwner() || (signedIn() && myRole() == 'admin'); }
     function isSupervisor() { return isAdmin() || (signedIn() && myRole() == 'supervisor'); }
-    function isMember() { return isSupervisor() || (signedIn() && myRole() == 'employee'); }
+    function isInspector() { return isAdmin() || (signedIn() && myRole() == 'inspector'); }
+    function isMember() { return isSupervisor() || (signedIn() && myRole() in ['inspector', 'employee']); }
 
     // The first person to sign up becomes the owner (always admin)
     match /meta/owner {
@@ -36,7 +37,8 @@ service cloud.firestore {
       allow read: if isMember();
       allow create, delete: if isAdmin();
       allow update: if isAdmin()
-        || (isSupervisor() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['k', 'h']));
+        || (isSupervisor() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['k', 'h', 'req']))
+        || (isInspector() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['sig', 'req', 'h']));
     }
 
     // Station names, supervisors and crews
