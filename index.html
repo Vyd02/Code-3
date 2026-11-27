@@ -51,9 +51,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .sbars{display:grid;gap:7px}.sbar{display:grid;grid-template-columns:86px 1fr 62px;gap:8px;align-items:center;font-size:13.5px}
 .sbar i{display:block;height:14px;border-radius:7px;background:#5b5f66;transform-origin:left;animation:grow .8s cubic-bezier(.2,.8,.2,1) both}.sbar.slow i{background:var(--red)}.sbar em{font-style:normal;color:var(--mut);text-align:right}
 .sbar.slow span{color:var(--red);font-weight:700}@keyframes grow{from{transform:scaleX(0)}}
-.alist{list-style:none;margin:0;padding:0;display:grid;gap:8px}.alist li{display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:start;padding:10px;border:1px solid var(--line);border-radius:12px;animation:hin .3s both}
-.alist li.new{border-color:var(--red)}.alist li i{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-style:normal;background:#2a2d31;color:#fff}
-.pushok{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,#19a463 14%,transparent);color:#19a463;font-weight:700}.pushok span{flex:1 1 200px}.pushok button{min-height:40px;padding:0 14px}
+.alist{list-style:none;margin:0;padding:0;display:grid;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden}.alist li{display:grid;grid-template-columns:30px 1fr auto;gap:10px;align-items:center;padding:9px 10px;border-top:1px solid var(--line);animation:hin .3s both;cursor:pointer}.alist li:first-child{border-top:0}.alist li b{display:block;font-size:15px;line-height:1.25}.alist li time{color:var(--mut);font-size:12px;font-weight:600;white-space:nowrap;align-self:start;padding-top:2px}.alist small{font-size:13px}
+.aday{margin:16px 0 6px;font:800 13px 'Barlow Condensed',sans-serif;text-transform:uppercase;letter-spacing:.08em;color:var(--mut)}.afil{display:flex;gap:6px;overflow-x:auto;margin:2px -2px 0;padding:2px;scrollbar-width:none}.afil button{flex:none;min-height:36px;border-radius:18px;padding:0 14px;font-size:14px}.afil button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.alist li.new{box-shadow:inset 3px 0 0 var(--red)}.alist li i{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-style:normal;background:#2a2d31;color:#fff}
+.pushok{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:nowrap;margin-bottom:12px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,#19a463 14%,transparent);color:#19a463;font-weight:700}.pushok span{flex:1 1 200px}.pushok button{min-height:40px;padding:0 14px}
 .alist .a-line i{background:var(--red)}.alist .a-req i{background:#e0a32f;color:#111}.alist .a-hold i{background:#e11d2a}.alist .a-done i{background:#19a463}.alist .a-s18 i{background:#2f9be0}.alist small{display:block;color:var(--mut)}
 
 .menub{width:44px;height:44px;flex:0 0 44px;border-radius:12px;border:1.5px solid #4a4d52;background:transparent;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;padding:0}
@@ -308,7 +309,7 @@ html.nosc,html.nosc body{overflow:hidden;overscroll-behavior:none}body.nosc{posi
 .tabbar button.on{color:#ff4a50}.tabbar button svg{transition:transform .25s}.tabbar button.on svg{transform:translateY(-2px) scale(1.08)}
 .tabbar b{position:absolute;top:2px;left:54%;min-width:18px;height:18px;border-radius:9px;background:var(--red);color:#fff;font:700 11px system-ui;display:grid;place-items:center;padding:0 4px}.tabbar b[hidden]{display:none}
 body.tabs{padding-bottom:84px}body.tabs[data-tab=floor] .v-trucks,body.tabs[data-tab=trucks] .v-floor{display:none!important}
-body.tabs #bMenu{display:none!important}body.tabs .toast{bottom:96px;z-index:55}
+body.tabs #bMenu{display:none!important}body.tabs .toast{z-index:55}
 .tkhead .wrap{display:flex;flex-direction:column;align-items:stretch;text-align:left;gap:12px;padding-top:18px;padding-bottom:6px}.trow0{display:flex;align-items:center;justify-content:space-between;gap:10px}#bCards{min-height:40px;padding:0 14px;border-radius:10px;font-size:14px}.tbig{margin:0;font:800 34px/1 "Barlow Condensed",sans-serif;text-transform:uppercase}
 .att{display:flex;gap:8px;flex-wrap:wrap}.att button{border-radius:20px;min-height:40px;padding:0 14px;font-weight:700;border:1.5px solid transparent;font-size:14px}
 .att .a-late{background:#3a1316;color:#ff6b70}.att .a-down{background:#2b1d10;color:#f5a04a}.att .a-sig{background:#2a2410;color:#f0c64a}.att .a-hold{background:#24262b;color:#d7d9de}.att .a-ok{background:#10261b;color:#3ccf86}
@@ -442,9 +443,10 @@ label{display:grid;gap:4px;font-size:14px;font-weight:600}
 .sed summary{cursor:pointer;font-weight:600;min-height:36px;display:flex;align-items:center;gap:8px}
 .sed summary em{font-style:normal;color:var(--mut);font-weight:400;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hint{font-size:13px;color:var(--mut);font-weight:400}
-.toast{position:fixed;left:50%;bottom:18px;transform:translate(-50%,120px);background:var(--dk);color:#fff;border-radius:10px;padding:6px 6px 6px 16px;display:flex;gap:12px;align-items:center;z-index:30;transition:transform .35s cubic-bezier(.3,1.3,.5,1);max-width:calc(100% - 24px)}
-.toast{visibility:hidden}.toast.show{transform:translate(-50%,0);visibility:visible}
-.toast button{background:#fff;color:var(--dk);border:0;min-height:42px;flex:none;white-space:nowrap;font-weight:800;padding:0 16px}.toast{overflow:hidden;width:max-content}.toast .tbar{position:absolute;left:0;bottom:0;height:3px;width:100%;background:#ffd400;transform-origin:left;transform:scaleX(0)}.toast.undoable.run .tbar{animation:tbar var(--tt) linear forwards}@keyframes tbar{from{transform:scaleX(1)}to{transform:scaleX(0)}}#tMsg{min-width:0}
+.toast{position:fixed;left:12px;top:calc(env(safe-area-inset-top,0px) + 10px);bottom:auto!important;transform:translateY(-160%);background:var(--dk);color:#fff;border-radius:10px;padding:6px 6px 6px 16px;display:flex;gap:12px;align-items:center;z-index:30;transition:transform .35s cubic-bezier(.3,1.3,.5,1);max-width:calc(100% - 24px)}
+.toast{visibility:hidden}.toast.show{transform:translateY(0);visibility:visible}
+.toast button{background:#fff;color:var(--dk);border:0;min-height:42px;flex:none;white-space:nowrap;font-weight:800;padding:0 16px}.toast{overflow:hidden;width:max-content;max-width:calc(100% - 140px)!important;padding:10px 16px!important;font-weight:600;box-shadow:0 8px 24px -10px #000;pointer-events:none}
+.undop{position:fixed;z-index:56;right:12px;top:calc(env(safe-area-inset-top,0px) + 10px);min-height:40px;padding:0 14px 0 12px;border-radius:20px;border:0;background:var(--dk);color:#fff;font-weight:700;font-size:14px;display:flex;align-items:center;gap:6px;box-shadow:0 6px 18px -8px #000;opacity:.92;animation:chin .25s both}.undop[hidden]{display:none}.undop svg{width:18px;height:18px;transform:rotate(-90deg)}.undop circle{fill:none;stroke:#ffd400;stroke-width:4;stroke-dasharray:101;stroke-dashoffset:0}.undop.run circle{animation:uring 10s linear forwards}@keyframes uring{to{stroke-dashoffset:101}}.toast .tbar{position:absolute;left:0;bottom:0;height:3px;width:100%;background:#ffd400;transform-origin:left;transform:scaleX(0)}.toast.undoable.run .tbar{animation:tbar var(--tt) linear forwards}@keyframes tbar{from{transform:scaleX(1)}to{transform:scaleX(0)}}#tMsg{min-width:0}
 @media(min-width:1000px){.z-build .tiles{grid-template-columns:repeat(15,minmax(0,1fr))}}
 @media(max-width:900px){.row2{grid-template-columns:minmax(0,1fr) minmax(0,2fr)}.row2 .z-fin{grid-column:1 / -1}}
 @media(max-width:400px){.seg button{font-size:12.5px;padding:0 2px}}
@@ -590,7 +592,7 @@ label{display:grid;gap:4px;font-size:14px;font-weight:600}
 <div id="tour" class="tour" hidden role="dialog" aria-modal="true" aria-labelledby="tTitleT"><div id="tHole" class="thole"></div>
 <div id="tCard" class="tcard"><div class="thead"><span id="tCount" class="k"></span><button type="button" id="tSkip" class="tskip">Skip tour</button></div>
 <h3 id="tTitleT"></h3><p id="tBody"></p><div class="tfoot"><div id="tDots" class="tdots"></div><div class="tbtns"><button type="button" id="tBack">Back</button><button type="button" class="go" id="tNext">Next</button></div></div></div></div>
-<div class="toast" id="toast" role="status"><span id="tMsg"></span><button id="tUndo">↶ Undo</button><i class="tbar"></i></div>
+<div class="toast" id="toast" role="status"><span id="tMsg"></span></div><button id="tUndo" class="undop" hidden aria-label="Undo"><svg viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="16"/></svg><span>↶ Undo</span></button>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
   <g id="wh"><circle cx="11" cy="23" r="4.5" fill="#1b1c1e"/><circle cx="11" cy="23" r="1.8" fill="#c9ccd1"/><circle cx="38" cy="23" r="4.5" fill="#1b1c1e"/><circle cx="38" cy="23" r="1.8" fill="#c9ccd1"/></g>
@@ -672,7 +674,7 @@ async function putComment(c){if(!shared){saveLocal();return}try{await db.collect
 async function delComment(id){if(!shared){saveLocal();return}try{await db.collection('comments').doc(id).delete()}catch(e){writeFail(e)}}
 let undoAt=0;
 function remember(ids){undoAt=Date.now();undo=ids.map(id=>{const t=find(id);return{id,before:t?clone(t):null}})}
-async function doUndo(){if(!undo)return;const u=undo;undo=null;$('#toast').classList.remove('show');
+async function doUndo(){if(!undo)return;const u=undo;undo=null;$('#toast').classList.remove('show');$('#tUndo').hidden=true;clearTimeout(uTimer);
   // Feature 7: tell everyone when a move gets undone
   const back=u.filter(e=>e.before).map(e=>{const cur=find(e.id);return cur&&cur.k!==e.before.k?e.before:null}).filter(Boolean);
   if(back.length)notify('undo',back.length===1?`${back[0].unit} move undone`:`Line move undone`,back.length===1?`Back at ${title(back[0].k)} · ${myName()}`:`${back.length} trucks back where they were · ${myName()}`,'all','undo');
@@ -1055,9 +1057,11 @@ $('#phDel').addEventListener('click',async()=>{const v=phView;if(!v)return;$('#m
 $('#chList').addEventListener('click',e=>{const b=e.target.closest('[data-ch]');if(!b||b.disabled)return;const o=chooseOpts[+b.dataset.ch];$('#mChoose').hidden=true;chooseOpts=[];if(o&&o.fn)setTimeout(o.fn,40)});
 $('#mvList').addEventListener('click',e=>{const b=e.target.closest('[data-pick]');if(!b||b.disabled)return;$('#mMove').hidden=true;const cb=pickCb;pickCb=null;if(cb)cb(b.dataset.pick)});
 
-function toast(m){const can=!!undo&&Date.now()-undoAt<400,el=$('#toast');$('#tMsg').textContent=m;$('#tUndo').hidden=!can;el.classList.toggle('undoable',can);
-  const ms=can?10000:4000;el.style.setProperty('--tt',ms+'ms');el.classList.remove('show','run');void el.offsetWidth;el.classList.add('show','run');
-  clearTimeout(tTimer);tTimer=setTimeout(()=>{el.classList.remove('show','run');if(can)undo=null},ms)}
+let uTimer=null;
+function toast(m){const can=!!undo&&Date.now()-undoAt<400,el=$('#toast');$('#tMsg').textContent=m;
+  el.classList.remove('show');void el.offsetWidth;el.classList.add('show');clearTimeout(tTimer);tTimer=setTimeout(()=>el.classList.remove('show'),2500);
+  // Small Undo pill in the top corner for 10 seconds, away from the buttons
+  const u=$('#tUndo');if(can){u.hidden=false;u.classList.remove('run');void u.offsetWidth;u.classList.add('run');clearTimeout(uTimer);uTimer=setTimeout(()=>{u.hidden=true;u.classList.remove('run');undo=null},10000)}}
 $('#tUndo').addEventListener('click',doUndo);
 
 // ---------- forms ----------
@@ -1315,9 +1319,27 @@ function alertsTick(){const bb=$('#bMenu');if(!bb||!me)return;let seen=0,nt=0;tr
   if(!nt){try{localStorage.setItem(notKey(),Date.now())}catch(e){}return}
   if(toNotify.length&&!pushReady()&&'Notification' in window&&Notification.permission==='granted'&&navigator.serviceWorker){navigator.serviceWorker.ready.then(reg=>toNotify.slice(0,3).forEach(a=>reg.showNotification('Code 3: '+a.txt,{body:a.sub,icon:'icon-192.png',badge:'icon-192.png',tag:a.c+a.id+a.t}))).catch(()=>{})}
   try{localStorage.setItem(notKey(),Date.now())}catch(e){}}
+// Alerts, organized: filter chips, grouped by day, repeated line moves merged
+let alF='';
+const AGRP={line:'mv',s18:'sig',req:'sig',done:'mv',hold:'hold'};
+function aGroup(a){if(a.ppl)return'ppl';if(a.c==='line')return'mv';if(/Down To|part arrived/.test(a.txt))return'dn';if(/sig|Station 18/.test(a.txt))return'sig';if(/hold|overdue|pulled/.test(a.txt))return'hold';return AGRP[a.c]||'mv'}
+function alertsHtml(L,seen){if(!L.length)return'<p class="note">No alerts yet. Line moves, holds, overdue trucks, Down To, sign-offs and sig requests show up here.</p>';
+  L.forEach(a=>a.g=aGroup(a));
+  const F=[['','All'],['mv','Moves'],['dn','Down To'],['sig','Sigs'],['hold','Holds & late']].filter(([k])=>!k||L.some(a=>a.g===k));
+  if(alF&&!F.some(([k])=>k===alF))alF='';
+  // merge back-to-back line moves by the same person within 30 min
+  const out=[];L.filter(a=>!alF||a.g===alF).forEach(a=>{const p=out[out.length-1];
+    if(a.c==='line'&&p&&p.c==='line'&&p.by===a.by&&Math.abs(new Date(p.tEnd||p.t)-new Date(a.t))<30*6e4){p.n=(p.n||1)+1;p.tEnd=a.t;return}out.push({...a})});
+  const dayKey=t=>{const d=new Date(t);d.setHours(0,0,0,0);return+d},today=dayKey(Date.now()),dayName=k=>k===today?'Today':k===today-864e5?'Yesterday':new Date(k).toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'});
+  const tm=t=>new Date(t).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
+  let h=`<div class="afil">${F.map(([k,l])=>`<button type="button" class="${alF===k?'on':''}" data-alf="${k}">${l}</button>`).join('')}</div>`,cur=null,i=0;
+  out.forEach(a=>{const k=dayKey(a.t);if(k!==cur){if(cur!==null)h+='</ul>';h+=`<h4 class="aday">${dayName(k)}</h4><ul class="alist">`;cur=k}
+    const many=a.n>1,txt=many?`The line moved ${a.n} times`:a.txt,sub=many?`${who(a.by)||'Someone'} · ${tm(a.tEnd)===tm(a.t)?tm(a.t):tm(a.tEnd)+' – '+tm(a.t)}`:a.sub;
+    h+=`<li class="a-${a.c}${+new Date(a.t)>seen&&a.by!==me?' new':''}" data-aid="${esc(a.id)}"${a.ppl?' data-ppl="1"':''} style="animation-delay:${Math.min(i++,10)*25}ms"><i>${a.i}</i><div><b>${esc(txt)}</b><small>${esc(sub)}</small></div><time>${many?'':tm(a.t)}</time></li>`});
+  return h+'</ul>'+(out.length?'':'<p class="note">Nothing here.</p>')}
 function openAlerts(){let seen=0;try{seen=+localStorage.getItem(seenKey())||0}catch(e){}const L=alertList(),perm='Notification' in window?Notification.permission:'unsupported';
-  $('#alertsBody').innerHTML=(perm==='default'||(perm==='granted'&&PUSH_URL&&!pushReady())?`<button class="go" id="bNotif" style="width:100%;margin-bottom:12px">Turn on phone alerts</button>`:perm==='granted'&&pushReady()?`<div class="pushok"><span>✓ Phone alerts are on, even with Code 3 closed</span><button id="bTestPush">Send me a test</button></div>${(L=>L?`<p class="k" style="margin:-4px 0 12px">Last alert ${L.ok?`went to ${L.sent} phone${L.sent===1?'':'s'}`:'failed: '+esc(L.err)} · ${fmtDT(new Date(L.t).toISOString())}</p>`:'')(lsGet('c3-push-last'))}`:perm==='denied'?`<p class="k" style="margin:0 0 10px">Phone alerts are blocked. Turn them on for this site in your browser's settings.</p>`:'')+
-    (L.length?`<ul class="alist">${L.map(a=>`<li class="a-${a.c}${+new Date(a.t)>seen&&a.by!==me?' new':''}" data-aid="${esc(a.id)}"${a.ppl?' data-ppl="1"':''}><i>${a.i}</i><div><b>${esc(a.txt)}</b><small>${esc(a.sub)} · ${fmtDT(a.t)}</small></div></li>`).join('')}</ul>`:'<p class="note">No alerts yet. Line moves, holds, overdue trucks, Down To, sign-offs and sig requests show up here.</p>');
+  $('#alertsBody').innerHTML=(perm==='default'||(perm==='granted'&&PUSH_URL&&!pushReady())?`<button class="go" id="bNotif" style="width:100%;margin-bottom:12px">Turn on phone alerts</button>`:perm==='granted'&&pushReady()?`<div class="pushok"><span>✓ Phone alerts on</span><button id="bTestPush">Send test</button></div>${(L=>L?`<p class="k" style="margin:-4px 0 12px">Last alert ${L.ok?`went to ${L.sent} phone${L.sent===1?'':'s'}`:'failed: '+esc(L.err)} · ${fmtDT(new Date(L.t).toISOString())}</p>`:'')(lsGet('c3-push-last'))}`:perm==='denied'?`<p class="k" style="margin:0 0 10px">Phone alerts are blocked. Turn them on for this site in your browser's settings.</p>`:'')+
+    alertsHtml(L,seen);
   try{localStorage.setItem(seenKey(),Date.now())}catch(e){}lastBell=0;$('#bellN').hidden=true;if($('#tabN'))$('#tabN').hidden=true;if($('#bellN2'))$('#bellN2').hidden=true;openedAt=Date.now();$('#mAlerts').hidden=false}
 document.addEventListener('click',e=>{
   if(e.target.closest('#bStats')){openStats();return}
@@ -1326,6 +1348,7 @@ document.addEventListener('click',e=>{
   if(e.target.closest('#bBell')){openAlerts();return}
   if(e.target.closest('#bNotif')){const bt=e.target.closest('#bNotif');bt.disabled=true;bt.textContent='Turning on…';(PUSH_URL?registerPush(true):Notification.requestPermission().then(p=>p==='granted')).then(ok=>{toast(ok?'Phone alerts are on':'Phone alerts are blocked. Allow notifications for this site in Chrome settings.');openAlerts()});return}
   if(e.target.closest('#bTestPush')){notify('test','Code 3 test alert','If you see this, alerts work. Try it again with the app closed.','');toast('Test sent. It should pop up in a few seconds.');return}
+  const af=e.target.closest('#alertsBody [data-alf]');if(af){alF=af.dataset.alf;const sc=$('#mAlerts .sheet').scrollTop;openAlerts();$('#mAlerts .sheet').scrollTop=sc;return}
   const pl=e.target.closest('#alertsBody [data-ppl]');if(pl){$('#mAlerts').hidden=true;renderPeople();$('#mPeople').hidden=false;return}const ln=e.target.closest('#alertsBody .a-line');if(ln){$('#mAlerts').hidden=true;$('#map').scrollIntoView({behavior:reduce?'auto':'smooth'});return}
   const li=e.target.closest('#alertsBody [data-aid]');if(li&&li.dataset.aid){$('#mAlerts').hidden=true;openTk(li.dataset.aid)}});
 // ---------- push alerts (work with the app closed) ----------
