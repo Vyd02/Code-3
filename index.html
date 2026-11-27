@@ -34,6 +34,19 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 @keyframes slide{from{transform:translateX(60%);opacity:0}}
 .hero h1{font-size:clamp(36px,6vw,52px);font-weight:800;text-transform:uppercase;letter-spacing:.01em}
 .hero p{margin:4px 0 0;color:#b9bdc3;font-size:15px}
+.htop{display:flex;align-items:center;gap:12px}
+.menub{width:44px;height:44px;flex:0 0 44px;border-radius:12px;border:1.5px solid #4a4d52;background:transparent;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;padding:0}
+.menub i{display:block;width:20px;height:2.5px;border-radius:2px;background:#fff;transition:transform .25s}
+.menub:active i:nth-child(2){transform:scaleX(.6)}
+.drawer{position:fixed;inset:0;z-index:60}.drawer[hidden]{display:none}
+.dback{position:absolute;inset:0;background:rgba(0,0,0,.55);opacity:0;transition:opacity .25s}
+.dpanel{position:absolute;left:0;top:0;bottom:0;width:min(340px,86vw);background:var(--dk);color:#fff;padding:18px 18px 28px;overflow-y:auto;transform:translateX(-102%);transition:transform .28s cubic-bezier(.2,.8,.2,1);box-shadow:8px 0 30px rgba(0,0,0,.4)}
+.drawer.open .dback{opacity:1}.drawer.open .dpanel{transform:none}
+.dtop{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.dtop b{font:800 26px "Barlow Condensed",sans-serif;text-transform:uppercase;letter-spacing:.02em}
+.dx{width:40px;height:40px;border-radius:10px;background:transparent;color:#fff;border:1.5px solid #4a4d52;font-size:16px}
+.dpanel .me{margin-top:6px}.dpanel .hbtns{display:grid!important;grid-template-columns:1fr;gap:8px}.dpanel .hbtns button{flex:none;min-height:48px;justify-content:flex-start;padding:0 16px;font-size:16px}
+.dpanel .seg{grid-template-columns:1fr 1fr}
+.dpanel .sync{flex-basis:100%}
 .hhead{display:flex;justify-content:space-between;align-items:center;gap:12px}.hhead>div{flex:1 1 auto}
 .amb{flex:none;width:clamp(130px,34vw,340px);height:auto;overflow:visible;animation:drivein 1.3s cubic-bezier(.2,.8,.2,1) both}
 @keyframes drivein{from{transform:translateX(-60px);opacity:0}}
@@ -63,7 +76,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .sig small{font-size:12px;color:var(--mut);font-weight:400}
 .sig:disabled{opacity:1;cursor:default}
 .by{color:var(--mut)}
-.z-bub{--zc:#2f9be0}
+.z-bub{--zc:#2f9be0}.z-nxt{--zc:#19a463}
 #floor .bubg{cursor:pointer;outline:none}#floor .bubbox{fill:color-mix(in srgb,#2f9be0 10%,var(--bg));stroke:#2f9be0;stroke-width:2;stroke-dasharray:8 6}
 #floor .bubg.on .bubbox{stroke-width:3.5;stroke-dasharray:none}#floor .bubg.warn .bubbox{stroke:#d89a00;fill:color-mix(in srgb,#ffc400 12%,var(--bg))}
 #floor .bubg.pulse .bubbox{animation:npulse .8s ease}
@@ -71,8 +84,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 #floor .bubg.warn .bfl{stroke:#d89a00}
 @keyframes brise{0%{transform:translateY(0);opacity:0}25%{opacity:.55}100%{transform:translateY(-34px);opacity:0}}
 #floor .bubn{font:700 13px Barlow,sans-serif;fill:#2f9be0;pointer-events:none}#floor .bubg.warn .bubn{fill:#b07d00}
+#floor .bubg.nx .bubbox{fill:color-mix(in srgb,#19a463 10%,var(--bg));stroke:#19a463}#floor .bubg.nx .bfl{stroke:#19a463}#floor .bubg.nx .bubn{fill:#19a463}
 #floor .bubm,#floor .bube{font:600 12px Barlow,sans-serif;fill:var(--mut);pointer-events:none}
-button.bub{flex:1;border-color:#2f9be0;color:#2f9be0;background:transparent}
+button.bub{flex:1;border-color:#2f9be0;color:#2f9be0;background:transparent}button.bub.nx{border-color:#19a463;color:#19a463}
 
 .tour{position:fixed;inset:0;z-index:60;pointer-events:auto}.tour[hidden]{display:none}
 .thole{position:fixed;border-radius:14px;box-shadow:0 0 0 9999px rgba(10,11,12,.72);outline:3px solid var(--red);outline-offset:2px;transition:left .38s cubic-bezier(.4,0,.2,1),top .38s cubic-bezier(.4,0,.2,1),width .38s cubic-bezier(.4,0,.2,1),height .38s cubic-bezier(.4,0,.2,1);pointer-events:none;animation:tglow 1.6s ease-in-out infinite}
@@ -367,7 +381,7 @@ label{display:grid;gap:4px;font-size:14px;font-weight:600}
 <section class="hero">
   <div class="wrap">
     <div class="hhead"><div>
-    <h1>Code 3</h1>
+    <div class="htop"><button id="bMenu" class="menub" aria-label="Open menu" aria-expanded="false" hidden><i></i><i></i><i></i></button><h1>Code 3</h1></div>
     <p>Line tracker · every truck from Station 1 to signed off</p>
     </div>
     <svg class="amb" viewBox="0 0 260 130" aria-hidden="true">
@@ -397,10 +411,10 @@ label{display:grid;gap:4px;font-size:14px;font-weight:600}
       <g><circle cx="204" cy="104" r="16" fill="#1b1c1e"/><circle cx="204" cy="104" r="8" fill="#c9ccd1"/><g class="spk"><path d="M204 97v14M197 104h14" stroke="#6b7078" stroke-width="2.5" stroke-linecap="round"/></g></g>
     </svg>
     </div>
-    <div class="me" id="me"></div>
     <div class="figs" id="figs"></div>
   </div>
 </section>
+<div class="drawer" id="drawer" hidden><div class="dback" data-dclose></div><aside class="dpanel" role="dialog" aria-label="Menu"><div class="dtop"><b>Code 3</b><button class="dx" data-dclose aria-label="Close menu">✕</button></div><div class="me" id="me"></div></aside></div>
 <div class="wrap floorwrap"><div class="fhead"><h2>Plant floor</h2><span class="k fhint">Tap a station to open · hold to edit</span><span id="fmv"></span></div><div id="map"></div></div>
 <div class="bar"><div class="wrap">
   <input id="q" type="search" placeholder="Search unit, model, customer" aria-label="Search trucks">
@@ -497,12 +511,14 @@ const STEPS=[...Array(15)].map((_,i)=>({k:'s'+(i+1),code:String(i+1),def:'Statio
   .concat([{k:'bubble',code:'BB',def:'The Bubble',z:'bub',pos:15}])
   .concat(OUT.map(([k,code,def,c])=>({k,code,def,z:'out',pos:15,c})))
   .concat([16,17,18].map((n,j)=>({k:'s'+n,code:String(n),def:'Station '+n,z:'final',pos:16+j})))
+  .concat([{k:'next',code:'NT',def:'Next Truck',z:'nxt',pos:18.5}])
   .concat(FIN.map((n,i)=>({k:'f'+(i+1),code:'F'+(i+1),def:n,z:'fin',pos:19+i})));
 const SEGS=24,DONEPOS=24,EMERG='s11',SIGSTN='s18';
 const segZone=j=>j<15?'build':j===15?'out':j<19?'final':'fin';
 const FLOW=['s16','s17','s18','f1','f2','f3','f4','f5','done'];
 const BUBMAX=30,BUBWARN=3;
-const ZONES=[{z:'build',t:'Build line',sub:'Stations 1–15'},{z:'bub',t:'The Bubble',sub:'Waiting area · max 30'},{z:'out',t:'Outside services',sub:''},{z:'final',t:'TAG line',sub:'Stations 16–18'},{z:'fin',t:'Final Line',sub:'Clean to sign-off'}];
+const WAIT={bubble:{max:30,warn:3,t:'The Bubble',c:'#2f9be0'},next:{max:10,warn:99,t:'Next Truck',c:'#19a463'}};const isWaitZ=z=>z==='bub'||z==='nxt';
+const ZONES=[{z:'build',t:'Build line',sub:'Stations 1–15'},{z:'bub',t:'The Bubble',sub:'Waiting area · max 30'},{z:'out',t:'Outside services',sub:''},{z:'final',t:'TAG line',sub:'Stations 16–18'},{z:'nxt',t:'Next Truck',sub:'Waiting area · max 10'},{z:'fin',t:'Final Line',sub:'Clean to sign-off'}];
 const $=s=>document.querySelector(s);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -516,7 +532,7 @@ let S={info:{},trucks:[]},C=[];             // C = comments
 let db=null,U=null,me=null,role='admin',preview=null,shared=false;
 let ownerId=null,myRaw='',users={},sel=null,pop=null,stnEdit=false,holdT=null,longFired=false,undo=null,editing=null,tTimer=null,pickCb=null,animating=0,pendingRender=false;
 let names={};
-const eff=()=>role==='admin'&&preview?preview:role;
+const eff=()=>role==='admin'&&preview&&me&&me===ownerId?preview:role;
 const isMgr=()=>!!me&&(me===ownerId||myRaw==='coowner');
 const can=a=>{const r=eff();if(r==='admin')return true;if(r==='emp')return['move','comment','request'].includes(a);if(r==='insp')return['sign'].includes(a);return false};
 
@@ -563,7 +579,7 @@ const nm=k=>S.info[k].n;
 const isDef=k=>nm(k)===step(k).def;
 const title=k=>{if(k==='done')return'Signed off';if(k==='sig-el')return'Electrical sig signed';if(k==='sig-co')return'Cosmetic sig signed';if(k==='req-el')return'Electrical sig requested';if(k==='req-co')return'Cosmetic sig requested';if(k==='unreq-el'||k==='unreq-co')return'Sig request canceled';if(k==='unsig-el')return'Electrical sig cleared';if(k==='unsig-co')return'Cosmetic sig cleared';const s=step(k);if(!s)return k;if(s.z==='build'||s.z==='final')return isDef(k)?nm(k):`Stn ${s.code} · ${nm(k)}`;return nm(k)};
 const short=k=>{if(k==='done')return'Signed off';const s=step(k);if(s.z==='build'||s.z==='final')return isDef(k)?'Stn '+s.code:nm(k);return nm(k)};
-const sub=k=>{const s=step(k);return s.z==='bub'?'Waiting area after Station 15':s.z==='fin'?`Final Line ${s.code.slice(1)} of 5`:s.z==='out'?'Outside service':s.z==='final'?'TAG line':`Build line · ${s.code} of 15`};
+const sub=k=>{const s=step(k);return s.z==='bub'?'Waiting area after Station 15':s.z==='nxt'?'Waiting area after Station 18':s.z==='fin'?`Final Line ${s.code.slice(1)} of 5`:s.z==='out'?'Outside service':s.z==='final'?'TAG line':`Build line · ${s.code} of 15`};
 const moves=t=>t.h.filter(e=>e.k==='done'||!!step(e.k));
 const lastMove=t=>{const m=moves(t);return m[m.length-1]||null};
 const days=t=>{const l=lastMove(t);return l?Math.max(0,Math.floor((Date.now()-new Date(l.t))/864e5)):0};
@@ -578,9 +594,9 @@ const vtype=t=>{if(t.vt)return t.vt;const m=(t.model||'').toLowerCase();
   if(/rescue|squad/.test(m))return'rescue';if(/\brv\b|coach|motorhome|class [abc]|camper/.test(m))return'rv';if(/pump|engine/.test(m))return'pumper';return'amb'};
 const icon=(t,w=48,h=28,cls='')=>`<svg viewBox="0 0 48 28" width="${w}" height="${h}"${cls?` class="${cls}"`:''}><use href="#v-${vtype(t)}"/></svg>`;
 const at=k=>S.trucks.filter(t=>t.k===k);
-const single=k=>k!=='done'&&!!step(k)&&step(k).z!=='out'&&step(k).z!=='bub';
-const bubCount=except=>S.trucks.filter(t=>t.k==='bubble'&&t.id!==except).length;
-const occupied=(k,except)=>k==='bubble'?bubCount(except)>=BUBMAX:single(k)&&S.trucks.some(t=>t.k===k&&t.id!==except);
+const single=k=>k!=='done'&&!!step(k)&&step(k).z!=='out'&&!isWaitZ(step(k).z);
+const waitCount=(k,except)=>S.trucks.filter(t=>t.k===k&&t.id!==except).length;const bubCount=except=>waitCount('bubble',except);
+const occupied=(k,except)=>WAIT[k]?waitCount(k,except)>=WAIT[k].max:single(k)&&S.trucks.some(t=>t.k===k&&t.id!==except);
 const holder=(k,except)=>S.trucks.find(t=>t.k===k&&t.id!==except);
 const fullMsg=(k,except)=>`${short(k)} already has ${holder(k,except).unit}. Move that truck first.`;
 const setK=(t,k)=>{t.k=k;t.h=t.h.concat({k,t:now(),by:me||''})};
@@ -607,7 +623,8 @@ function tile(s,cnt,bump){const c=cnt[s.k]||0,inf=S.info[s.k],on=sel===s.k,b=bum
 
 function renderMe(){const r=eff();
   const isOwn=me&&me===ownerId&&!preview,isCo=!isOwn&&myRaw==='coowner'&&!preview,label=isOwn?'Owner':isCo?'Co-owner':{admin:'Admin',emp:'Supervisor',insp:'Inspector',view:'Employee · view only'}[r];
-  $('#me').innerHTML=!shared?'':`<span>${me?esc(names[me]||'Signed in'):'Signed in'}</span><span class="role ${isOwn?'owner':isCo?'coowner':r==='admin'?'admin':r==='view'?'view':''}">${label}</span>${isMgr()?`<div class="seg" role="group" aria-label="View as">${[['admin',me===ownerId?'Owner':'Co-owner'],['emp','Supervisor'],['insp','Inspector'],['view','Employee']].map(([v,l])=>`<button data-prev="${v}" class="${(preview||'admin')===v?'on':''}" aria-pressed="${(preview||'admin')===v}">${l}</button>`).join('')}</div>`:''}<span class="hbtns" style="--n:${(n=>n<=4?n:Math.ceil(n/2))(4+(isMgr()?1:0)+(pinFor(me)?1:0))}">${isMgr()?'<button id="bPeople">People</button>':''}${pinFor(me)?'<button id="bLock">Lock</button>':''}<button id="bHelp">Help</button><button id="bInv">Invite</button><button id="bPin">PIN</button><button id="bOut">Sign out</button></span><span class="sync" id="sync"></span>`;
+  {const mb=$('#bMenu');if(mb)mb.hidden=!shared;if(!shared)closeDrawer()}
+  $('#me').innerHTML=!shared?'':`<span>${me?esc(names[me]||'Signed in'):'Signed in'}</span><span class="role ${isOwn?'owner':isCo?'coowner':r==='admin'?'admin':r==='view'?'view':''}">${label}</span>${me&&me===ownerId?`<div class="seg" role="group" aria-label="View as">${[['admin',me===ownerId?'Owner':'Co-owner'],['emp','Supervisor'],['insp','Inspector'],['view','Employee']].map(([v,l])=>`<button data-prev="${v}" class="${(preview||'admin')===v?'on':''}" aria-pressed="${(preview||'admin')===v}">${l}</button>`).join('')}</div>`:''}<span class="hbtns" style="--n:${(n=>n<=4?n:Math.ceil(n/2))(4+(isMgr()?1:0)+(pinFor(me)?1:0))}">${isMgr()?'<button id="bPeople">People</button>':''}${pinFor(me)?'<button id="bLock">Lock</button>':''}<button id="bHelp">Help</button><button id="bInv">Invite</button><button id="bPin">PIN</button><button id="bOut">Sign out</button></span><span class="sync" id="sync"></span>`;
   $('#bAdd').hidden=!can('edit');$('#bStations').textContent=can('edit')?'Crews':'Crews';}
 
 function safeRender(b){if(animating){pendingRender=true;return}render(b)}
@@ -631,10 +648,10 @@ function render(bump){
     const E=can('edit')?'<button data-edit>Edit</button>':'';
     let acts;
     if(s.z==='build'){acts=E+(t.k==='s1'&&can('move')?`<button class="go" data-index>Move line ▸</button>`:t.k==='s15'&&can('edit')?`<button class="bub" data-tobub>To the Bubble</button>`:t.k===EMERG&&can('edit')?`<button class="warn" data-pull>Emergency pull</button>`:`<span class="lk">Moves when the line moves</span>`)}
-    else if(s.z==='bub')acts=E+(can('edit')?`<button class="go" data-moveto>Bring out… ▸</button>`:`<span class="lk">Waiting in the Bubble</span>`);
+    else if(isWaitZ(s.z))acts=E+(can('edit')?`<button class="go" data-moveto>Bring out… ▸</button>`:`<span class="lk">Waiting in ${s.z==='bub'?'the Bubble':'Next Truck'}</span>`);
     else if(s.z==='out')acts=E+(can('move')?`<button class="go" data-moveto>Move to… ▸</button>`:'');
     else{const i=FLOW.indexOf(t.k),nx=FLOW[i+1],pv=FLOW[i-1],needSig=t.k===SIGSTN&&!sigsDone(t),full=nx&&occupied(nx,t.id),blocked=needSig||full;
-      acts=(can('edit')?`<button data-back ${i===0||(pv&&occupied(pv,t.id))?'disabled':''} aria-label="Move back one step">◂</button>`:'')+E+(can('move')?`<button class="go" data-adv ${blocked?'disabled':''}>${needSig?'Needs both sigs':full?esc(short(nx))+' is full':nx==='done'?'Sign off ✓':'To '+esc(short(nx))+' ▸'}</button>`:'')}
+      acts=(can('edit')?`<button data-back ${i===0||(pv&&occupied(pv,t.id))?'disabled':''} aria-label="Move back one step">◂</button>`:'')+E+(t.k==='s18'&&can('edit')?`<button class="bub nx" data-tonext ${needSig||occupied('next',t.id)?'disabled':''}>Next Truck</button>`:'')+(can('move')?`<button class="go" data-adv ${blocked?'disabled':''}>${needSig?'Needs both sigs':full?esc(short(nx))+' is full':nx==='done'?'Sign off ✓':'To '+esc(short(nx))+' ▸'}</button>`:'')}
     const sigs=t.k===SIGSTN?`<div class="sigs">${SIGS.map(([k,l])=>{const g=t.sig[k],rq=t.req[k],r=eff();
       let cls='sig',main,small='',on=false;
       if(g){cls+=' ok';main='✓ '+esc(g.name||who(g.uid||g.by)||'Signed');small=fmtDT(g.t)+(g.by&&g.by!==g.uid?' · entered by '+esc(who(g.by)):'');on=r==='admin'||(r==='insp'&&g.uid===me)}
@@ -693,13 +710,15 @@ function computeFloor(){
   y=sy+sh;dir=1;
   label('TAG line','Stations 16–18');const t=rows(ks('final'));roads.push(t);
   conns.push(`M${t[0].x} ${sy+sh}V${t[0].y}`);
-  const lastT=t[t.length-1];dir=-1;
+  const lastT=t[t.length-1];
+  label('Next Truck','Waiting area · max 10');const ny=y-16,nh=bh,nx=bx,nw=bw;
+  conns.push(`M${lastT.x} ${lastT.y}V${ny}`);P.next={x:nx+nw/2,y:ny+nh/2,d:1,bub:{x:nx,y:ny,w:nw,h:nh}};y=ny+nh;dir=-1;
   label('Final Line','Clean to sign-off');const f=rows(ks('fin'));roads.push(f);
-  conns.push(`M${lastT.x} ${lastT.y}V${(lastT.y+f[0].y)/2}H${f[0].x}V${f[0].y}`);
+  conns.push(`M${f[0].x} ${ny+nh}V${f[0].y}`);
   const lastF=f[f.length-1];y+=8;
   const lot={x:pad-22,y,w:VW-2*pad+44,h:58};P.done={x:lot.x+lot.w/2,y:lot.y+lot.h/2,d:1};
   conns.push(`M${lastF.x} ${lastF.y}V${lot.y}`);
-  return{VW,VH:lot.y+lot.h+10,P,labels,roads,conns,svc:{x:sx,y:sy,w:sw,h:sh},bub:{x:bx,y:by,w:bw,h:bh},lot,bays,wide}}
+  return{VW,VH:lot.y+lot.h+10,P,labels,roads,conns,svc:{x:sx,y:sy,w:sw,h:sh},bub:{x:bx,y:by,w:bw,h:bh},boxes:{bubble:P.bubble.bub,next:P.next.bub},lot,bays,wide}}
 
 function truckSpots(on){const g={};on.forEach(t=>{(g[t.k]=g[t.k]||[]).push(t)});const out={};
   Object.entries(g).forEach(([k,list])=>{const p=FL.P[k];if(!p)return;const n=list.length;
@@ -716,15 +735,15 @@ function renderFloor(bump){
   const roadD=FL.roads.map(pts=>'M'+pts.map(p=>`${p.x} ${p.y}`).join('L')).join('');
   const labs=FL.labels.map(l=>`<text class="zl" x="${FL.svc.x+4}" y="${l.y}">${l.t}</text>${l.sub?`<text class="zs" x="${FL.svc.x+4}" y="${l.y+15}">${l.sub}</text>`:''}`).join('');
   let h=FL.conns.map(d=>`<path class="conn" d="${d}"/>`).join('')+`<path class="road" d="${roadD}"/><path class="roadc" d="${roadD}"/>`;
-  {const B=FL.bub,bc=cnt.bubble||0,cols=FL.wide?11:6,shown=cols*2,warn=bc>BUBWARN,nc=comments('bubble').length;
-   h+=`<g class="bubg${warn?' warn':''}${pop==='bubble'?' on':''}${bump&&bump.has('bubble')?' pulse':''}" data-k="bubble" tabindex="0" role="button" aria-label="The Bubble, ${bc} trucks"><rect class="bubbox" x="${B.x}" y="${B.y}" width="${B.w}" height="${B.h}" rx="28"/>
+  Object.entries(FL.boxes).forEach(([wk,B])=>{const W=WAIT[wk],bc=cnt[wk]||0,cols=FL.wide?11:6,shown=cols*2,warn=bc>W.warn,nc=comments(wk).length;
+   h+=`<g class="bubg${wk==='next'?' nx':''}${warn?' warn':''}${pop===wk?' on':''}${bump&&bump.has(wk)?' pulse':''}" data-k="${wk}" tabindex="0" role="button" aria-label="${W.t}, ${bc} trucks"><rect class="bubbox" x="${B.x}" y="${B.y}" width="${B.w}" height="${B.h}" rx="28"/>
    ${[[.12,.8,5],[.3,.7,3.5],[.55,.85,6],[.78,.75,4],[.9,.82,3]].map(([fx,fy,r],i)=>`<circle class="bfl" cx="${B.x+B.w*fx}" cy="${B.y+B.h*fy}" r="${r}" style="animation-delay:${i*0.7}s"/>`).join('')}
-   <text class="bubn" x="${B.x+B.w-16}" y="${B.y+22}" text-anchor="end">${bc} / ${BUBMAX}${warn?' · over '+BUBWARN:''}</text>${bc>shown?`<text class="bubm" x="${B.x+B.w-16}" y="${B.y+B.h-12}" text-anchor="end">+${bc-shown} more</text>`:''}${bc?'':`<text class="bube" x="${B.x+B.w/2}" y="${B.y+B.h/2+5}" text-anchor="middle">Empty</text>`}${nc?`<circle cx="${B.x+18}" cy="${B.y+18}" r="8" class="ncm"/><text class="ncmt" x="${B.x+18}" y="${B.y+18}">${nc}</text>`:''}</g>`}
+   <text class="bubn" x="${B.x+B.w-16}" y="${B.y+22}" text-anchor="end">${bc} / ${W.max}${warn?' · over '+W.warn:''}</text>${bc>shown?`<text class="bubm" x="${B.x+B.w-16}" y="${B.y+B.h-12}" text-anchor="end">+${bc-shown} more</text>`:''}${bc?'':`<text class="bube" x="${B.x+B.w/2}" y="${B.y+B.h/2+5}" text-anchor="middle">Empty</text>`}${nc?`<circle cx="${B.x+18}" cy="${B.y+18}" r="8" class="ncm"/><text class="ncmt" x="${B.x+18}" y="${B.y+18}">${nc}</text>`:''}</g>`})
   const s=FL.svc;h+=`<rect class="svcbox" x="${s.x}" y="${s.y}" width="${s.w}" height="${s.h}" rx="12"/><rect x="${s.x+12}" y="${s.y-2}" width="${s.w-24}" height="4" rx="2" fill="url(#pg)"/>`;
   FL.bays.forEach(k=>{const p=FL.P[k],b=p.bay,st=step(k),nc=comments(k).length;
     h+=`<g class="bayg" data-k="${k}"><rect class="bay${pop===k?' on':''}${bump&&bump.has(k)?' pulse':''}" x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="8" style="--sc:${st.c}"/><rect x="${b.x}" y="${b.y}" width="${b.w}" height="4" rx="2" fill="${st.c}"/>
       <text class="bayl${FL.wide?'':' sm'}">${svgLines(S.info[k].n,FL.wide?18:10,b.x+(FL.wide?8:5),b.y+19,13,b.w-(FL.wide?36:10))}</text>${cnt[k]&&FL.wide?`<text class="bays" x="${b.x+b.w-8}" y="${b.y+19}" text-anchor="end">${cnt[k]}</text>`:''}${nc?`<circle cx="${b.x+b.w-6}" cy="${b.y+b.h-6}" r="7" class="ncm"/><text class="ncmt" x="${b.x+b.w-6}" y="${b.y+b.h-6}">${nc}</text>`:''}</g>`});
-  STEPS.filter(x=>x.z!=='out'&&x.z!=='bub').forEach(st=>{const p=FL.P[st.k],inf=S.info[st.k],nc=comments(st.k).length,named=st.z==='fin'||!isDef(st.k);
+  STEPS.filter(x=>x.z!=='out'&&!isWaitZ(x.z)).forEach(st=>{const p=FL.P[st.k],inf=S.info[st.k],nc=comments(st.k).length,named=st.z==='fin'||!isDef(st.k);
     const lab=named?inf.n:(inf.sup||'');
     h+=`<g class="node z-${st.z}${pop===st.k?' on':''}${bump&&bump.has(st.k)?' pulse':''}${cnt[st.k]?' has':''}" data-k="${st.k}" tabindex="0" role="button" aria-label="${esc(title(st.k))}"><circle class="hit" cx="${p.x}" cy="${p.y-8}" r="28"/><circle class="nc" cx="${p.x}" cy="${p.y}" r="14"/><circle class="hold" cx="${p.x}" cy="${p.y}" r="19" transform="rotate(-90 ${p.x} ${p.y})"/><text class="nt" x="${p.x}" y="${p.y+1}">${st.code}</text>${lab?`<text class="nl">${svgLines(lab,FL.wide?14:11,p.x,p.y+29,12,FL.wide?84:66)}</text>`:''}${nc?`<circle cx="${p.x+12}" cy="${p.y-11}" r="7" class="ncm"/><text class="ncmt" x="${p.x+12}" y="${p.y-11}">${nc}</text>`:''}</g>`});
   const L=FL.lot;h+=`<g class="lotg" data-done tabindex="0" role="button" aria-label="Signed off trucks"><rect class="lot${bump&&bump.has('done')?' pulse':''}" x="${L.x}" y="${L.y}" width="${L.w}" height="${L.h}" rx="12"/><text class="lott" x="${L.x+18}" y="${L.y+L.h/2+1}">✓ Signed off</text><text class="lotn" x="${L.x+L.w-18}" y="${L.y+L.h/2+1}" text-anchor="end">${dn.length}</text></g>`;
@@ -841,7 +860,7 @@ $('#sigExtra').addEventListener('click',e=>{const b=e.target.closest('[data-siga
 
 function pick(t,msg,keys,cb,except){pickCb=cb;$('#mvTitle').textContent=t;$('#mvMsg').textContent=msg;
   $('#mvList').innerHTML=ZONES.map(z=>{const ks=keys.filter(k=>k!=='done'&&step(k).z===z.z);if(!ks.length)return'';
-    return `<h3>${z.t}</h3>`+ks.map(k=>{const s=step(k),occ=occupied(k,except);return `<button class="pk" data-pick="${k}" ${occ?'disabled':''}><b>${s.code}</b><span>${esc(title(k))}</span>${occ?`<em>${k==='bubble'?'Full ('+BUBMAX+')':'Has '+esc(at(k)[0].unit)}</em>`:k==='bubble'?`<em>${bubCount(except)} / ${BUBMAX}</em>`:''}</button>`}).join('')}).join('');
+    return `<h3>${z.t}</h3>`+ks.map(k=>{const s=step(k),occ=occupied(k,except);return `<button class="pk" data-pick="${k}" ${occ?'disabled':''}><b>${s.code}</b><span>${esc(title(k))}</span>${occ?`<em>${WAIT[k]?'Full ('+WAIT[k].max+')':'Has '+esc(at(k)[0].unit)}</em>`:WAIT[k]?`<em>${waitCount(k,except)} / ${WAIT[k].max}</em>`:''}</button>`}).join('')}).join('');
   $('#mMove').hidden=false}
 $('#mvList').addEventListener('click',e=>{const b=e.target.closest('[data-pick]');if(!b||b.disabled)return;$('#mMove').hidden=true;const cb=pickCb;pickCb=null;if(cb)cb(b.dataset.pick)});
 
@@ -856,7 +875,7 @@ function openTruck(id){if(!can('edit'))return;editing=id||null;const t=id?find(i
   f.k.value=t?t.k:(sel||(occupied('s1')?(STEPS.find(s=>s.z==='build'&&!occupied(s.k))||{k:'s1'}).k:'s1'));
   $('#tDel').hidden=!t;$('#mTruck').hidden=false;setTimeout(()=>f.unit.focus(),50)}
 $('#fTruck').addEventListener('submit',e=>{e.preventDefault();const f=e.target,k=f.k.value;
-  if(occupied(k,editing)){$('#tErr').textContent=k==='bubble'?`The Bubble is full (${BUBMAX} trucks). Bring one out first.`:`${title(k)} already has ${at(k).find(t=>t.id!==editing).unit}. Each station holds one truck. Pick an open spot.`;$('#tErr').hidden=false;return}
+  if(occupied(k,editing)){$('#tErr').textContent=WAIT[k]?`${WAIT[k].t} is full (${WAIT[k].max} trucks). Bring one out first.`:`${title(k)} already has ${at(k).find(t=>t.id!==editing).unit}. Each station holds one truck. Pick an open spot.`;$('#tErr').hidden=false;return}
   const v={unit:f.unit.value.trim(),model:f.model.value.trim(),vt:f.vt.value,cust:f.cust.value.trim(),due:f.due.value,notes:f.notes.value.trim()};
   let t;if(editing){t=find(editing);remember([t.id]);if(t.k!==k)setK(t,k);Object.assign(t,v);toast(`Saved ${t.unit}`)}
   else{t=normTruck({id:nid(),...v,k,h:[{k,t:now(),by:me||''}]});remember([t.id]);S.trucks.push(t);toast(`Added ${v.unit} at ${title(k)}`)}
@@ -889,7 +908,7 @@ document.addEventListener('click',e=>{
   if(b.hasAttribute('data-stnedit')){stnEdit=true;refreshStn(true);return}
   if(b.hasAttribute('data-stncancel')){stnEdit=false;refreshStn(true);return}
   if(b.dataset.gocard){const id=b.dataset.gocard;closeModal($('#mStn'));const c=document.querySelector(`.card[data-id="${CSS.escape(id)}"]`);if(c){c.scrollIntoView({behavior:reduce?'auto':'smooth',block:'center'});c.classList.remove('flash');void c.offsetWidth;c.classList.add('flash')}return}
-  if(b.dataset.prev){const v=b.dataset.prev==='admin'?null:b.dataset.prev;if(v===preview)return;preview=v;render();toast(preview==='emp'?'Showing what supervisors see':preview==='view'?'Showing what employees see (view only)':'Back to admin view');return}
+  if(b.dataset.prev){if(!(me&&me===ownerId))return;const v=b.dataset.prev==='admin'?null:b.dataset.prev;if(v===preview)return;preview=v;render();toast(preview==='emp'?'Showing what supervisors see':preview==='view'?'Showing what employees see (view only)':'Back to admin view');return}
   if(b.hasAttribute('data-index')){indexLine();return}
   if(b.dataset.cdel){const c=C.find(x=>x.id===b.dataset.cdel);if(c&&(can('edit')||c.by===me)){C=C.filter(x=>x.id!==c.id);delComment(c.id);render();toast('Comment deleted')}return}
   if(b.dataset.k&&b.classList.contains('tl')){sel=sel===b.dataset.k?null:b.dataset.k;render();if(sel)$('#panel').scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});return}
@@ -901,7 +920,8 @@ document.addEventListener('click',e=>{
   if(b.dataset.sig){sign(t,b.dataset.sig);return}
   if(b.hasAttribute('data-edit'))openTruck(id);
   else if(b.hasAttribute('data-pull')&&can('edit'))pick('Emergency pull',`Take ${t.unit} off Station 11. Where is it going?`,notBuild(),k=>moveTo(t,k,`${t.unit} pulled off Station 11 → ${title(k)}`));
-  else if(b.hasAttribute('data-moveto')&&can('move')){if(t.k==='bubble'&&!can('edit'))return;pick(`Move ${t.unit}`,'Where is it going next?',STEPS.map(s=>s.k).filter(k=>k!==t.k&&(k!=='bubble'||can('edit'))),k=>moveTo(t,k),t.id)}
+  else if(b.hasAttribute('data-moveto')&&can('move')){if(WAIT[t.k]&&!can('edit'))return;pick(`Move ${t.unit}`,'Where is it going next?',STEPS.map(s=>s.k).filter(k=>k!==t.k&&(!WAIT[k]||can('edit'))),k=>moveTo(t,k),t.id)}
+  else if(b.hasAttribute('data-tonext')&&can('edit')){if(!sigsDone(t)){toast('Station 18 needs both sigs first');return}if(occupied('next',t.id)){toast(`Next Truck is full (${WAIT.next.max}).`);return}moveTo(t,'next',`${t.unit} → Next Truck`)}
   else if(b.hasAttribute('data-tobub')&&can('edit')){if(occupied('bubble',t.id)){toast(`The Bubble is full (${BUBMAX}).`);return}moveTo(t,'bubble',`${t.unit} → The Bubble`)}
   else if(b.hasAttribute('data-adv')&&can('move')){const i=FLOW.indexOf(t.k);if(t.k===SIGSTN&&!sigsDone(t)){toast('Station 18 needs both sigs first');return}if(i>=0&&i<FLOW.length-1){const nx=FLOW[i+1];if(occupied(nx,t.id)){toast(fullMsg(nx,t.id));return}moveTo(t,nx)}}
   else if(b.hasAttribute('data-back')&&can('edit')){const i=FLOW.indexOf(t.k);if(i>0){const pv=FLOW[i-1];if(occupied(pv,t.id)){toast(fullMsg(pv,t.id));return}moveTo(t,pv)}}
@@ -980,9 +1000,11 @@ function tourSteps(){const r=eff(),mgr=isMgr()&&!preview,admin=r==='admin';const
   else if(r==='emp')S.push({c:true,t:'Signatures',b:'At Station 18, tap a sig box to ask an inspector to sign. They get a yellow banner. The truck can move on once both sigs are in.'});
   else if(admin)S.push({c:true,t:'Station 18 sigs',b:'Tap a sig box to pick who signed or type a name. A truck needs both the electrical and cosmetic sig before it can leave Station 18.'});
   if(can('comment'))S.push({c:true,t:'Comments',b:'Open any station to leave a note for the crew. Red dots on the map show how many comments a station has.'});
-  S.push({el:'#floor .bubg',t:'The Bubble',b:`The waiting area after Station 15. It holds up to 30 trucks and turns yellow when more than 3 are waiting.${admin?' Send a truck here from Station 15, and bring it out when it\'s ready.':' Only admins move trucks in and out.'}`});
+  S.push({el:'#floor .bubg:not(.nx)',t:'The Bubble',b:`The waiting area after Station 15. It holds up to 30 trucks and turns yellow when more than 3 are waiting.${admin?' Send a truck here from Station 15, and bring it out when it\'s ready.':' Only admins move trucks in and out.'}`});
+  S.push({el:'#floor .bubg.nx',t:'Next Truck',b:`The waiting area after Station 18, before the Final Line. It holds up to 10 trucks.${admin?' Send a signed truck here from Station 18, and bring it out to the Final Line when it\'s ready.':' Only admins move trucks in and out.'}`});
   if(admin)S.push({el:'#bAdd',t:'Add a truck',b:'Add a new truck and pick where it starts. Each station holds one truck. Outside services can hold more than one.'});
-  if(mgr)S.push({el:'#bPeople',t:'People',b:'New sign-ups wait here with no access. Give each person a role: Supervisor, Inspector, Employee or Admin.'});
+  S.push({el:'#bMenu',t:'The menu',b:`Tap ☰ for ${mgr?'People (give roles), ':''}${me===ownerId&&!preview?'View as, ':''}Help, Invite, your quick PIN and Sign out.`});
+  if(false)S.push({el:'#bPeople',t:'People',b:'New sign-ups wait here with no access. Give each person a role: Supervisor, Inspector, Employee or Admin.'});
   S.push({el:'#bInv',t:'Invite people',b:'Show the QR code, text or email the link, or print the flyer for the break room.'});
   S.push({el:'#bPin',t:'Quick PIN',b:'Closing the app signs you out. Set a PIN to get back in fast on this phone.'});
   S.push({c:true,t:"You're set",b:'Tap Help at the top anytime to see this tour again.',last:true});
@@ -1005,6 +1027,10 @@ function tourPlace(){if(!tour)return;const hole=$('#tHole'),card=$('#tCard'),vw=
   const ch=card.offsetHeight,cw=card.offsetWidth;let top=y+h+14;if(top+ch>vh-12)top=y-ch-14;if(top<12)top=Math.min(vh-ch-12,Math.max(12,y+h-ch-14));
   card.style.top=top+'px';card.style.left=Math.min(vw-cw-12,Math.max(12,x+w/2-cw/2))+'px'}
 addEventListener('resize',()=>tour&&tourPlace());addEventListener('scroll',()=>tour&&tourPlace(),{passive:true});
+function openDrawer(){const d=$('#drawer');d.hidden=false;requestAnimationFrame(()=>requestAnimationFrame(()=>d.classList.add('open')));$('#bMenu').setAttribute('aria-expanded','true')}
+function closeDrawer(){const d=$('#drawer');if(!d||d.hidden)return;d.classList.remove('open');const mb=$('#bMenu');if(mb)mb.setAttribute('aria-expanded','false');setTimeout(()=>{if(!d.classList.contains('open'))d.hidden=true},280)}
+document.addEventListener('click',e=>{if(e.target.closest('#bMenu')){openDrawer();return}if(e.target.closest('[data-dclose]')){closeDrawer();return}if(e.target.closest('#me button')&&!e.target.closest('.seg'))closeDrawer()},true);
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer()});
 document.addEventListener('click',e=>{if(e.target.closest('#bHelp')){tourStart();return}
   if(!tour)return;if(e.target.closest('#tNext'))tourGo(tour.i+1);else if(e.target.closest('#tBack'))tourGo(tour.i-1);else if(e.target.closest('#tSkip'))tourEnd()},true);
 document.addEventListener('keydown',e=>{if(!tour)return;if(e.key==='Escape')tourEnd();else if(e.key==='ArrowRight')tourGo(tour.i+1);else if(e.key==='ArrowLeft')tourGo(tour.i-1)});
@@ -1098,7 +1124,7 @@ async function enterApp(user){
   meUnsub=db.doc('users/'+me).onSnapshot(snap=>{const v=snap.exists?snap.data()||{}:{};names[me]=v.name||user.displayName||'';
     const r=String(v.role||'pending');
     if(!ROLE_MAP[r]){stopData();gateShow('pending');return}
-    myRaw=r;role=ROLE_MAP[r];if(!isMgr())preview=null;syncPrivate();const first=$('#gate').hidden===false;gateHide();startData();render();if(first)firstRun()},()=>gateShow('signin',"Couldn't load your account. Try again."));
+    myRaw=r;role=ROLE_MAP[r];if(!(me&&me===ownerId))preview=null;syncPrivate();const first=$('#gate').hidden===false;gateHide();startData();render();if(first)firstRun()},()=>gateShow('signin',"Couldn't load your account. Try again."));
 }
 
 // ---------- People screen (admin) ----------

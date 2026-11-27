@@ -51,7 +51,7 @@ service cloud.firestore {
       allow create, delete: if isAdmin();
       allow update: if isAdmin()
         || (isSupervisor() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['k', 'h', 'req'])
-            && request.resource.data.k != 'bubble' && resource.data.k != 'bubble')
+            && !(request.resource.data.k in ['bubble', 'next']) && !(resource.data.k in ['bubble', 'next']))
         || (isInspector() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['sig', 'req', 'h']));
     }
 
