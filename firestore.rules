@@ -70,12 +70,14 @@ service cloud.firestore {
         || (isInspector() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['sig', 'req', 'h']));
     }
 
-    // Truck photos: anyone who can move or sign trucks can add; the person who added it or an admin can delete
+    // Truck photos: admins add to any station; everyone else only to stations they're assigned to
     match /trucks/{id}/photos/{pid} {
       allow read: if isMember();
-      allow create: if (isSupervisor() || isInspector())
+      allow create: if isMember()
         && request.resource.data.by == request.auth.uid
-        && request.resource.data.d is string && request.resource.data.d.size() < 1000000;
+        && request.resource.data.d is string && request.resource.data.d.size() < 1000000
+        && (isAdmin() || (request.resource.data.k is string
+            && request.auth.uid in get(/databases/$(database)/documents/plant/crews).data.info.get(request.resource.data.k, {}).get('members', [])));
       allow update: if false;
       allow delete: if isAdmin() || (signedIn() && resource.data.by == request.auth.uid);
     }
