@@ -339,10 +339,16 @@ details.shipped>summary{cursor:pointer;font:800 22px "Barlow Condensed",sans-ser
 .sv{display:flex;gap:12px;align-items:flex-start;flex:1 1 240px}.sv svg{flex:none;margin-top:4px}
 .signed{margin-top:4px;font-size:15px;color:var(--ok,#0b7a3b)}.signed b{color:var(--ink)}
 .when{display:flex;flex-wrap:wrap;gap:2px 16px;font-size:14px;color:var(--mut)}.when b{color:var(--ink);font-weight:600;white-space:nowrap}
-.hist{font-size:14px;width:100%}.hist summary{cursor:pointer;color:var(--mut);min-height:32px;display:flex;align-items:center}
-.hist ol{list-style:none;margin:4px 0 0;padding:0 0 0 14px;border-left:2px solid var(--line);display:grid;gap:6px}
-.hist li{display:flex;justify-content:space-between;gap:10px;position:relative}.hist li::before{content:"";position:absolute;left:-19px;top:7px;width:8px;height:8px;border-radius:50%;background:var(--red)}
-.hist li:not(:first-child)::before{background:var(--mut)}.hist time{color:var(--mut);white-space:nowrap}
+.hist{font-size:14px;width:100%;margin-top:4px}.hhd{font:800 13px "Barlow Condensed",sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin-bottom:6px}
+.hist summary{cursor:pointer;color:var(--mut);min-height:36px;display:flex;align-items:center;font-weight:600}
+.hist ol{list-style:none;margin:0;padding:0;display:grid;gap:8px}.hist details ol{margin-top:6px}
+.hist li{display:grid;grid-template-columns:22px 1fr auto;gap:8px;align-items:start;animation:hin .35s both}
+.hist li i{font-style:normal;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:11px;background:#2a2d31;color:#fff}
+.hist li.hv-done i{background:#19a463}.hist li.hv-sig i{background:#2f9be0}.hist li.hv-req i{background:#e0a32f;color:#111}.hist li.hv-start i{background:var(--red)}
+.hist li b{font-weight:600}.hist li em{display:block;font-style:normal;color:var(--mut);font-size:12.5px}
+.hist time{color:var(--mut);white-space:nowrap;font-size:12.5px}
+@keyframes hin{from{opacity:0;transform:translateY(4px)}}
+.hist time{color:var(--mut);white-space:nowrap}
 /* sheets */
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;z-index:20;padding:12px}
 .modal[hidden]{display:none}
@@ -602,7 +608,19 @@ const fullMsg=(k,except)=>`${short(k)} already has ${holder(k,except).unit}. Mov
 const setK=(t,k)=>{t.k=k;t.h=t.h.concat({k,t:now(),by:me||''})};
 const sigsDone=t=>!!(t.sig.el&&t.sig.co);
 const comments=k=>C.filter(c=>c.k===k).sort((a,b)=>String(b.t).localeCompare(String(a.t)));
-const hist=t=>`<details class="hist"><summary>History (${t.h.length})</summary><ol>${t.h.slice().reverse().map(e=>`<li><span>${esc(title(e.k))}${e.by?`<span class="by"> · ${esc(who(e.by))}</span>`:''}</span><time>${fmtDT(e.t)}</time></li>`).join('')}</ol></details>`;
+const histEv=t=>{const ev=[],h=t.h||[],isMv=k=>k==='done'||STEPS.some(x=>x.k===k);
+  const mv=h.map((e,i)=>i).filter(i=>isMv(h[i].k));let first=true;
+  h.forEach((e,i)=>{if(isMv(e.k)){const ni=mv.find(j=>j>i),nx=ni!=null?h[ni]:null;
+      ev.push({t:e.t,ic:first?'start':e.k==='done'?'done':'move',txt:first?`Started at ${title(e.k)}`:e.k==='done'?'Signed off':`Moved to ${title(e.k)}`,by:e.by,stay:e.k==='done'?'':nx?spanT(e.t,nx.t):spanT(e.t,Date.now())+' so far'});first=false}
+    else{const m=/^(un)?(sig|req)-(el|co)$/.exec(e.k)||[];let txt=title(e.k);
+      if(m[2]==='sig'&&!m[1]){const g=t.sig&&t.sig[m[3]];const later=h.slice(i+1).some(x=>x.k===e.k||x.k==='un'+e.k);if(g&&g.name&&!later)txt+=`: ${g.name}`}
+      if(m[2]==='req'&&!m[1]){const r=t.req&&t.req[m[3]];const later=h.slice(i+1).some(x=>x.k===e.k||x.k==='un'+e.k);if(r&&r.uid&&!later)txt+=` from ${who(r.uid)}`}
+      ev.push({t:e.t,ic:m[1]?'move':m[2]||'move',txt,by:e.by})}});
+  return ev.sort((a,b)=>new Date(b.t)-new Date(a.t))};
+const HICON={start:'●',move:'▸',done:'✓',sig:'✍',req:'?'};
+const histLi=e=>`<li class="hv-${e.ic}"><i>${HICON[e.ic]}</i><span><b>${esc(e.txt)}</b>${e.by?`<span class="by"> · ${esc(who(e.by))}</span>`:''}${e.stay?`<em>${esc(e.stay)} there</em>`:''}</span><time>${fmtDT(e.t)}</time></li>`;
+const hist=t=>{const ev=histEv(t);if(!ev.length)return'';const top=ev.slice(0,3),rest=ev.slice(3);
+  return `<div class="hist"><div class="hhd">History</div><ol>${top.map(histLi).join('')}</ol>${rest.length?`<details><summary>Show all ${ev.length}</summary><ol>${rest.map(histLi).join('')}</ol></details>`:''}</div>`};
 
 let nameTimer=null;
 function resolveNames(){clearTimeout(nameTimer);nameTimer=setTimeout(async()=>{if(!U||!U.profiles)return;
