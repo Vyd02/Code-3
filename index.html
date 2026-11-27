@@ -379,7 +379,6 @@ body.tabs #bMenu{display:none!important}body.tabs .toast{bottom:96px;z-index:55}
 .notes{font-size:15px;margin:0;padding:8px 10px;border-left:3px solid var(--red);background:var(--bg);border-radius:4px}
 .acts{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.acts>button{flex:1 1 auto}
 .mvbig{display:block;width:100%;min-height:56px;font:800 20px 'Barlow Condensed',sans-serif;letter-spacing:.04em;text-transform:uppercase;border-radius:14px;margin:4px 0 8px;box-shadow:0 6px 16px -8px var(--red);transition:transform .12s}.mvbig:active{transform:scale(.97)}.mvbig[aria-disabled=true]{background:var(--line,#ccc);border-color:transparent;color:var(--mut,#666);box-shadow:none}
-.clbox{border:1.5px solid var(--line);border-radius:12px;padding:10px;margin:10px 0;display:flex;flex-direction:column;gap:6px}.clbox.all{border-color:var(--ok)}.clhd{display:flex;justify-content:space-between;align-items:baseline}.clhd b{font:800 15px 'Barlow Condensed',sans-serif;text-transform:uppercase;letter-spacing:.06em}.clhd span{color:var(--mut);font-weight:700}.clbar{height:6px;border-radius:3px;background:var(--line);overflow:hidden}.clbar i{display:block;height:100%;background:var(--ok);transition:width .5s cubic-bezier(.3,1.4,.5,1)}.cli{display:flex;gap:10px;align-items:center;text-align:left;min-height:48px;padding:6px 10px;border-radius:10px}.cli>i{flex:none;width:26px;height:26px;border-radius:8px;border:2px solid var(--mut);display:grid;place-items:center;font-style:normal;font-weight:900;color:#fff;transition:all .25s}.cli.on>i{background:var(--ok);border-color:var(--ok);animation:pop .35s}.cli span{display:flex;flex-direction:column}.cli small{color:var(--mut);font-weight:500}.cli.on b{text-decoration:line-through;text-decoration-color:var(--mut)}.clok{margin:4px 0 0;color:var(--ok);font-weight:800;text-align:center}.clbox.shake{animation:shk .45s}@keyframes pop{50%{transform:scale(1.25)}}@keyframes shk{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}#fCl textarea{width:100%;margin:10px 0}
 .chlist{display:flex;flex-direction:column;gap:10px;margin-top:12px}.chopt{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;min-height:58px;padding:10px 16px;border-radius:12px;animation:chin .3s both}.chopt:nth-child(2){animation-delay:.05s}.chopt:nth-child(3){animation-delay:.1s}.chopt b{font-size:17px}.chopt small{opacity:.8;font-weight:500}.chopt.dnc{border-color:#f08a24;color:#f08a24}@keyframes chin{from{opacity:0;transform:translateY(8px)}}.acts .go,.acts .warn{flex:1;min-width:0}
 .warn{border-color:var(--red);color:var(--red);background:transparent}
 .lk{flex:1;font-size:14px;color:var(--mut);display:flex;align-items:center;gap:6px}
@@ -570,7 +569,6 @@ label{display:grid;gap:4px;font-size:14px;font-weight:600}
 <div class="modal" id="mSig" hidden><form class="sheet" id="fSig" autocomplete="off"><div class="shead1"><h2 id="sigTitle">Signature</h2><button type="button" data-close aria-label="Close">✕</button></div>
 <div id="sigBody" style="display:grid;gap:10px"></div><p class="err" id="sigErr" hidden></p>
 <div class="row"><span id="sigExtra" style="margin-right:auto"></span><button type="button" data-close>Cancel</button><button class="go" type="submit" id="sigGo">Save</button></div></form></div>
-<div class="modal" id="mCl" hidden><form class="sheet" id="fCl"><div class="shead1"><h2>Sign-off checklist</h2><button type="button" data-close aria-label="Close">✕</button></div><p class="hint" style="margin:0">One item per line. Every truck on Final Line or Down To needs all of these checked before it can be signed off.</p><textarea id="clTa" rows="8" maxlength="1200"></textarea><div class="row"><button type="button" id="clReset">Use the default list</button><button class="go" type="submit">Save</button></div></form></div>
 <div class="modal" id="mChoose" hidden><div class="sheet"><div class="shead1"><h2 id="chT">Move</h2><button type="button" data-close aria-label="Close">✕</button></div><p class="hint" id="chM" style="margin:0"></p><div id="chList" class="chlist"></div></div></div>
 <div class="modal" id="mMove" hidden>
   <div class="sheet">
@@ -632,11 +630,6 @@ let S={info:{},trucks:[]},C=[];             // C = comments
 let db=null,U=null,me=null,role='admin',preview=null,shared=false;
 let ownerId=null,myRaw='',users={},sel=null,pop=null,stnEdit=false,holdT=null,longFired=false,undo=null,editing=null,tTimer=null,pickCb=null,animating=0,pendingRender=false;
 let names={};
-// Feature 2: sign-off checklist
-const CL_DEF=['Lights & siren tested','Wiring checked','Body & paint look good','Interior clean','Paperwork in the truck'].map((n,i)=>({id:'c'+(i+1),n}));
-let CL=CL_DEF.slice();
-const normCl=a=>Array.isArray(a)&&a.length?a.filter(x=>x&&x.id&&x.n).map(x=>({id:String(x.id),n:String(x.n).slice(0,60)})).slice(0,20):CL_DEF.slice();
-const clLeft=t=>CL.filter(i=>!(t.cl&&t.cl[i.id]));
 const eff=()=>role==='admin'&&preview&&me&&me===ownerId?preview:role;
 const isMgr=()=>!!me&&(me===ownerId||myRaw==='coowner');
 const can=a=>{const r=eff();if(r==='admin')return true;if(r==='emp')return['move','comment','request'].includes(a);if(r==='insp')return['sign'].includes(a);return false};
@@ -645,7 +638,6 @@ function normInfo(src){const info={};STEPS.forEach(s=>{const x=(src||{})[s.k]||{
 function normTruck(t){if(!t||!t.id)return null;const k=(t.k==='done'||STEPS.some(s=>s.k===t.k))?t.k:'s1';
   return{id:String(t.id),unit:String(t.unit||''),model:String(t.model||''),plate:String(t.plate||'').toUpperCase(),dn:t.dn&&t.dn.t?{r:String(t.dn.r||'').slice(0,80),by:String(t.dn.by||''),t:String(t.dn.t)}:null,mon:/^(1[0-2]|[1-9])$/.test(String(t.mon||''))?String(t.mon):'',vt:String(t.vt||''),cust:String(t.cust||''),due:String(t.due||''),notes:String(t.notes||''),k,
     h:Array.isArray(t.h)?t.h.filter(e=>e&&e.k&&e.t).map(e=>{const o={k:String(e.k),t:String(e.t),by:e.by?String(e.by):''};if(e.r)o.r=String(e.r).slice(0,80);if(e.lm)o.lm=String(e.lm);if(e.em)o.em=1;return o}):[],
-    cl:t.cl&&typeof t.cl==='object'?Object.fromEntries(Object.entries(t.cl).filter(([,v])=>v&&v.t).map(([k,v])=>[String(k),{by:String(v.by||''),t:String(v.t)}])):{},
     hold:t.hold&&t.hold.t?{r:String(t.hold.r||'').slice(0,80),by:String(t.hold.by||''),t:String(t.hold.t)}:null,
     sig:{el:t.sig&&t.sig.el&&t.sig.el.t?{t:String(t.sig.el.t),by:String(t.sig.el.by||''),name:String(t.sig.el.name||''),uid:String(t.sig.el.uid||'')}:null,co:t.sig&&t.sig.co&&t.sig.co.t?{t:String(t.sig.co.t),by:String(t.sig.co.by||''),name:String(t.sig.co.name||''),uid:String(t.sig.co.uid||'')}:null},
     req:{el:t.req&&t.req.el&&t.req.el.uid?{uid:String(t.req.el.uid),by:String(t.req.el.by||''),t:String(t.req.el.t||'')}:null,co:t.req&&t.req.co&&t.req.co.uid?{uid:String(t.req.co.uid),by:String(t.req.co.by||''),t:String(t.req.co.t||'')}:null}}}
@@ -667,7 +659,7 @@ function writeFail(e){const code=e&&e.code;
   else if(code==='quota_exceeded')toast('Storage is full. Delete some old signed-off trucks.');
   else toast("Couldn't save. Check your connection.")}
 async function putTruck(t){if(!shared){saveLocal();return}const d=clone(t);try{const ref=db.collection('trucks').doc(t.id);
-  if(role==='emp')await ref.update({k:d.k,h:d.h,req:d.req,hold:d.hold||null,cl:d.cl||{}});else if(role==='insp')await ref.update({sig:d.sig,req:d.req,h:d.h});else await ref.set(d)}catch(e){writeFail(e)}}
+  if(role==='emp')await ref.update({k:d.k,h:d.h,req:d.req,hold:d.hold||null});else if(role==='insp')await ref.update({sig:d.sig,req:d.req,h:d.h});else await ref.set(d)}catch(e){writeFail(e)}}
 async function delTruck(id){if(!shared){saveLocal();return}try{await db.collection('trucks').doc(id).delete()}catch(e){writeFail(e)}}
 async function putInfo(){if(!shared){saveLocal();return}try{await db.doc('plant/crews').set({info:S.info})}catch(e){writeFail(e)}}
 async function putComment(c){if(!shared){saveLocal();return}try{await db.collection('comments').doc(c.id).set(c)}catch(e){writeFail(e)}}
@@ -684,7 +676,7 @@ const isBuild=k=>/^s([1-9]|1[0-5])$/.test(k);
 const posOf=k=>k==='done'?DONEPOS:step(k).pos;
 const nm=k=>S.info[k].n;
 const isDef=k=>nm(k)===step(k).def;
-const title=k=>{if(k==='done')return'Signed off';if(k==='cl')return'Checklist done';if(k==='hold')return'Put on hold';if(k==='unhold')return'Hold released';if(k==='sig-el')return'Electrical sig signed';if(k==='sig-co')return'Cosmetic sig signed';if(k==='req-el')return'Electrical sig requested';if(k==='req-co')return'Cosmetic sig requested';if(k==='unreq-el'||k==='unreq-co')return'Sig request canceled';if(k==='unsig-el')return'Electrical sig cleared';if(k==='unsig-co')return'Cosmetic sig cleared';const s=step(k);if(!s)return k;if(s.z==='build'||s.z==='final')return isDef(k)?nm(k):`Stn ${s.code} · ${nm(k)}`;return nm(k)};
+const title=k=>{if(k==='done')return'Signed off';if(k==='hold')return'Put on hold';if(k==='unhold')return'Hold released';if(k==='sig-el')return'Electrical sig signed';if(k==='sig-co')return'Cosmetic sig signed';if(k==='req-el')return'Electrical sig requested';if(k==='req-co')return'Cosmetic sig requested';if(k==='unreq-el'||k==='unreq-co')return'Sig request canceled';if(k==='unsig-el')return'Electrical sig cleared';if(k==='unsig-co')return'Cosmetic sig cleared';const s=step(k);if(!s)return k;if(s.z==='build'||s.z==='final')return isDef(k)?nm(k):`Stn ${s.code} · ${nm(k)}`;return nm(k)};
 const short=k=>{if(k==='done')return'Signed off';const s=step(k);if(s.z==='build'||s.z==='final')return isDef(k)?'Stn '+s.code:nm(k);return nm(k)};
 const sub=k=>{const s=step(k);return s.z==='bub'?'Waiting area after Station 15':s.z==='nxt'?'Waiting area after Station 18':s.z==='fin'?`Final Line ${s.code.slice(1)} of 5`:s.z==='out'?'Outside service':s.z==='final'?'TAG line':`Build line · ${s.code} of 15`};
 const moves=t=>t.h.filter(e=>e.k==='done'||!!step(e.k));
@@ -721,7 +713,6 @@ const histEv=t=>{const ev=[],h=t.h||[],isMv=k=>k==='done'||STEPS.some(x=>x.k===k
     else{const m=/^(un)?(sig|req)-(el|co)$/.exec(e.k)||[];let txt=title(e.k);
       if(m[2]==='sig'&&!m[1]){const g=t.sig&&t.sig[m[3]];const later=h.slice(i+1).some(x=>x.k===e.k||x.k==='un'+e.k);if(g&&g.name&&!later)txt+=`: ${g.name}`}
       if(m[2]==='req'&&!m[1]){const r=t.req&&t.req[m[3]];const later=h.slice(i+1).some(x=>x.k===e.k||x.k==='un'+e.k);if(r&&r.uid&&!later)txt+=` from ${who(r.uid)}`}
-      if(e.k==='cl'){ev.push({t:e.t,ic:'done',txt:'Checklist done',by:e.by});return}
       if(e.k==='hold'){ev.push({t:e.t,ic:'hold',txt:'Put on hold'+(e.r?': '+e.r:''),by:e.by});return}if(e.k==='unhold'){ev.push({t:e.t,ic:'done',txt:'Hold released',by:e.by});return}
       ev.push({t:e.t,ic:m[1]?'move':m[2]||'move',txt,by:e.by})}});
   return ev.sort((a,b)=>new Date(b.t)-new Date(a.t))};
@@ -750,7 +741,7 @@ function tile(s,cnt,bump){const c=cnt[s.k]||0,inf=S.info[s.k],on=sel===s.k,b=bum
 function renderMe(){const r=eff();
   const isOwn=me&&me===ownerId&&!preview,isCo=!isOwn&&myRaw==='coowner'&&!preview,label=isOwn?'Owner':isCo?'Co-owner':{admin:'Admin',emp:'Supervisor',insp:'Inspector',view:'Employee · view only'}[r];
   {const mb=$('#bMenu');if(mb)mb.hidden=!shared;const tbar=$('#tabbar');if(tbar){tbar.hidden=!shared;document.body.classList.toggle('tabs',!!shared);if(shared&&!document.body.dataset.tab){const lt=lsGet('c3-tab');document.body.dataset.tab=lt==='trucks'?'trucks':'floor';document.querySelectorAll('#tabbar [data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===document.body.dataset.tab));const bc=$('#bCards');if(bc)bc.textContent=cardMode()==='full'?'Small cards':'Big cards'}}if(!shared)closeDrawer()}
-  $('#me').innerHTML=!shared?'':`<span>${me?esc(names[me]||'Signed in'):'Signed in'}</span><span class="role ${isOwn?'owner':isCo?'coowner':r==='admin'?'admin':r==='view'?'view':''}">${label}</span>${me&&me===ownerId?`<div class="seg" role="group" aria-label="View as">${[['admin',me===ownerId?'Owner':'Co-owner'],['emp','Supervisor'],['insp','Inspector'],['view','Employee']].map(([v,l])=>`<button data-prev="${v}" class="${(preview||'admin')===v?'on':''}" aria-pressed="${(preview||'admin')===v}">${l}</button>`).join('')}</div>`:''}<span class="hbtns" style="--n:${(n=>n<=4?n:Math.ceil(n/2))(4+(isMgr()?1:0)+(pinFor(me)?1:0)+(can('edit')?2:0))}">${isMgr()?'<button id="bPeople">People</button>':''}${pinFor(me)?'<button id="bLock">Lock</button>':''}<button id="bBell">Alerts<b id="bellN2" hidden></b></button><button id="bStats">Line stats</button>${can('edit')?'<button id="bExp">Export to spreadsheet</button><button id="bCl">Sign-off checklist</button>':''}<button id="bHelp">Help</button><button id="bInv">Invite</button><button id="bPin">PIN</button><button id="bOut">Sign out</button></span><span class="sync" id="sync"></span>`;
+  $('#me').innerHTML=!shared?'':`<span>${me?esc(names[me]||'Signed in'):'Signed in'}</span><span class="role ${isOwn?'owner':isCo?'coowner':r==='admin'?'admin':r==='view'?'view':''}">${label}</span>${me&&me===ownerId?`<div class="seg" role="group" aria-label="View as">${[['admin',me===ownerId?'Owner':'Co-owner'],['emp','Supervisor'],['insp','Inspector'],['view','Employee']].map(([v,l])=>`<button data-prev="${v}" class="${(preview||'admin')===v?'on':''}" aria-pressed="${(preview||'admin')===v}">${l}</button>`).join('')}</div>`:''}<span class="hbtns" style="--n:${(n=>n<=4?n:Math.ceil(n/2))(4+(isMgr()?1:0)+(pinFor(me)?1:0))}">${isMgr()?'<button id="bPeople">People</button>':''}${pinFor(me)?'<button id="bLock">Lock</button>':''}<button id="bBell">Alerts<b id="bellN2" hidden></b></button><button id="bStats">Line stats</button>${can('edit')?'<button id="bExp">Export to spreadsheet</button>':''}<button id="bHelp">Help</button><button id="bInv">Invite</button><button id="bPin">PIN</button><button id="bOut">Sign out</button></span><span class="sync" id="sync"></span>`;
   $('#bAdd').hidden=!can('edit');$('#bStations').textContent=can('edit')?'Crews':'Crews';}
 
 function safeRender(b){if(animating){pendingRender=true;return}render(b)}
@@ -798,7 +789,6 @@ function render(bump){queueMicrotask(alertsTick);
       <div class="track" aria-label="${esc(title(t.k))}"><div class="segs">${Array.from({length:SEGS},(_,j)=>`<i class="sg z-${segZone(j)}${j<=p?' d':''}"></i>`).join('')}</div>
         <div class="pos"><div class="rig" style="left:${left(p)}">${icon(t)}</div></div></div>
       ${sigs}
-      ${clBox(t)}
       ${single(t.k)&&S.trucks.some(x=>x.k===t.k&&x.id!==t.id)?`<p class="dup">⚠ Shares ${esc(short(t.k))} with ${esc(S.trucks.filter(x=>x.k===t.k&&x.id!==t.id).map(x=>x.unit).join(', '))}. Only one truck fits here. ${can('edit')?'Tap Edit and move one to an open spot.':'Ask an admin to fix it.'}</p>`:''}
       ${t.notes?`<p class="notes">${esc(t.notes)}</p>`:''}
       ${t.k==='down'?`<div class="holdbar dnbar"><b>Down To · waiting on OEM parts</b><span>${esc(t.dn&&t.dn.r||'Parts not listed')}</span>${t.dn?`<small>${esc(who(t.dn.by)||'')}${t.dn.by?' · ':''}${fmtDT(t.dn.t)} · ${spanT(t.dn.t,Date.now())}</small>`:''}</div>`:''}
@@ -980,15 +970,7 @@ function nextMove(t){if(!can('move')||t.k==='done')return null;const s=step(t.k)
     return{l:'Move ▸',run:()=>choose(`${t.unit} is done with Final Line`,'Sign it off, or send it to Down To if it\'s waiting on OEM parts.',[{l:'Sign off ✓',cls:'go',fn:()=>signOff(t)},{l:'Down To',s:'Waiting on OEM parts',cls:'dnc',dis:full('down'),fn:()=>openDown(t)}])}}
   if(full(nx))return{l:`${short(nx)} is full`,dis:1,why:fullMsg(nx,t.id)};
   return{l:`To ${short(nx)} ▸`,run:go(nx)}}
-function signOff(t){const left=clLeft(t);
-  if(left.length){toast(`Finish the checklist first · ${left.length} left`);if(tkId===t.id&&!$('#mTk').hidden){const b=document.querySelector('#tkBody .clbox');if(b){b.scrollIntoView({behavior:reduce?'auto':'smooth',block:'center'});b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake')}}else openTk(t.id);return}
-  moveTo(t,'done',`${t.unit} signed off ✓`)}
-function clBox(t){const z=step(t.k).z;if(z!=='fin'&&z!=='dwn')return'';const on=can('move')&&(z!=='dwn'||can('edit')),c=t.cl||{},done=CL.filter(i=>c[i.id]).length;
-  return `<div class="clbox${done===CL.length?' all':''}"><div class="clhd"><b>Sign-off checklist</b><span>${done} of ${CL.length}</span></div><div class="clbar"><i style="width:${CL.length?done/CL.length*100:0}%"></i></div>${CL.map(i=>{const g=c[i.id];return `<button type="button" class="cli${g?' on':''}" data-clk="${esc(i.id)}" ${on?'':'disabled'}><i>${g?'✓':''}</i><span><b>${esc(i.n)}</b>${g?`<small>${esc(who(g.by)||'')}${g.by?' · ':''}${fmtDT(g.t)}</small>`:''}</span></button>`}).join('')}${done===CL.length?'<p class="clok">✓ Ready to sign off</p>':''}</div>`}
-function clToggle(t,id){const z=step(t.k).z;if(!can('move')||(z==='dwn'&&!can('edit')))return;t.cl=t.cl||{};
-  if(t.cl[id])delete t.cl[id];else{t.cl[id]={by:me||'',t:now()};if(!clLeft(t).length){t.h=t.h.concat({k:'cl',t:now(),by:me||''});toast(`${t.unit} checklist done ✓ Ready to sign off`)}}
-  putTruck(t);render()}
-function openClEdit(){if(!can('edit'))return;$('#clTa').value=CL.map(i=>i.n).join('\n');openedAt=Date.now();$('#mCl').hidden=false}
+function signOff(t){moveTo(t,'done',`${t.unit} signed off ✓`)}
 let chooseOpts=[];
 function choose(title,msg,opts){chooseOpts=opts;$('#chT').textContent=title;$('#chM').textContent=msg||'';
   $('#chList').innerHTML=opts.map((o,i)=>`<button type="button" class="chopt ${o.cls||''}" data-ch="${i}" ${o.dis?'disabled':''}><b>${esc(o.l)}</b>${o.s?`<small>${esc(o.s)}</small>`:''}</button>`).join('');
@@ -1047,10 +1029,6 @@ function pick(t,msg,keys,cb,except){pickCb=cb;$('#mvTitle').textContent=t;$('#mv
     const free=ks.filter(k=>!occupied(k,except)).length;
     return `<details class="pz"${only?' open':''}><summary><span class="pzt">${z.t}</span><span class="pzc">${WAIT[ks[0]]&&ks.length===1?waitCount(ks[0],except)+' / '+WAIT[ks[0]].max:ks.length===1?'':free+' of '+ks.length+' open'}</span><i class="pzv"></i></summary><div class="pzl">`+ks.map(k=>{const s=step(k),occ=occupied(k,except);return `<button class="pk" data-pick="${k}" ${occ?'disabled':''}><b>${s.code}</b><span>${esc(title(k))}</span>${occ?`<em>${WAIT[k]?'Full ('+WAIT[k].max+')':'Has '+esc(at(k)[0].unit)}</em>`:WAIT[k]?`<em>${waitCount(k,except)} / ${WAIT[k].max}</em>`:''}</button>`}).join('')+'</div></details>'}).join('');
   $('#mMove').hidden=false}
-$('#clReset').addEventListener('click',()=>{$('#clTa').value=CL_DEF.map(i=>i.n).join('\n')});
-$('#fCl').addEventListener('submit',async e=>{e.preventDefault();if(!can('edit'))return;const lines=$('#clTa').value.split('\n').map(x=>x.trim()).filter(Boolean).slice(0,20);if(!lines.length){toast('Add at least one item');return}
-  const used=new Set();CL=lines.map(n=>{const old=CL.find(i=>i.n===n&&!used.has(i.id));const id=old?old.id:'c'+nid();used.add(id);return{id,n:n.slice(0,60)}});
-  $('#mCl').hidden=true;render();toast('Checklist saved');if(shared){try{await db.doc('plant/checklist').set({items:CL})}catch(x){writeFail(x)}}});
 $('#chList').addEventListener('click',e=>{const b=e.target.closest('[data-ch]');if(!b||b.disabled)return;const o=chooseOpts[+b.dataset.ch];$('#mChoose').hidden=true;chooseOpts=[];if(o&&o.fn)setTimeout(o.fn,40)});
 $('#mvList').addEventListener('click',e=>{const b=e.target.closest('[data-pick]');if(!b||b.disabled)return;$('#mMove').hidden=true;const cb=pickCb;pickCb=null;if(cb)cb(b.dataset.pick)});
 
@@ -1112,7 +1090,6 @@ document.addEventListener('click',e=>{
   if(b.hasAttribute('data-hold')&&can('move')){if(t.hold){remember([t.id]);t.hold=null;t.h.push({k:'unhold',t:now(),by:me||''});putTruck(t);notify('unhold',`${t.unit} is off hold`,myName(),'all');render();toast(`${t.unit} is off hold`)}else openHold(t);return}
   if(b.hasAttribute('data-edit'))openTruck(id);
   else if(b.hasAttribute('data-pull')&&can('edit'))pick('Emergency pull',`Take ${t.unit} off Station 11. Where is it going?`,notBuild(),k=>{t._em=1;moveTo(t,k,`${t.unit} pulled off Station 11 → ${title(k)}`)});
-  else if(b.dataset.clk){clToggle(t,b.dataset.clk)}
   else if(b.hasAttribute('data-mv1')){const m=nextMove(t);if(!m)return;if(m.dis){toast(m.why);return}m.run()}
   else if(b.hasAttribute('data-moveto')&&can('move')){movePick(t)}
   else if(b.hasAttribute('data-todown')&&can('edit')){if(occupied('down',t.id)){toast('Down To is full (30).');return}openDown(t)}
@@ -1298,7 +1275,6 @@ function openAlerts(){let seen=0;try{seen=+localStorage.getItem(seenKey())||0}ca
   try{localStorage.setItem(seenKey(),Date.now())}catch(e){}lastBell=0;$('#bellN').hidden=true;if($('#tabN'))$('#tabN').hidden=true;if($('#bellN2'))$('#bellN2').hidden=true;openedAt=Date.now();$('#mAlerts').hidden=false}
 document.addEventListener('click',e=>{
   if(e.target.closest('#bStats')){openStats();return}
-  if(e.target.closest('#bCl')){openClEdit();return}
   if(e.target.closest('#bExp,#bExp2')){exportCSV();return}
   if(e.target.closest('#bBell')){openAlerts();return}
   if(e.target.closest('#bNotif')){const bt=e.target.closest('#bNotif');bt.disabled=true;bt.textContent='Turning on…';(PUSH_URL?registerPush(true):Notification.requestPermission().then(p=>p==='granted')).then(ok=>{toast(ok?'Phone alerts are on':'Phone alerts are blocked. Allow notifications for this site in Chrome settings.');openAlerts()});return}
@@ -1409,7 +1385,6 @@ function stopData(){dataUnsubs.forEach(u=>{try{u()}catch(e){}});dataUnsubs=[]}
 function startData(){if(dataUnsubs.length)return;setTimeout(()=>registerPush(false),2500);const sy=()=>$('#sync');
   let tmr=setTimeout(()=>{if(sy())sy().textContent="Can't reach the line yet. Check your signal."},10000);
   dataUnsubs.push(db.collection('trucks').onSnapshot(snap=>{S.trucks=snap.docs.map(x=>normTruck({...x.data(),id:x.id})).filter(Boolean);if(!snap.metadata.fromCache){clearTimeout(tmr);if(sy())sy().textContent='Live'}safeRender()},e=>{clearTimeout(tmr);if(sy())sy().textContent='Live updates stopped. Reopen to reconnect.'}));
-  dataUnsubs.push(db.doc('plant/checklist').onSnapshot(snap=>{CL=normCl(snap.exists?(snap.data()||{}).items:null);safeRender()},()=>{}));
   dataUnsubs.push(db.doc('plant/crews').onSnapshot(snap=>{S.info=normInfo(snap.exists?(snap.data()||{}).info:{});safeRender()},()=>{}));
   dataUnsubs.push(db.collection('comments').orderBy('t','desc').limit(500).onSnapshot(snap=>{C=snap.docs.map(x=>{const v=x.data()||{};return{id:x.id,k:String(v.k||''),text:String(v.text||''),by:String(v.by||''),t:String(v.t||'')}});safeRender()},()=>{}));
   dataUnsubs.push(db.collection('users').onSnapshot(snap=>{users={};snap.docs.forEach(x=>{const v=x.data()||{};users[x.id]={name:String(v.name||''),email:emails[x.id]||'',role:String(v.role||'pending'),created:String(v.created||'')};names[x.id]=users[x.id].name;if(v.email!==undefined&&me&&me===ownerId)scrubEmail(x.id,v)});safeRender();if(!$('#mPeople').hidden)renderPeople()},()=>{}))}
