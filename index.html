@@ -127,6 +127,7 @@ body.locked{overflow:hidden}
 #floor .conn{fill:none;stroke:var(--line);stroke-width:5;stroke-dasharray:1 9;stroke-linecap:round}
 #floor .zl{font:800 16px "Barlow Condensed",sans-serif;text-transform:uppercase;fill:var(--ink)}
 #floor .zs{font:500 11px Barlow,sans-serif;fill:var(--mut)}
+#floor .zl,#floor .zs,#floor .nl{paint-order:stroke;stroke:var(--bg);stroke-width:7px;stroke-linejoin:round}
 #floor .node{cursor:pointer;outline:none}#floor .hit{fill:transparent}
 #floor .nc{fill:var(--bg);stroke:var(--zc);stroke-width:3;transition:fill .2s,stroke-width .2s}
 #floor .node.has .nc{stroke-width:4}
@@ -448,7 +449,7 @@ const clone=o=>JSON.parse(JSON.stringify(o));
 // ---------- state ----------
 let S={info:{},trucks:[]},C=[];             // C = comments
 let db=null,U=null,me=null,role='admin',preview=null,shared=false;
-let sel=null,pop=null,stnEdit=false,holdT=null,longFired=false,undo=null,editing=null,tTimer=null,pickCb=null,animating=0,pendingRender=false;
+let ownerId=null,sel=null,pop=null,stnEdit=false,holdT=null,longFired=false,undo=null,editing=null,tTimer=null,pickCb=null,animating=0,pendingRender=false;
 let names={};
 const eff=()=>role==='admin'&&preview?preview:role;
 const can=a=>{const r=eff();if(r==='admin')return true;if(r==='emp')return['move','comment','request'].includes(a);if(r==='insp')return['sign'].includes(a);return false};
@@ -539,7 +540,7 @@ function tile(s,cnt,bump){const c=cnt[s.k]||0,inf=S.info[s.k],on=sel===s.k,b=bum
 
 function renderMe(){const r=eff();
   const label={admin:'Admin',emp:'Supervisor',insp:'Inspector',view:'Employee · view only'}[r];
-  $('#me').innerHTML=!shared?'':`<span>${me?esc(names[me]||'Signed in'):'Signed in'}</span><span class="role ${r==='admin'?'admin':r==='view'?'view':''}">${label}</span>${role==='admin'?`<div class="seg" role="group" aria-label="View as">${[['admin','Admin'],['emp','Supervisor'],['insp','Inspector'],['view','Employee']].map(([v,l])=>`<button data-prev="${v}" class="${(preview||'admin')===v?'on':''}" aria-pressed="${(preview||'admin')===v}">${l}</button>`).join('')}</div>`:''}<span class="hbtns">${role==='admin'?'<button id="bPeople">People</button>':''}<button id="bOut">Sign out</button></span><span class="sync" id="sync"></span>`;
+  $('#me').innerHTML=!shared?'':`<span>${me?esc(names[me]||'Signed in'):'Signed in'}</span><span class="role ${r==='admin'?'admin':r==='view'?'view':''}">${label}</span>${me&&me===ownerId?`<div class="seg" role="group" aria-label="View as">${[['admin','Admin'],['emp','Supervisor'],['insp','Inspector'],['view','Employee']].map(([v,l])=>`<button data-prev="${v}" class="${(preview||'admin')===v?'on':''}" aria-pressed="${(preview||'admin')===v}">${l}</button>`).join('')}</div>`:''}<span class="hbtns">${me&&me===ownerId?'<button id="bPeople">People</button>':''}<button id="bOut">Sign out</button></span><span class="sync" id="sync"></span>`;
   $('#bAdd').hidden=!can('edit');$('#bStations').textContent=can('edit')?'Crews':'Crews';}
 
 function safeRender(b){if(animating){pendingRender=true;return}render(b)}
@@ -636,8 +637,8 @@ function renderFloor(bump){
   const on=S.trucks.filter(t=>t.k!=='done'),dn=S.trucks.filter(t=>t.k==='done');
   const cnt={};on.forEach(t=>cnt[t.k]=(cnt[t.k]||0)+1);
   const roadD=FL.roads.map(pts=>'M'+pts.map(p=>`${p.x} ${p.y}`).join('L')).join('');
-  let h=FL.labels.map(l=>`<text class="zl" x="${FL.svc.x+4}" y="${l.y}">${l.t}</text>${l.sub?`<text class="zs" x="${FL.svc.x+4}" y="${l.y+15}">${l.sub}</text>`:''}`).join('');
-  h+=FL.conns.map(d=>`<path class="conn" d="${d}"/>`).join('')+`<path class="road" d="${roadD}"/><path class="roadc" d="${roadD}"/>`;
+  const labs=FL.labels.map(l=>`<text class="zl" x="${FL.svc.x+4}" y="${l.y}">${l.t}</text>${l.sub?`<text class="zs" x="${FL.svc.x+4}" y="${l.y+15}">${l.sub}</text>`:''}`).join('');
+  let h=FL.conns.map(d=>`<path class="conn" d="${d}"/>`).join('')+`<path class="road" d="${roadD}"/><path class="roadc" d="${roadD}"/>`;
   const s=FL.svc;h+=`<rect class="svcbox" x="${s.x}" y="${s.y}" width="${s.w}" height="${s.h}" rx="12"/><rect x="${s.x+12}" y="${s.y-2}" width="${s.w-24}" height="4" rx="2" fill="url(#pg)"/>`;
   FL.bays.forEach(k=>{const p=FL.P[k],b=p.bay,st=step(k),nc=comments(k).length;
     h+=`<g class="bayg" data-k="${k}"><rect class="bay${pop===k?' on':''}${bump&&bump.has(k)?' pulse':''}" x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="8" style="--sc:${st.c}"/><rect x="${b.x}" y="${b.y}" width="${b.w}" height="4" rx="2" fill="${st.c}"/>
@@ -646,6 +647,7 @@ function renderFloor(bump){
     const lab=named?(inf.n.length>11?inf.n.slice(0,10)+'…':inf.n):(inf.sup?(inf.sup.length>11?inf.sup.slice(0,10)+'…':inf.sup):'');
     h+=`<g class="node z-${st.z}${pop===st.k?' on':''}${bump&&bump.has(st.k)?' pulse':''}${cnt[st.k]?' has':''}" data-k="${st.k}" tabindex="0" role="button" aria-label="${esc(title(st.k))}"><circle class="hit" cx="${p.x}" cy="${p.y-8}" r="28"/><circle class="nc" cx="${p.x}" cy="${p.y}" r="14"/><circle class="hold" cx="${p.x}" cy="${p.y}" r="19" transform="rotate(-90 ${p.x} ${p.y})"/><text class="nt" x="${p.x}" y="${p.y+1}">${st.code}</text>${lab?`<text class="nl" x="${p.x}" y="${p.y+29}">${esc(lab)}</text>`:''}${nc?`<circle cx="${p.x+12}" cy="${p.y-11}" r="7" class="ncm"/><text class="ncmt" x="${p.x+12}" y="${p.y-11}">${nc}</text>`:''}</g>`});
   const L=FL.lot;h+=`<g class="lotg" data-done tabindex="0" role="button" aria-label="Signed off trucks"><rect class="lot${bump&&bump.has('done')?' pulse':''}" x="${L.x}" y="${L.y}" width="${L.w}" height="${L.h}" rx="12"/><text class="lott" x="${L.x+18}" y="${L.y+L.h/2+1}">✓ Signed off</text><text class="lotn" x="${L.x+L.w-18}" y="${L.y+L.h/2+1}" text-anchor="end">${dn.length}</text></g>`;
+  h+=labs;
   $('#fStatic').innerHTML=`<defs><linearGradient id="pg"><stop offset="0" stop-color="#d7141a"/><stop offset=".3" stop-color="#ff7a00"/><stop offset=".55" stop-color="#ffd400"/><stop offset=".75" stop-color="#19a463"/><stop offset="1" stop-color="#1e7be5"/></linearGradient></defs>`+h;
   // trucks: keep the same elements so they glide to new spots
   const layer=$('#fTrucks'),spots=truckSpots(on),seen=new Set();
@@ -892,12 +894,12 @@ FB.onAuth(async user=>{
     if(!mine.exists){let owner=false;
       try{const o=await db.doc('meta/owner').get();if(!o.exists){await db.doc('meta/owner').set({uid:me});owner=true}else owner=(o.data()||{}).uid===me}catch(e){}
       await db.doc('users/'+me).set({name:user.displayName||String(user.email||'').split('@')[0],email:user.email||'',role:owner?'admin':'pending',created:new Date().toISOString()})}
-    try{const o=await db.doc('meta/owner').get();ownerUid=o.exists?(o.data()||{}).uid:null}catch(e){}
+    try{const o=await db.doc('meta/owner').get();ownerUid=o.exists?(o.data()||{}).uid:null;ownerId=ownerUid}catch(e){}
   }catch(e){gateShow('signin',/permission/.test((e&&e.code)||'')?"Signed in, but the database is still locked. The admin needs to publish the Firestore rules, then sign in again.":"Couldn't load your account. Check your signal and try again.");return}
   meUnsub=db.doc('users/'+me).onSnapshot(snap=>{const v=snap.exists?snap.data()||{}:{};names[me]=v.name||user.displayName||'';
     const r=String(v.role||'pending');
     if(!ROLE_MAP[r]){stopData();gateShow('pending');return}
-    role=ROLE_MAP[r];if(role!=='admin')preview=null;gateHide();startData();render()},()=>gateShow('signin',"Couldn't load your account. Try again."));
+    role=ROLE_MAP[r];if(me!==ownerId)preview=null;gateHide();startData();render()},()=>gateShow('signin',"Couldn't load your account. Try again."));
 });
 
 // ---------- People screen (admin) ----------
@@ -906,9 +908,9 @@ function renderPeople(){const list=Object.entries(users).sort((a,b)=>{const o={p
   $('#pplList').innerHTML=(waiting?`<p class="pwait">${waiting} ${waiting===1?'person is':'people are'} waiting for a role</p>`:'')+list.map(([id,u])=>{const locked=id===me||id===ownerUid;
     return `<div class="prow${u.role==='pending'?' pend':''}"><div class="pav">${esc((u.name||u.email||'?').trim().charAt(0).toUpperCase())}</div><div class="pinfo"><b>${esc(u.name||'No name')}${id===me?' (you)':''}</b><span class="k">${esc(u.email)}</span>${u.created?`<span class="k">Joined ${fmtDT(u.created)}</span>`:''}</div>
       <select data-uid="${esc(id)}" aria-label="Role for ${esc(u.name||u.email)}" ${locked?'disabled':''}>${['pending','employee','inspector','supervisor','admin'].map(r=>`<option value="${r}" ${u.role===r?'selected':''}>${ROLE_NAMES[r]}</option>`).join('')}</select></div>`}).join('')||'<p class="k">No one has signed up yet.</p>'}
-$('#pplList').addEventListener('change',async e=>{const s=e.target.closest('select[data-uid]');if(!s||role!=='admin')return;const uid=s.dataset.uid,r=s.value;
+$('#pplList').addEventListener('change',async e=>{const s=e.target.closest('select[data-uid]');if(!s||me!==ownerId)return;const uid=s.dataset.uid,r=s.value;
   try{await db.doc('users/'+uid).update({role:r});toast(`${users[uid]?users[uid].name:'User'} is now ${ROLE_NAMES[r]}`)}catch(x){toast("Couldn't change that role.");renderPeople()}});
-document.addEventListener('click',e=>{if(e.target.closest('#bPeople')){renderPeople();$('#mPeople').hidden=false}else if(e.target.closest('#bOut')){undo=null;FB.signOut();toast('Signed out')}});
+document.addEventListener('click',e=>{if(e.target.closest('#bPeople')){if(me!==ownerId)return;renderPeople();$('#mPeople').hidden=false}else if(e.target.closest('#bOut')){undo=null;FB.signOut();toast('Signed out')}});
 }
 </script>
 <script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});</script>

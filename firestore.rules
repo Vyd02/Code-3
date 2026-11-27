@@ -21,15 +21,15 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    // People and their roles
+    // People and their roles: only the owner can change roles
     match /users/{uid} {
       allow read: if signedIn() && (request.auth.uid == uid || isMember());
       allow create: if signedIn() && request.auth.uid == uid
         && request.resource.data.keys().hasOnly(['name', 'email', 'role', 'created'])
         && (request.resource.data.role == 'pending' || (request.resource.data.role == 'admin' && isOwner()));
-      allow update: if isAdmin()
+      allow update: if isOwner()
         || (request.auth.uid == uid && request.resource.data.role == resource.data.role);
-      allow delete: if isAdmin();
+      allow delete: if isOwner();
     }
 
     // Trucks: admins do everything, supervisors only move them
