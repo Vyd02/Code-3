@@ -846,7 +846,7 @@ FB.onAuth(async user=>{
       try{const o=await db.doc('meta/owner').get();if(!o.exists){await db.doc('meta/owner').set({uid:me});owner=true}else owner=(o.data()||{}).uid===me}catch(e){}
       await db.doc('users/'+me).set({name:user.displayName||String(user.email||'').split('@')[0],email:user.email||'',role:owner?'admin':'pending',created:new Date().toISOString()})}
     try{const o=await db.doc('meta/owner').get();ownerUid=o.exists?(o.data()||{}).uid:null}catch(e){}
-  }catch(e){gateShow('signin',"Couldn't load your account. Check your signal and try again.");return}
+  }catch(e){gateShow('signin',/permission/.test((e&&e.code)||'')?"Signed in, but the database is still locked. The admin needs to publish the Firestore rules, then sign in again.":"Couldn't load your account. Check your signal and try again.");return}
   meUnsub=db.doc('users/'+me).onSnapshot(snap=>{const v=snap.exists?snap.data()||{}:{};names[me]=v.name||user.displayName||'';
     const r=String(v.role||'pending');
     if(!ROLE_MAP[r]){stopData();gateShow('pending');return}
