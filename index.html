@@ -375,7 +375,9 @@ body.tabs #bMenu{display:none!important}body.tabs .toast{bottom:96px;z-index:55}
 .sig.stamp{animation:stamp .45s cubic-bezier(.3,1.6,.5,1)}
 @keyframes stamp{from{transform:scale(1.35) rotate(-4deg);opacity:0}}
 .notes{font-size:15px;margin:0;padding:8px 10px;border-left:3px solid var(--red);background:var(--bg);border-radius:4px}
-.acts{display:flex;gap:8px;align-items:center}.acts .go,.acts .warn{flex:1;min-width:0}
+.acts{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.acts>button{flex:1 1 auto}
+.mvbig{display:block;width:100%;min-height:56px;font:800 20px 'Barlow Condensed',sans-serif;letter-spacing:.04em;text-transform:uppercase;border-radius:14px;margin:4px 0 8px;box-shadow:0 6px 16px -8px var(--red);transition:transform .12s}.mvbig:active{transform:scale(.97)}.mvbig[aria-disabled=true]{background:var(--line,#ccc);border-color:transparent;color:var(--mut,#666);box-shadow:none}
+.chlist{display:flex;flex-direction:column;gap:10px;margin-top:12px}.chopt{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;min-height:58px;padding:10px 16px;border-radius:12px;animation:chin .3s both}.chopt:nth-child(2){animation-delay:.05s}.chopt:nth-child(3){animation-delay:.1s}.chopt b{font-size:17px}.chopt small{opacity:.8;font-weight:500}.chopt.dnc{border-color:#f08a24;color:#f08a24}@keyframes chin{from{opacity:0;transform:translateY(8px)}}.acts .go,.acts .warn{flex:1;min-width:0}
 .warn{border-color:var(--red);color:var(--red);background:transparent}
 .lk{flex:1;font-size:14px;color:var(--mut);display:flex;align-items:center;gap:6px}
 .lk::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--mut);opacity:.5}
@@ -565,6 +567,7 @@ label{display:grid;gap:4px;font-size:14px;font-weight:600}
 <div class="modal" id="mSig" hidden><form class="sheet" id="fSig" autocomplete="off"><div class="shead1"><h2 id="sigTitle">Signature</h2><button type="button" data-close aria-label="Close">✕</button></div>
 <div id="sigBody" style="display:grid;gap:10px"></div><p class="err" id="sigErr" hidden></p>
 <div class="row"><span id="sigExtra" style="margin-right:auto"></span><button type="button" data-close>Cancel</button><button class="go" type="submit" id="sigGo">Save</button></div></form></div>
+<div class="modal" id="mChoose" hidden><div class="sheet"><div class="shead1"><h2 id="chT">Move</h2><button type="button" data-close aria-label="Close">✕</button></div><p class="hint" id="chM" style="margin:0"></p><div id="chList" class="chlist"></div></div></div>
 <div class="modal" id="mMove" hidden>
   <div class="sheet">
     <h2 id="mvTitle">Move truck</h2>
@@ -764,12 +767,11 @@ function render(bump){queueMicrotask(alertsTick);
   let n=0;
   const card=t=>{const s=step(t.k),inf=S.info[t.k],d=days(t),isLate=t.k!=='done'&&t.due&&t.due<td,p=s.pos,lm=lastMove(t),nc=comments(t.k).length;
     const E=can('edit')?'<button data-edit>Edit</button>':'';
-    let acts;
-    if(s.z==='build'){acts=E+(t.k==='s1'&&can('move')?`<button class="go" data-index>Move line ▸</button>`:t.k==='s15'&&can('edit')?`<button class="bub" data-tobub>To the Bubble</button>`:t.k===EMERG&&can('edit')?`<button class="warn" data-pull>Emergency pull</button>`:'')+(can('move')?`<button class="go${t.k==='s1'?' ghost':''}" data-moveto>Move to… ▸</button>`:t.k==='s1'||t.k==='s15'||t.k===EMERG?'':`<span class="lk">Moves when the line moves</span>`)}
-    else if(isWaitZ(s.z))acts=E+(can('edit')?(s.z==='dwn'?`<button data-moveto>Move… ▸</button><button class="go" data-signoff>Sign off ✓</button>`:`<button class="go" data-moveto>Bring out… ▸</button>`):`<span class="lk">Waiting in ${s.z==='bub'?'the Bubble':s.z==='nxt'?'Next Truck':'Down To'}</span>`);
-    else if(s.z==='out')acts=E+(can('move')?`<button class="go" data-moveto>Move to… ▸</button>`:'');
-    else{const i=FLOW.indexOf(t.k),nx=FLOW[i+1],pv=FLOW[i-1],needSig=t.k===SIGSTN&&!sigsDone(t),full=nx&&occupied(nx,t.id),blocked=needSig||full;
-      acts=(can('edit')?`<button data-back ${i===0||(pv&&occupied(pv,t.id))?'disabled':''} aria-label="Move back one step">◂</button>`:'')+E+(t.k==='f5'&&can('edit')?`<button class="bub dn" data-todown ${occupied('down',t.id)?'disabled':''}>Down To</button>`:'')+(t.k==='s18'&&can('edit')?`<button class="bub nx" data-tonext ${needSig||occupied('next',t.id)?'disabled':''}>Next Truck</button>`:'')+(can('move')?`<button class="go" data-adv ${blocked?'disabled':''}>${needSig?'Needs both sigs':full?esc(short(nx))+' is full':nx==='done'?'Sign off ✓':'To '+esc(short(nx))+' ▸'}</button>`:'')}
+    const NM=nextMove(t),mayMove=can('move')&&!(WAIT[t.k]&&!can('edit'));
+    const lock=s.z==='build'?'Moves when the line moves':isWaitZ(s.z)?`Waiting in ${s.z==='bub'?'the Bubble':s.z==='nxt'?'Next Truck':'Down To'}`:'';
+    const fi=FLOW.indexOf(t.k),pv=FLOW[fi-1];
+    const sec=[E,mayMove?'<button data-moveto>Other spot…</button>':'',t.k===EMERG&&can('edit')?'<button class="warn" data-pull>Emergency pull</button>':'',fi>0&&can('edit')?`<button data-back ${pv&&occupied(pv,t.id)?'disabled':''} aria-label="Move back one step">◂ Back</button>`:''].filter(Boolean).join('');
+    const acts=(NM?`<button class="go mvbig" data-mv1 ${NM.dis?'aria-disabled="true"':''}>${esc(NM.l)}</button>`:!mayMove&&lock?`<span class="lk">${lock}</span>`:'')+(sec?`<div class="acts">${sec}</div>`:'');
     const sigs=t.k===SIGSTN?`<div class="sigs">${SIGS.map(([k,l])=>{const g=t.sig[k],rq=t.req[k],r=eff();
       let cls='sig',main,small='',on=false;
       if(g){cls+=' ok';main='✓ '+esc(g.name||who(g.uid||g.by)||'Signed');small=fmtDT(g.t)+(g.by&&g.by!==g.uid?' · entered by '+esc(who(g.by)):'');on=r==='admin'||(r==='insp'&&g.uid===me)}
@@ -789,7 +791,7 @@ function render(bump){queueMicrotask(alertsTick);
       ${t.notes?`<p class="notes">${esc(t.notes)}</p>`:''}
       ${t.k==='down'?`<div class="holdbar dnbar"><b>Down To · waiting on OEM parts</b><span>${esc(t.dn&&t.dn.r||'Parts not listed')}</span>${t.dn?`<small>${esc(who(t.dn.by)||'')}${t.dn.by?' · ':''}${fmtDT(t.dn.t)} · ${spanT(t.dn.t,Date.now())}</small>`:''}</div>`:''}
       ${t.hold&&t.k!=='down'&&t.k!=='done'?`<div class="holdbar"><b>On hold</b><span>${esc(t.hold.r||'No reason given')}</span><small>${esc(who(t.hold.by)||'')}${t.hold.by?' · ':''}${fmtDT(t.hold.t)} · ${spanT(t.hold.t,Date.now())}</small></div>`:''}
-      ${acts?`<div class="acts">${acts}</div>`:''}${t.k!=='done'&&t.k!=='down'&&can('move')?`<button class="holdb${t.hold?' on':''}" data-hold>${t.hold?'Release hold':'Put on hold'}</button>`:''}${hist(t)}</article>`};
+      ${acts}${t.k!=='done'&&t.k!=='down'&&can('move')?`<button class="holdb${t.hold?' on':''}" data-hold>${t.hold?'Release hold':'Put on hold'}</button>`:''}${hist(t)}</article>`};
   const row=t=>{const s=step(t.k),late=isL(t),dd=late?Math.max(1,Math.round((new Date(td)-new Date(t.due))/864e5)):0;
     const tag=late?`<span class="tag t-late">Overdue ${dd}d</span>`:t.k==='down'?`<span class="tag t-down">OEM parts</span>`:heldT(t)?`<span class="tag t-hold">On hold</span>`:t.k===SIGSTN&&!sigsDone(t)?`<span class="tag t-sig">${SIGS.filter(([k])=>t.sig[k]).length} of 2 sigs</span>`:t.mon?`<small>Month ${esc(t.mon)}</small>`:'';
     return `<button class="trow${late?' late':''}" data-open="${esc(t.id)}" style="animation-delay:${Math.min(n++,10)*30}ms"><span class="st z-${s.z}">${esc(s.code.replace(/^S/,''))}</span><span class="mid"><b>${esc(t.unit)}</b><span>${esc([t.cust,title(t.k)].filter(Boolean).join(' · '))}</span></span><span class="rt">${tag}<small>Due ${fmtDue(t.due)}</small></span></button>`};
@@ -941,6 +943,29 @@ function moveTo(t,k,msg){const zChange=k==='done'||step(k).z!==step(t.k).z,dir=p
   const bump=new Set([k]);moved?afterAnim(zChange?1150:820,bump):render(bump)}
 
 function movePick(t){if(!can('move')||(WAIT[t.k]&&!can('edit')))return;pick(`Move ${t.unit}`,'Where is it going next?',STEPS.map(s=>s.k).filter(k=>k!==t.k&&(!WAIT[k]||can('edit'))),k=>{if(occupied(k,t.id)){toast(WAIT[k]?`${WAIT[k].t} is full`:`${title(k)} already has ${at(k)[0].unit}. Move that truck first.`);return}moveTo(t,k)},t.id)}
+// One Move button: works out where the truck goes next (feature 1)
+function nextMove(t){if(!can('move')||t.k==='done')return null;const s=step(t.k),admin=can('edit');if(WAIT[t.k]&&!admin)return null;
+  const go=k=>()=>moveTo(t,k),full=k=>occupied(k,t.id);
+  if(s.z==='build'){const n=+t.k.slice(1);
+    if(n===15){const ks=STEPS.filter(x=>x.z==='out'||(x.z==='bub'&&admin)).map(x=>x.k);return{l:'Move off the line ▸',run:()=>pick(`Move ${t.unit}`,'Station 15 is the end of the build line. Where is it going?',ks,k=>{if(full(k)){toast(WAIT[k]?`${WAIT[k].t} is full`:fullMsg(k,t.id));return}moveTo(t,k)},t.id)}}
+    const nx='s'+(n+1);if(!full(nx))return{l:`Move to Stn ${n+1} ▸`,run:go(nx)};
+    return{l:`Move to Stn ${n+1} ▸`,run:()=>choose(`Station ${n+1} is taken`,`${holder(nx,t.id).unit} is at Station ${n+1}. What do you want to do?`,[{l:'Move the whole line ▸',s:'Every truck on Stations 1–15 moves up one',cls:'go',fn:indexLine},{l:'Pick another spot…',fn:()=>movePick(t)}])}}
+  if(s.z==='bub'){const ks=STEPS.filter(x=>x.z==='out').map(x=>x.k);return{l:'Bring out ▸',run:()=>pick(`Bring out ${t.unit}`,'Which outside service is it going to?',ks,k=>{if(full(k)){toast(fullMsg(k,t.id));return}moveTo(t,k)},t.id)}}
+  if(s.z==='out'){if(!full('s16'))return{l:'To Stn 16 ▸',run:go('s16')};return{l:'Stn 16 is full',dis:1,why:fullMsg('s16',t.id)}}
+  if(t.k==='next'){if(!full('f1'))return{l:`To ${short('f1')} ▸`,run:go('f1')};return{l:`${short('f1')} is full`,dis:1,why:fullMsg('f1',t.id)}}
+  if(t.k==='down')return{l:'Sign off ✓',run:()=>signOff(t)};
+  const i=FLOW.indexOf(t.k);if(i<0)return null;const nx=FLOW[i+1];
+  if(t.k===SIGSTN&&!sigsDone(t))return{l:'Needs both sigs',dis:1,why:'Station 18 needs both sigs first'};
+  if(t.k===SIGSTN&&full(nx)){if(admin&&!full('next'))return{l:'Move ▸',run:()=>choose(`${short(nx)} is taken`,`${holder(nx,t.id).unit} is at ${short(nx)}.`,[{l:'Send to Next Truck ▸',s:'Waiting area after Station 18',cls:'go',fn:go('next')}])};return{l:`${short(nx)} is full`,dis:1,why:fullMsg(nx,t.id)}}
+  if(t.k==='f5'){if(!admin)return{l:'Sign off ✓',run:()=>signOff(t)};
+    return{l:'Move ▸',run:()=>choose(`${t.unit} is done with Final Line`,'Sign it off, or send it to Down To if it\'s waiting on OEM parts.',[{l:'Sign off ✓',cls:'go',fn:()=>signOff(t)},{l:'Down To',s:'Waiting on OEM parts',cls:'dnc',dis:full('down'),fn:()=>openDown(t)}])}}
+  if(full(nx))return{l:`${short(nx)} is full`,dis:1,why:fullMsg(nx,t.id)};
+  return{l:`To ${short(nx)} ▸`,run:go(nx)}}
+function signOff(t){moveTo(t,'done',`${t.unit} signed off ✓`)}
+let chooseOpts=[];
+function choose(title,msg,opts){chooseOpts=opts;$('#chT').textContent=title;$('#chM').textContent=msg||'';
+  $('#chList').innerHTML=opts.map((o,i)=>`<button type="button" class="chopt ${o.cls||''}" data-ch="${i}" ${o.dis?'disabled':''}><b>${esc(o.l)}</b>${o.s?`<small>${esc(o.s)}</small>`:''}</button>`).join('');
+  openedAt=Date.now();$('#mChoose').hidden=false}
 function indexLine(){if(!can('move'))return;
   const last=at('s15');
   if(last.length)pick('Move the line',`${last.map(t=>t.unit).join(', ')} at Station 15 leaves the line. Where is it going?`,STEPS.filter(s=>s.z==='out'||(s.z==='bub'&&can('edit'))).map(s=>s.k),doIndex);
@@ -995,6 +1020,7 @@ function pick(t,msg,keys,cb,except){pickCb=cb;$('#mvTitle').textContent=t;$('#mv
     const free=ks.filter(k=>!occupied(k,except)).length;
     return `<details class="pz"${only?' open':''}><summary><span class="pzt">${z.t}</span><span class="pzc">${WAIT[ks[0]]&&ks.length===1?waitCount(ks[0],except)+' / '+WAIT[ks[0]].max:ks.length===1?'':free+' of '+ks.length+' open'}</span><i class="pzv"></i></summary><div class="pzl">`+ks.map(k=>{const s=step(k),occ=occupied(k,except);return `<button class="pk" data-pick="${k}" ${occ?'disabled':''}><b>${s.code}</b><span>${esc(title(k))}</span>${occ?`<em>${WAIT[k]?'Full ('+WAIT[k].max+')':'Has '+esc(at(k)[0].unit)}</em>`:WAIT[k]?`<em>${waitCount(k,except)} / ${WAIT[k].max}</em>`:''}</button>`}).join('')+'</div></details>'}).join('');
   $('#mMove').hidden=false}
+$('#chList').addEventListener('click',e=>{const b=e.target.closest('[data-ch]');if(!b||b.disabled)return;const o=chooseOpts[+b.dataset.ch];$('#mChoose').hidden=true;chooseOpts=[];if(o&&o.fn)setTimeout(o.fn,40)});
 $('#mvList').addEventListener('click',e=>{const b=e.target.closest('[data-pick]');if(!b||b.disabled)return;$('#mMove').hidden=true;const cb=pickCb;pickCb=null;if(cb)cb(b.dataset.pick)});
 
 function toast(m){$('#tMsg').textContent=m;$('#tUndo').hidden=!undo;$('#toast').classList.add('show');clearTimeout(tTimer);tTimer=setTimeout(()=>$('#toast').classList.remove('show'),5000)}
@@ -1055,9 +1081,10 @@ document.addEventListener('click',e=>{
   if(b.hasAttribute('data-hold')&&can('move')){if(t.hold){remember([t.id]);t.hold=null;t.h.push({k:'unhold',t:now(),by:me||''});putTruck(t);notify('unhold',`${t.unit} is off hold`,myName(),'all');render();toast(`${t.unit} is off hold`)}else openHold(t);return}
   if(b.hasAttribute('data-edit'))openTruck(id);
   else if(b.hasAttribute('data-pull')&&can('edit'))pick('Emergency pull',`Take ${t.unit} off Station 11. Where is it going?`,notBuild(),k=>{t._em=1;moveTo(t,k,`${t.unit} pulled off Station 11 → ${title(k)}`)});
+  else if(b.hasAttribute('data-mv1')){const m=nextMove(t);if(!m)return;if(m.dis){toast(m.why);return}m.run()}
   else if(b.hasAttribute('data-moveto')&&can('move')){movePick(t)}
   else if(b.hasAttribute('data-todown')&&can('edit')){if(occupied('down',t.id)){toast('Down To is full (30).');return}openDown(t)}
-  else if(b.hasAttribute('data-signoff')&&can('edit')){moveTo(t,'done',`${t.unit} signed off ✓`)}
+  else if(b.hasAttribute('data-signoff')&&can('edit')){signOff(t)}
   else if(b.hasAttribute('data-tonext')&&can('edit')){if(!sigsDone(t)){toast('Station 18 needs both sigs first');return}if(occupied('next',t.id)){toast(`Next Truck is full (${WAIT.next.max}).`);return}moveTo(t,'next',`${t.unit} → Next Truck`)}
   else if(b.hasAttribute('data-tobub')&&can('edit')){if(occupied('bubble',t.id)){toast(`The Bubble is full (${BUBMAX}).`);return}moveTo(t,'bubble',`${t.unit} → The Bubble`)}
   else if(b.hasAttribute('data-adv')&&can('move')){const i=FLOW.indexOf(t.k);if(t.k===SIGSTN&&!sigsDone(t)){toast('Station 18 needs both sigs first');return}if(i>=0&&i<FLOW.length-1){const nx=FLOW[i+1];if(occupied(nx,t.id)){toast(fullMsg(nx,t.id));return}moveTo(t,nx)}}
