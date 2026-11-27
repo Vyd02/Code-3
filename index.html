@@ -327,7 +327,10 @@ html.nosc,html.nosc body{overflow:hidden;overscroll-behavior:none}body.nosc{posi
 .top{display:flex;justify-content:space-between;gap:10px}
 .top h3{font-size:28px;font-weight:800}.top p{margin:2px 0 0;color:var(--mut);font-size:15px}
 .due{font-size:13px;white-space:nowrap;text-align:right;color:var(--mut)}.due b{display:block;color:var(--ink);font-size:16px}
-.due.late b{color:var(--red)}
+.due.late b{color:var(--red)}.monb{display:inline-block;margin:0 0 4px;padding:2px 8px;border-radius:8px;background:color-mix(in srgb,currentColor 12%,transparent);color:var(--ink);font-weight:700;font-size:12px}.due .monb{display:block;width:max-content;margin-left:auto}
+.overdue{display:flex;align-items:center;gap:10px;background:#e11d2a;color:#fff;border-radius:10px;padding:9px 12px;animation:odp 2s ease-in-out infinite}.overdue b{font:800 16px "Barlow Condensed",sans-serif;text-transform:uppercase;letter-spacing:.06em}
+@keyframes odp{50%{box-shadow:0 0 0 4px color-mix(in srgb,#e11d2a 30%,transparent)}}
+.card.late{box-shadow:0 0 0 2px #e11d2a inset}
 .where{display:flex;justify-content:space-between;flex-wrap:wrap;gap:2px 10px;font-size:15px}.where span{color:var(--mut);font-size:14px}
 .track{position:relative;height:50px}
 .segs{position:absolute;left:0;right:0;bottom:4px;display:flex;gap:2px}
@@ -354,7 +357,7 @@ html.nosc,html.nosc body{overflow:hidden;overscroll-behavior:none}body.nosc{posi
 .mv{min-height:54px;padding:0 22px;font-size:18px;font-weight:800;border-radius:14px;box-shadow:0 6px 18px color-mix(in srgb,var(--red) 35%,transparent)}
 #fmv{display:flex}#fmv .mv{flex:1}
 #bAdd{min-height:54px;font-size:18px;font-weight:800;border-radius:14px;box-shadow:0 6px 18px color-mix(in srgb,var(--red) 35%,transparent)}
-#bStations,.bar select{min-height:54px;flex:1 1 0}
+#bStations,.bar select{min-height:54px;flex:1 1 0;min-width:0}#bStations{flex:0 0 auto;padding:0 18px}
 .topacts{display:flex;gap:10px;flex-basis:100%}.topacts>*{flex:1 1 0}.topacts #bAdd[hidden],.topacts #fmv:empty{display:none}#fmv .mv{width:100%}
 .tl svg.mi{position:absolute;right:5px;bottom:20px;width:30px;height:18px}
 .tl.full span{color:var(--ink);font-weight:600}.tl.full.on span{color:inherit}
@@ -466,7 +469,8 @@ label{display:grid;gap:4px;font-size:14px;font-weight:600}
 <div class="wrap floorwrap"><div class="fhead"><h2>Plant floor</h2><span class="k fhint">Tap a station to open · hold to edit</span><div class="topacts"><button class="go" id="bAdd">+ Add truck</button><span id="fmv"></span></div></div><div id="map"></div></div>
 <div class="bar"><div class="wrap">
   <input id="q" type="search" placeholder="Search plate #, customer" aria-label="Search trucks">
-  <select id="sort" aria-label="Sort trucks"><option value="st">Line order</option><option value="due">Due date</option><option value="unit">Plate #</option></select>
+  <select id="sort" aria-label="Sort trucks"><option value="st">Line</option><option value="due">Due date</option><option value="unit">Plate #</option></select>
+  <select id="monF" aria-label="Filter by build month"><option value="">All months</option><option value="1">Month 1</option><option value="2">Month 2</option><option value="3">Month 3</option><option value="4">Month 4</option><option value="5">Month 5</option><option value="6">Month 6</option><option value="7">Month 7</option><option value="8">Month 8</option><option value="9">Month 9</option><option value="10">Month 10</option><option value="11">Month 11</option><option value="12">Month 12</option></select>
   <span id="fchip"></span>
   <button id="bStations">Crews</button>
 </div></div>
@@ -488,6 +492,7 @@ label{display:grid;gap:4px;font-size:14px;font-weight:600}
       <label>Customer<input name="cust" autocomplete="off"></label>
       <label>Due date<input name="due" type="date"></label>
     </div>
+    <label>Build month<select name="mon"><option value="">Not set</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select></label>
     <label>Where is it now?<select name="k" id="tStep"></select></label>
     <p class="err" id="tErr" hidden></p>
     <label>Notes<textarea name="notes" rows="2" placeholder="Waiting on parts, rework, etc."></textarea></label>
@@ -590,7 +595,7 @@ const can=a=>{const r=eff();if(r==='admin')return true;if(r==='emp')return['move
 
 function normInfo(src){const info={};STEPS.forEach(s=>{const x=(src||{})[s.k]||{};info[s.k]={n:String(x.n||'').trim()||s.def,sup:String(x.sup||''),crew:Array.isArray(x.crew)?x.crew.map(String).filter(Boolean):[]}});return info}
 function normTruck(t){if(!t||!t.id)return null;const k=(t.k==='done'||STEPS.some(s=>s.k===t.k))?t.k:'s1';
-  return{id:String(t.id),unit:String(t.unit||''),model:String(t.model||''),plate:String(t.plate||'').toUpperCase(),vt:String(t.vt||''),cust:String(t.cust||''),due:String(t.due||''),notes:String(t.notes||''),k,
+  return{id:String(t.id),unit:String(t.unit||''),model:String(t.model||''),plate:String(t.plate||'').toUpperCase(),mon:/^(1[0-2]|[1-9])$/.test(String(t.mon||''))?String(t.mon):'',vt:String(t.vt||''),cust:String(t.cust||''),due:String(t.due||''),notes:String(t.notes||''),k,
     h:Array.isArray(t.h)?t.h.filter(e=>e&&e.k&&e.t).map(e=>{const o={k:String(e.k),t:String(e.t),by:e.by?String(e.by):''};if(e.r)o.r=String(e.r).slice(0,80);return o}):[],
     hold:t.hold&&t.hold.t?{r:String(t.hold.r||'').slice(0,80),by:String(t.hold.by||''),t:String(t.hold.t)}:null,
     sig:{el:t.sig&&t.sig.el&&t.sig.el.t?{t:String(t.sig.el.t),by:String(t.sig.el.by||''),name:String(t.sig.el.name||''),uid:String(t.sig.el.uid||'')}:null,co:t.sig&&t.sig.co&&t.sig.co.t?{t:String(t.sig.co.t),by:String(t.sig.co.by||''),name:String(t.sig.co.name||''),uid:String(t.sig.co.uid||'')}:null},
@@ -707,10 +712,10 @@ function render(bump){queueMicrotask(alertsTick);
   {const mine=eff()==='insp'||eff()==='admin'?S.trucks.flatMap(t=>t.k===SIGSTN?SIGS.filter(([k])=>t.req[k]&&t.req[k].uid===me&&!t.sig[k]).map(([k,l])=>({t,l})):[]):[];
    $('#note').innerHTML=mine.length?`<div class="reqban"><b>${mine.length} signature${mine.length===1?'':'s'} waiting on you</b>${mine.map(x=>`<button data-gocard="${esc(x.t.id)}">${esc(x.t.unit)} · ${x.l}</button>`).join('')}</div>`:''}
   const q=$('#q').value.trim().toLowerCase(),srt=$('#sort').value;
-  const L=on.filter(t=>(!q||(t.unit+' '+t.cust).toLowerCase().includes(q)));
+  const mf=$('#monF').value;const L=on.filter(t=>(!q||(t.unit+' '+t.cust).toLowerCase().includes(q))&&(!mf||t.mon===mf));
   L.sort(srt==='unit'?(a,b)=>String(a.unit).localeCompare(String(b.unit),undefined,{numeric:true}):srt==='due'?(a,b)=>(a.due||'9999').localeCompare(b.due||'9999'):(a,b)=>posOf(a.k)-posOf(b.k));
   let n=0;
-  const card=t=>{const s=step(t.k),inf=S.info[t.k],d=days(t),isLate=t.due&&t.due<td,p=s.pos,lm=lastMove(t),nc=comments(t.k).length;
+  const card=t=>{const s=step(t.k),inf=S.info[t.k],d=days(t),isLate=t.k!=='done'&&t.due&&t.due<td,p=s.pos,lm=lastMove(t),nc=comments(t.k).length;
     const E=can('edit')?'<button data-edit>Edit</button>':'';
     let acts;
     if(s.z==='build'){acts=E+(t.k==='s1'&&can('move')?`<button class="go" data-index>Move line ▸</button>`:t.k==='s15'&&can('edit')?`<button class="bub" data-tobub>To the Bubble</button>`:t.k===EMERG&&can('edit')?`<button class="warn" data-pull>Emergency pull</button>`:'')+(can('move')?`<button class="go${t.k==='s1'?' ghost':''}" data-moveto>Move to… ▸</button>`:t.k==='s1'||t.k==='s15'||t.k===EMERG?'':`<span class="lk">Moves when the line moves</span>`)}
@@ -724,9 +729,10 @@ function render(bump){queueMicrotask(alertsTick);
       else if(rq){cls+=' rq';main='Waiting on '+esc(rq.uid===me?'you':(users[rq.uid]?users[rq.uid].name:who(rq.uid))||'someone');small='Asked by '+esc(who(rq.by)||'someone')+' · '+fmtDT(rq.t);on=r!=='view'}
       else{main=r==='admin'?'Tap to sign':r==='insp'?'Tap to sign':r==='emp'?'Tap to request':'Not signed yet';on=r!=='view'}
       return `<button class="${cls}" data-sig="${k}" ${on?'':'disabled'}><span>${l}</span><b>${main}</b>${small?`<small>${small}</small>`:''}</button>`}).join('')}</div>`:'';
-    return `<article class="card z-${s.z}${t.hold?' held':''}" data-id="${esc(t.id)}" style="animation-delay:${Math.min(n++,8)*40}ms">
+    return `<article class="card z-${s.z}${t.hold?' held':''}${isLate?' late':''}" data-id="${esc(t.id)}" style="animation-delay:${Math.min(n++,8)*40}ms">
       <div class="top"><div><h3>${esc(t.unit)}</h3><p>${esc(t.cust)||'&nbsp;'}</p></div>
-      <div class="due${isLate?' late':''}">Due<b>${fmtDue(t.due)}${isLate?' · late':''}</b></div></div>
+      <div class="due${isLate?' late':''}">${t.mon?`<span class="monb">Month ${t.mon}</span>`:''}Due<b>${fmtDue(t.due)}</b></div></div>
+      ${isLate?`<div class="overdue"><b>Overdue</b><span>${(n=>n===1?'1 day':n+' days')(Math.max(1,Math.round((new Date(td)-new Date(t.due))/864e5)))} past the due date</span></div>`:''}
       <div class="where"><strong>${esc(title(t.k))}</strong><span>${d===0?'Today':d+(d===1?' day':' days')+' here'}${inf.sup?' · Sup: '+esc(inf.sup):''}${nc?` · <a href="#" data-showk="${t.k}">${nc} comment${nc===1?'':'s'}</a>`:''}</span></div>
       <div class="when"><span>Moved here <b>${fmtDT(lm&&lm.t)}</b>${lm&&lm.by?` by <b>${esc(who(lm.by))}</b>`:''}</span>${moves(t).length>1?`<span>Started <b>${fmtDT(t.h[0].t)}</b></span>`:''}</div>
       <div class="track" aria-label="${esc(title(t.k))}"><div class="segs">${Array.from({length:SEGS},(_,j)=>`<i class="sg z-${segZone(j)}${j<=p?' d':''}"></i>`).join('')}</div>
@@ -940,12 +946,12 @@ $('#tUndo').addEventListener('click',doUndo);
 function openTruck(id){if(!can('edit'))return;editing=id||null;const t=id?find(id):null,f=$('#fTruck');
   $('#tStep').innerHTML=ZONES.map(z=>`<optgroup label="${z.t}">${STEPS.filter(s=>s.z===z.z).map(s=>`<option value="${s.k}">${esc(title(s.k))}${occupied(s.k,editing)?' (has '+esc(at(s.k)[0].unit)+')':''}</option>`).join('')}</optgroup>`).join('')+'<optgroup label="Done"><option value="done">Signed off</option></optgroup>';
   $('#tTitle').textContent=t?'Edit '+t.unit:'Add truck';$('#tErr').hidden=true;
-  f.unit.value=t?t.unit:'';f.cust.value=t?t.cust:'';f.due.value=t?t.due:'';f.notes.value=t?t.notes:'';
+  f.unit.value=t?t.unit:'';f.cust.value=t?t.cust:'';f.mon.value=t?(t.mon||''):'';f.due.value=t?t.due:'';f.notes.value=t?t.notes:'';
   f.k.value=t?t.k:(sel||(occupied('s1')?(STEPS.find(s=>s.z==='build'&&!occupied(s.k))||{k:'s1'}).k:'s1'));
   $('#tDel').hidden=!t;$('#mTruck').hidden=false;setTimeout(()=>f.unit.focus(),50)}
 $('#fTruck').addEventListener('submit',e=>{e.preventDefault();const f=e.target,k=f.k.value;
   if(occupied(k,editing)){$('#tErr').textContent=WAIT[k]?`${WAIT[k].t} is full (${WAIT[k].max} trucks). Bring one out first.`:`${title(k)} already has ${at(k).find(t=>t.id!==editing).unit}. Each station holds one truck. Pick an open spot.`;$('#tErr').hidden=false;return}
-  const v={unit:f.unit.value.trim(),model:'',vt:'amb',cust:f.cust.value.trim(),due:f.due.value,notes:f.notes.value.trim()};
+  const v={unit:f.unit.value.trim(),model:'',vt:'amb',mon:f.mon.value,cust:f.cust.value.trim(),due:f.due.value,notes:f.notes.value.trim()};
   let t;if(editing){t=find(editing);remember([t.id]);if(t.k!==k)setK(t,k);Object.assign(t,v);toast(`Saved ${t.unit}`)}
   else{t=normTruck({id:nid(),...v,k,h:[{k,t:now(),by:me||''}]});remember([t.id]);S.trucks.push(t);toast(`Added ${v.unit} at ${title(k)}`)}
   putTruck(t);$('#mTruck').hidden=true;render(new Set([k]))});
@@ -1001,7 +1007,7 @@ document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.tar
 $('#bAdd').addEventListener('click',()=>openTruck());
 $('#bStations').addEventListener('click',()=>{if(can('edit'))openSt(sel);else openStn('s1',false)});
 $('#q').addEventListener('input',()=>render());
-$('#sort').addEventListener('change',()=>render());
+$('#sort').addEventListener('change',()=>render());$('#monF').addEventListener('change',()=>render());
 render();
 
 // ---------- accounts and shared data (Firebase) ----------
@@ -1127,11 +1133,11 @@ function openStats(){const T=S.trucks,nowD=new Date(),wk=new Date(nowD);wk.setHo
   openedAt=Date.now();$('#mStats').hidden=false}
 
 // ---------- export ----------
-function exportCSV(){const q=v=>{v=v==null?'':String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};const out=[['License plate #','Customer','Due','Now at','On hold','Event','Where','When','By','Time there']];
+function exportCSV(){const q=v=>{v=v==null?'':String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};const out=[['License plate #','Customer','Month','Due','Now at','On hold','Event','Where','When','By','Time there']];
   const ord=S.trucks.slice().sort((a,b)=>String(a.unit).localeCompare(String(b.unit),undefined,{numeric:true}));
   ord.forEach(t=>{const h=t.h||[],mv=h.map((e,i)=>i).filter(i=>isMvK(h[i].k));
     h.forEach((e,i)=>{const isM=isMvK(e.k),ni=mv.find(j=>j>i),nx=ni!=null?h[ni]:null;
-      out.push([t.unit,t.cust,t.due,title(t.k),t.hold?(t.hold.r||'Yes'):'',isM?(e.k==='done'?'Signed off':'Moved'):title(e.k)+(e.r?': '+e.r:''),isM?title(e.k):'',new Date(e.t).toLocaleString(),who(e.by)==='you'?(names[me]||'you'):who(e.by),isM&&e.k!=='done'?fmtMin(((nx?new Date(nx.t):new Date())-new Date(e.t))/6e4)+(nx?'':' so far'):''])})});
+      out.push([t.unit,t.cust,t.mon,t.due,title(t.k),t.hold?(t.hold.r||'Yes'):'',isM?(e.k==='done'?'Signed off':'Moved'):title(e.k)+(e.r?': '+e.r:''),isM?title(e.k):'',new Date(e.t).toLocaleString(),who(e.by)==='you'?(names[me]||'you'):who(e.by),isM&&e.k!=='done'?fmtMin(((nx?new Date(nx.t):new Date())-new Date(e.t))/6e4)+(nx?'':' so far'):''])})});
   const csv='﻿'+out.map(r=>r.map(q).join(',')).join('\r\n'),blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');
   a.href=URL.createObjectURL(blob);a.download=`code3-history-${new Date().toISOString().slice(0,10)}.csv`;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);toast('Spreadsheet downloaded')}
 
