@@ -63,6 +63,18 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .sig small{font-size:12px;color:var(--mut);font-weight:400}
 .sig:disabled{opacity:1;cursor:default}
 .by{color:var(--mut)}
+.tour{position:fixed;inset:0;z-index:60;pointer-events:auto}.tour[hidden]{display:none}
+.thole{position:fixed;border-radius:14px;box-shadow:0 0 0 9999px rgba(10,11,12,.72);outline:3px solid var(--red);outline-offset:2px;transition:left .38s cubic-bezier(.4,0,.2,1),top .38s cubic-bezier(.4,0,.2,1),width .38s cubic-bezier(.4,0,.2,1),height .38s cubic-bezier(.4,0,.2,1);pointer-events:none;animation:tglow 1.6s ease-in-out infinite}
+@keyframes tglow{50%{outline-color:#ff7a7e;outline-offset:6px}}
+.tcard{position:fixed;width:min(340px,calc(100vw - 24px));background:var(--bg);color:var(--ink);border-radius:16px;padding:16px 18px;box-shadow:0 18px 50px rgba(0,0,0,.45);display:grid;gap:8px;transition:top .38s cubic-bezier(.4,0,.2,1),left .38s cubic-bezier(.4,0,.2,1)}
+.tcard.pop{animation:tpop .35s cubic-bezier(.3,1.4,.5,1)}@keyframes tpop{from{transform:scale(.92);opacity:.4}}
+.tcard h3{font-size:24px;font-weight:800;text-transform:uppercase}.tcard p{margin:0;font-size:16px;line-height:1.45}
+.thead{display:flex;justify-content:space-between;align-items:center}.tskip{border:0;background:transparent;color:var(--mut);min-height:36px;padding:0 4px;font-size:14px}
+.tfoot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:4px}
+.tdots{display:flex;gap:5px;flex-wrap:wrap}.tdots i{width:7px;height:7px;border-radius:50%;background:var(--line);transition:background .2s,transform .2s}.tdots i.on{background:var(--red);transform:scale(1.3)}
+.tbtns{display:flex;gap:8px}
+body.touring{overflow:hidden}
+
 .invsheet{justify-items:center;text-align:center}.invsheet .shead1{width:100%;text-align:left}
 .invqr{width:min(280px,72vw);border:3px solid var(--ink);border-radius:22px;padding:10px;background:#fff;animation:qrpop .5s cubic-bezier(.3,1.4,.5,1)}
 .invqr img{display:block;width:100%}
@@ -447,6 +459,9 @@ label{display:grid;gap:4px;font-size:14px;font-weight:600}
 
 
 
+<div id="tour" class="tour" hidden role="dialog" aria-modal="true" aria-labelledby="tTitleT"><div id="tHole" class="thole"></div>
+<div id="tCard" class="tcard"><div class="thead"><span id="tCount" class="k"></span><button type="button" id="tSkip" class="tskip">Skip tour</button></div>
+<h3 id="tTitleT"></h3><p id="tBody"></p><div class="tfoot"><div id="tDots" class="tdots"></div><div class="tbtns"><button type="button" id="tBack">Back</button><button type="button" class="go" id="tNext">Next</button></div></div></div></div>
 <div class="toast" id="toast" role="status"><span id="tMsg"></span><button id="tUndo">Undo</button></div>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
@@ -578,7 +593,7 @@ function tile(s,cnt,bump){const c=cnt[s.k]||0,inf=S.info[s.k],on=sel===s.k,b=bum
 
 function renderMe(){const r=eff();
   const isOwn=me&&me===ownerId&&!preview,isCo=!isOwn&&myRaw==='coowner'&&!preview,label=isOwn?'Owner':isCo?'Co-owner':{admin:'Admin',emp:'Supervisor',insp:'Inspector',view:'Employee · view only'}[r];
-  $('#me').innerHTML=!shared?'':`<span>${me?esc(names[me]||'Signed in'):'Signed in'}</span><span class="role ${isOwn?'owner':isCo?'coowner':r==='admin'?'admin':r==='view'?'view':''}">${label}</span>${isMgr()?`<div class="seg" role="group" aria-label="View as">${[['admin',me===ownerId?'Owner':'Co-owner'],['emp','Supervisor'],['insp','Inspector'],['view','Employee']].map(([v,l])=>`<button data-prev="${v}" class="${(preview||'admin')===v?'on':''}" aria-pressed="${(preview||'admin')===v}">${l}</button>`).join('')}</div>`:''}<span class="hbtns">${isMgr()?'<button id="bPeople">People</button>':''}${pinFor(me)?'<button id="bLock">Lock</button>':''}<button id="bInv">Invite</button><button id="bPin">PIN</button><button id="bOut">Sign out</button></span><span class="sync" id="sync"></span>`;
+  $('#me').innerHTML=!shared?'':`<span>${me?esc(names[me]||'Signed in'):'Signed in'}</span><span class="role ${isOwn?'owner':isCo?'coowner':r==='admin'?'admin':r==='view'?'view':''}">${label}</span>${isMgr()?`<div class="seg" role="group" aria-label="View as">${[['admin',me===ownerId?'Owner':'Co-owner'],['emp','Supervisor'],['insp','Inspector'],['view','Employee']].map(([v,l])=>`<button data-prev="${v}" class="${(preview||'admin')===v?'on':''}" aria-pressed="${(preview||'admin')===v}">${l}</button>`).join('')}</div>`:''}<span class="hbtns">${isMgr()?'<button id="bPeople">People</button>':''}${pinFor(me)?'<button id="bLock">Lock</button>':''}<button id="bHelp">Help</button><button id="bInv">Invite</button><button id="bPin">PIN</button><button id="bOut">Sign out</button></span><span class="sync" id="sync"></span>`;
   $('#bAdd').hidden=!can('edit');$('#bStations').textContent=can('edit')?'Crews':'Crews';}
 
 function safeRender(b){if(animating){pendingRender=true;return}render(b)}
@@ -925,6 +940,47 @@ $('#gate').addEventListener('submit',async e=>{e.preventDefault();const f=e.targ
   btn.disabled=false;btn.textContent=old});
 
 
+// ---------- tutorial ----------
+let tour=null;
+function tourSteps(){const r=eff(),mgr=isMgr()&&!preview,admin=r==='admin';const S=[];
+  S.push({c:true,t:'Welcome to Code 3',b:`This quick tour shows you around. It takes about a minute. ${admin?'You can do everything here.':r==='emp'?"As a supervisor you move trucks, comment and ask for signatures.":r==='insp'?"As an inspector you sign the Station 18 sigs.":"You can see the whole line. Your role is view only."}`});
+  S.push({el:'#figs',t:'Live counts',b:'How many trucks are on each part of the line right now, plus anything past due. These update by themselves.'});
+  S.push({el:'#map',t:'The plant floor',b:'Every circle is a station. Trucks drive along the road from Station 1, through outside services and the TAG line, to sign-off.'});
+  S.push({el:'#floor [data-k="s1"] .nc',t:'Tap a station',b:`Tap any station to see its supervisor, crew, trucks and comments.${admin?' Hold it for half a second to edit the crew.':''}`});
+  if(can('move'))S.push({el:'#fmv',t:'Move the line',b:'Moves every truck on Stations 1–15 down one spot at once. The truck at Station 15 goes to an outside service you pick.'});
+  S.push({el:'#list .card,#list .empty',t:'Truck cards',b:`Each truck shows where it is, how long it's been there and who moved it.${can('move')?' Use the red button to send it to the next spot.':''} Tap History to see every move.`});
+  if(r==='insp')S.push({c:true,t:'Signing Station 18',b:'When someone asks you to sign, a yellow banner shows up at the top. Tap the truck, tap the sig box and confirm. It signs under your name.'});
+  else if(r==='emp')S.push({c:true,t:'Signatures',b:'At Station 18, tap a sig box to ask an inspector to sign. They get a yellow banner. The truck can move on once both sigs are in.'});
+  else if(admin)S.push({c:true,t:'Station 18 sigs',b:'Tap a sig box to pick who signed or type a name. A truck needs both the electrical and cosmetic sig before it can leave Station 18.'});
+  if(can('comment'))S.push({c:true,t:'Comments',b:'Open any station to leave a note for the crew. Red dots on the map show how many comments a station has.'});
+  if(admin)S.push({el:'#bAdd',t:'Add a truck',b:'Add a new truck and pick where it starts. Each station holds one truck. Outside services can hold more than one.'});
+  if(mgr)S.push({el:'#bPeople',t:'People',b:'New sign-ups wait here with no access. Give each person a role: Supervisor, Inspector, Employee or Admin.'});
+  S.push({el:'#bInv',t:'Invite people',b:'Show the QR code, text or email the link, or print the flyer for the break room.'});
+  S.push({el:'#bPin',t:'Quick PIN',b:'Closing the app signs you out. Set a PIN to get back in fast on this phone.'});
+  S.push({c:true,t:"You're set",b:'Tap Help at the top anytime to see this tour again.',last:true});
+  return S}
+function tourStart(onDone){if(tour)return;const ov=$('#tour');tour={i:0,steps:tourSteps(),done:onDone};ov.hidden=false;document.body.classList.add('touring');tourGo(0)}
+function tourEnd(){if(!tour)return;const d=tour.done;tour=null;const ov=$('#tour');ov.classList.remove('show');setTimeout(()=>{ov.hidden=true},250);document.body.classList.remove('touring');if(me)lsSet('c3-tour-'+me,1);if(d)d()}
+function tourGo(i){if(!tour)return;const st=tour.steps;if(i<0)i=0;if(i>=st.length){tourEnd();return}
+  let s=st[i],el=null;if(!s.c){el=[...document.querySelectorAll(s.el)].find(x=>x.getClientRects().length);if(!el){st.splice(i,1);return tourGo(i)}}
+  tour.i=i;tour.el=el;const ov=$('#tour');ov.classList.add('show');
+  $('#tTitleT').textContent=s.t;$('#tBody').textContent=s.b;$('#tCount').textContent=`${i+1} of ${st.length}`;
+  $('#tDots').innerHTML=st.map((_,j)=>`<i class="${j===i?'on':''}"></i>`).join('');
+  $('#tBack').hidden=i===0;$('#tNext').textContent=s.last?'Done':'Next';$('#tSkip').hidden=!!s.last;
+  const card=$('#tCard');card.classList.remove('pop');void card.offsetWidth;card.classList.add('pop');
+  if(el){el.scrollIntoView({behavior:reduce?'auto':'smooth',block:'center'});setTimeout(tourPlace,reduce?0:380)}else tourPlace();
+  setTimeout(()=>$('#tNext').focus(),60)}
+function tourPlace(){if(!tour)return;const hole=$('#tHole'),card=$('#tCard'),vw=innerWidth,vh=innerHeight,el=tour.el;
+  if(!el){hole.style.cssText=`left:${vw/2}px;top:${vh/2}px;width:0;height:0`;card.style.left=Math.max(12,(vw-card.offsetWidth)/2)+'px';card.style.top=Math.max(12,(vh-card.offsetHeight)/2)+'px';return}
+  const r=el.getBoundingClientRect(),p=8,x=Math.max(4,r.left-p),y=Math.max(4,r.top-p),w=Math.min(vw-8,r.width+p*2),h=Math.min(vh-8,r.height+p*2);
+  hole.style.cssText=`left:${x}px;top:${y}px;width:${w}px;height:${h}px`;
+  const ch=card.offsetHeight,cw=card.offsetWidth;let top=y+h+14;if(top+ch>vh-12)top=y-ch-14;if(top<12)top=Math.min(vh-ch-12,Math.max(12,y+h-ch-14));
+  card.style.top=top+'px';card.style.left=Math.min(vw-cw-12,Math.max(12,x+w/2-cw/2))+'px'}
+addEventListener('resize',()=>tour&&tourPlace());addEventListener('scroll',()=>tour&&tourPlace(),{passive:true});
+document.addEventListener('click',e=>{if(e.target.closest('#bHelp')){tourStart();return}
+  if(!tour)return;if(e.target.closest('#tNext'))tourGo(tour.i+1);else if(e.target.closest('#tBack'))tourGo(tour.i-1);else if(e.target.closest('#tSkip'))tourEnd()},true);
+document.addEventListener('keydown',e=>{if(!tour)return;if(e.key==='Escape')tourEnd();else if(e.key==='ArrowRight')tourGo(tour.i+1);else if(e.key==='ArrowLeft')tourGo(tour.i-1)});
+function firstRun(){if(me&&!lsGet('c3-tour-'+me))setTimeout(()=>{if($('#gate').hidden)tourStart(offerPin);else offerPin()},500);else offerPin()}
 // ---------- invite ----------
 {const URL_='https://vyd02.github.io/Code-3/',MSG='Join Code 3, our line tracker: '+URL_+' Tap "Create an account", then you\'ll get access once you\'re approved.';
  $('#invSms').href='sms:?&body='+encodeURIComponent(MSG);
@@ -1006,7 +1062,7 @@ async function enterApp(user){
   meUnsub=db.doc('users/'+me).onSnapshot(snap=>{const v=snap.exists?snap.data()||{}:{};names[me]=v.name||user.displayName||'';
     const r=String(v.role||'pending');
     if(!ROLE_MAP[r]){stopData();gateShow('pending');return}
-    myRaw=r;role=ROLE_MAP[r];if(!isMgr())preview=null;const first=$('#gate').hidden===false;gateHide();startData();render();if(first)offerPin()},()=>gateShow('signin',"Couldn't load your account. Try again."));
+    myRaw=r;role=ROLE_MAP[r];if(!isMgr())preview=null;const first=$('#gate').hidden===false;gateHide();startData();render();if(first)firstRun()},()=>gateShow('signin',"Couldn't load your account. Try again."));
 }
 
 // ---------- People screen (admin) ----------
