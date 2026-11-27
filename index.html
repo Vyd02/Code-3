@@ -54,7 +54,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .role{display:inline-flex;align-items:center;gap:6px;border-radius:20px;padding:3px 12px;font-weight:600;background:#2a2c30;color:#fff}
 .role.admin{background:var(--red)}.role.view{background:#45484d}
 .me button{min-height:36px;background:transparent;color:#fff;border-color:#4a4d52;font-size:14px}.me button.on{background:#fff;color:var(--dk)}
-.seg{display:inline-flex;border:1.5px solid #4a4d52;border-radius:10px;padding:3px;gap:3px;flex-basis:100%;max-width:360px}.seg button{flex:1 1 auto;border:0;border-radius:7px;min-height:38px;padding:0 9px;font-size:13px;white-space:nowrap;transition:background .2s,color .2s}
+.seg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1.5px solid #4a4d52;border-radius:10px;padding:3px;gap:3px;flex-basis:100%;width:100%;max-width:520px}.seg button{border:0;border-radius:7px;min-height:40px;padding:0 4px;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background .2s,color .2s}
 .sync{font-size:13px;color:#9a9ea4}
 .sigs{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
 .sig{display:grid;gap:2px;text-align:left;padding:8px 10px;min-height:56px;border-style:dashed;background:var(--bg)}
@@ -297,6 +297,7 @@ label{display:grid;gap:4px;font-size:14px;font-weight:600}
 .toast button{background:#fff;color:var(--dk);border:0;min-height:38px}
 @media(min-width:1000px){.z-build .tiles{grid-template-columns:repeat(15,minmax(0,1fr))}}
 @media(max-width:900px){.row2{grid-template-columns:minmax(0,1fr) minmax(0,2fr)}.row2 .z-fin{grid-column:1 / -1}}
+@media(max-width:400px){.seg button{font-size:12.5px;padding:0 2px}}
 @media(max-width:600px){.figs{grid-template-columns:repeat(3,minmax(0,1fr))}.fig.d,.fig.l{grid-column:span 1}
  .tiles{grid-template-columns:repeat(5,minmax(0,1fr))}.tl{min-height:58px;padding:5px 6px}.tl b{font-size:20px}.tl span{font-size:11px}
  .row2{grid-template-columns:1fr}.tl.pt b{font-size:19px}
@@ -315,7 +316,6 @@ label{display:grid;gap:4px;font-size:14px;font-weight:600}
     <div class="hhead"><div>
     <h1>Code 3</h1>
     <p>Line tracker · every truck from Station 1 to signed off</p>
-    <div class="me" id="me"></div>
     </div>
     <svg class="amb" viewBox="0 0 260 130" aria-hidden="true">
       <ellipse cx="130" cy="120" rx="122" ry="6" fill="rgba(0,0,0,.45)"/>
@@ -344,6 +344,7 @@ label{display:grid;gap:4px;font-size:14px;font-weight:600}
       <g><circle cx="204" cy="104" r="16" fill="#1b1c1e"/><circle cx="204" cy="104" r="8" fill="#c9ccd1"/><g class="spk"><path d="M204 97v14M197 104h14" stroke="#6b7078" stroke-width="2.5" stroke-linecap="round"/></g></g>
     </svg>
     </div>
+    <div class="me" id="me"></div>
     <div class="figs" id="figs"></div>
   </div>
 </section>
