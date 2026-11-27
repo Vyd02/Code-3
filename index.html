@@ -53,6 +53,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .sbar.slow span{color:var(--red);font-weight:700}@keyframes grow{from{transform:scaleX(0)}}
 .alist{list-style:none;margin:0;padding:0;display:grid;gap:8px}.alist li{display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:start;padding:10px;border:1px solid var(--line);border-radius:12px;animation:hin .3s both}
 .alist li.new{border-color:var(--red)}.alist li i{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-style:normal;background:#2a2d31;color:#fff}
+.pushok{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,#19a463 14%,transparent);color:#19a463;font-weight:700}.pushok span{flex:1 1 200px}.pushok button{min-height:40px;padding:0 14px}
 .alist .a-line i{background:var(--red)}.alist .a-req i{background:#e0a32f;color:#111}.alist .a-hold i{background:#e11d2a}.alist .a-done i{background:#19a463}.alist .a-s18 i{background:#2f9be0}.alist small{display:block;color:var(--mut)}
 
 .menub{width:44px;height:44px;flex:0 0 44px;border-radius:12px;border:1.5px solid #4a4d52;background:transparent;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;padding:0}
@@ -663,7 +664,11 @@ const waitCount=(k,except)=>S.trucks.filter(t=>t.k===k&&t.id!==except).length;co
 const occupied=(k,except)=>WAIT[k]?waitCount(k,except)>=WAIT[k].max:single(k)&&S.trucks.some(t=>t.k===k&&t.id!==except);
 const holder=(k,except)=>S.trucks.find(t=>t.k===k&&t.id!==except);
 const fullMsg=(k,except)=>`${short(k)} already has ${holder(k,except).unit}. Move that truck first.`;
-const setK=(t,k)=>{if(k!=='down')t.dn=null;t.k=k;const e={k,t:now(),by:me||''};if(t._lm){e.lm=t._lm;delete t._lm}if(t._em){e.em=1;delete t._em}t.h=t.h.concat(e)};
+const setK=(t,k)=>{if(k!=='down')t.dn=null;t.k=k;const e={k,t:now(),by:me||''};if(t._lm){e.lm=t._lm;delete t._lm}if(t._em){e.em=1;delete t._em}t.h=t.h.concat(e);
+  if(!e.lm){const by=myName();if(e.em)notify('pull',`${t.unit} pulled off Station 11`,`Emergency pull → ${title(k)} · ${by}`,'all');
+    else if(k==='done')notify('done',`${t.unit} signed off ✓`,by,'all');
+    else if(k==='bubble'||k==='next')notify('wait',`${t.unit} → ${WAIT[k].t}`,by,'all');
+    else if(k===SIGSTN)notify('s18',`${t.unit} reached Station 18`,'Ready for sigs · moved by '+by,'insp')}};
 const sigsDone=t=>!!(t.sig.el&&t.sig.co);
 const comments=k=>C.filter(c=>c.k===k).sort((a,b)=>String(b.t).localeCompare(String(a.t)));
 const histEv=t=>{const ev=[],h=t.h||[],isMv=k=>k==='done'||STEPS.some(x=>x.k===k);
@@ -907,6 +912,7 @@ function doIndex(dest){
   remember(B.map(t=>t.id));const bump=new Set(),lmId=String(Date.now());
   B.forEach(t=>{t._lm=lmId;const n=+t.k.slice(1),nk=n===15?dest:'s'+(n+1);setK(t,nk);bump.add(nk);putTruck(t)});renderFloor(bump);
   if(sel&&isBuild(sel))sel=null;
+  notify('line','The line moved',`${myName()} · ${B.length} truck${B.length===1?'':'s'} moved up${dest?' · '+B.filter(t=>t.k===dest).map(t=>t.unit).join(', ')+' → '+title(dest):''}`,'all','line');
   toast(`Line moved${dest?' · '+B.filter(t=>t.k===dest).map(t=>t.unit).join(', ')+' → '+title(dest):''}`);
   any?afterAnim(dest?1150:850,bump):render(bump)}
 
@@ -932,9 +938,9 @@ $('#sigBody').addEventListener('input',e=>{$('#sigErr').hidden=true;if(e.target.
 $('#fSig').addEventListener('submit',e=>{e.preventDefault();if(!sigCtx)return;const t=find(sigCtx.id);if(!t)return;const k=sigCtx.k,l=SIGS.find(x=>x[0]===k)[1],m=sigCtx.mode;
   const picked=($('#sigBody input[name=who]:checked')||{}).value||'';const err=x=>{$('#sigErr').textContent=x;$('#sigErr').hidden=false};
   if(m==='admin'){const typed=($('#sigName')||{}).value?$('#sigName').value.trim():'';if(!picked&&!typed)return err('Pick a person or type a name.');
-    const name=picked?(users[picked]?users[picked].name:''):typed.slice(0,60);remember([t.id]);t.sig[k]={t:now(),by:me||'',name,uid:picked||''};t.req[k]=null;t.h=t.h.concat({k:'sig-'+k,t:now(),by:me||''});toast(`${l} signed by ${name} on ${t.unit}`)}
-  else if(m==='insp'){if(!can('sign'))return;remember([t.id]);t.sig[k]={t:now(),by:me||'',name:names[me]||'',uid:me||''};t.req[k]=null;t.h=t.h.concat({k:'sig-'+k,t:now(),by:me||''});toast(`You signed the ${l} on ${t.unit}`)}
-  else if(m==='sup'){if(!can('request'))return;if(!picked)return err('Pick who should sign.');remember([t.id]);t.req[k]={uid:picked,by:me||'',t:now()};t.h=t.h.concat({k:'req-'+k,t:now(),by:me||''});toast(`Asked ${users[picked]?users[picked].name:'them'} to sign the ${l}`)}
+    const name=picked?(users[picked]?users[picked].name:''):typed.slice(0,60);remember([t.id]);t.sig[k]={t:now(),by:me||'',name,uid:picked||''};t.req[k]=null;t.h=t.h.concat({k:'sig-'+k,t:now(),by:me||''});notify('sig',`${t.unit}: ${l} signed`,`Signed by ${name}`,'mgrish');toast(`${l} signed by ${name} on ${t.unit}`)}
+  else if(m==='insp'){if(!can('sign'))return;remember([t.id]);t.sig[k]={t:now(),by:me||'',name:names[me]||'',uid:me||''};t.req[k]=null;t.h=t.h.concat({k:'sig-'+k,t:now(),by:me||''});notify('sig',`${t.unit}: ${l} signed`,`Signed by ${myName()}`,'mgrish');toast(`You signed the ${l} on ${t.unit}`)}
+  else if(m==='sup'){if(!can('request'))return;if(!picked)return err('Pick who should sign.');remember([t.id]);t.req[k]={uid:picked,by:me||'',t:now()};t.h=t.h.concat({k:'req-'+k,t:now(),by:me||''});notify('req',`${t.unit} needs your ${l}`,`Asked by ${myName()}`,'uid:'+picked);toast(`Asked ${users[picked]?users[picked].name:'them'} to sign the ${l}`)}
   putTruck(t);$('#mSig').hidden=true;render()});
 $('#sigExtra').addEventListener('click',e=>{const b=e.target.closest('[data-sigact]');if(!b||!sigCtx)return;const t=find(sigCtx.id);if(!t)return;const k=sigCtx.k,l=SIGS.find(x=>x[0]===k)[1];remember([t.id]);
   if(b.dataset.sigact==='clear'){t.sig[k]=null;t.h=t.h.concat({k:'unsig-'+k,t:now(),by:me||''});toast(`${l} cleared on ${t.unit}`)}
@@ -1004,7 +1010,7 @@ document.addEventListener('click',e=>{
   if(b.hasAttribute('data-addempty')){openTruck();return}
   const c=b.closest('[data-id]');if(!c)return;const id=c.dataset.id,t=find(id);if(!t)return;
   if(b.dataset.sig){sign(t,b.dataset.sig);return}
-  if(b.hasAttribute('data-hold')&&can('move')){if(t.hold){remember([t.id]);t.hold=null;t.h.push({k:'unhold',t:now(),by:me||''});putTruck(t);render();toast(`${t.unit} is off hold`)}else openHold(t);return}
+  if(b.hasAttribute('data-hold')&&can('move')){if(t.hold){remember([t.id]);t.hold=null;t.h.push({k:'unhold',t:now(),by:me||''});putTruck(t);notify('unhold',`${t.unit} is off hold`,myName(),'all');render();toast(`${t.unit} is off hold`)}else openHold(t);return}
   if(b.hasAttribute('data-edit'))openTruck(id);
   else if(b.hasAttribute('data-pull')&&can('edit'))pick('Emergency pull',`Take ${t.unit} off Station 11. Where is it going?`,notBuild(),k=>{t._em=1;moveTo(t,k,`${t.unit} pulled off Station 11 → ${title(k)}`)});
   else if(b.hasAttribute('data-moveto')&&can('move')){movePick(t)}
@@ -1122,14 +1128,14 @@ addEventListener('resize',()=>tour&&tourPlace());addEventListener('scroll',()=>t
 // ---------- hold ----------
 let holdId=null;
 function openHold(t){holdId=t.id;$('#holdT').textContent=`Put ${t.unit} on hold`;$('#holdR').value='';openedAt=Date.now();$('#mHold').hidden=false}
-function setHold(r){const t=find(holdId);if(!t)return;remember([t.id]);t.hold={r:r||'',by:me||'',t:now()};t.h.push({k:'hold',t:now(),by:me||'',r:r||''});putTruck(t);$('#mHold').hidden=true;render();toast(`${t.unit} is on hold`)}
+function setHold(r){const t=find(holdId);if(!t)return;remember([t.id]);t.hold={r:r||'',by:me||'',t:now()};t.h.push({k:'hold',t:now(),by:me||'',r:r||''});putTruck(t);notify('hold',`${t.unit} put on hold`,`${r||'No reason given'} · ${myName()}`,'all');$('#mHold').hidden=true;render();toast(`${t.unit} is on hold`)}
 $('#holdQ').addEventListener('click',e=>{const b=e.target.closest('button');if(b)setHold(b.textContent)});
 $('#fHold').addEventListener('submit',e=>{e.preventDefault();setHold($('#holdR').value.trim())});
 
 // ---------- down to ----------
 let downId=null;
 function openDown(t){downId=t.id;$('#downT').textContent=`${t.unit} → Down To`;$('#downR').value='';openedAt=Date.now();$('#mDown').hidden=false;setTimeout(()=>$('#downR').focus(),80)}
-$('#fDown').addEventListener('submit',e=>{e.preventDefault();const t=find(downId);if(!t)return;$('#mDown').hidden=true;moveTo(t,'down',`${t.unit} → Down To`);t.dn={r:$('#downR').value.trim(),by:me||'',t:now()};const last=t.h[t.h.length-1];if(last&&last.k==='down'&&t.dn.r)last.r=t.dn.r;putTruck(t);render()});
+$('#fDown').addEventListener('submit',e=>{e.preventDefault();const t=find(downId);if(!t)return;$('#mDown').hidden=true;moveTo(t,'down',`${t.unit} → Down To`);t.dn={r:$('#downR').value.trim(),by:me||'',t:now()};const last=t.h[t.h.length-1];if(last&&last.k==='down'&&t.dn.r)last.r=t.dn.r;putTruck(t);render();notify('down',`${t.unit} → Down To`,`${t.dn.r?'Waiting on '+t.dn.r:'Waiting on OEM parts'} · ${myName()}`,'all')});
 
 // ---------- stats ----------
 const isMvK=k=>k==='done'||STEPS.some(x=>x.k===k);
@@ -1183,19 +1189,35 @@ function alertsTick(){const bb=$('#bMenu');if(!bb||!me)return;let seen=0,nt=0;tr
   if(n>lastBell&&lastBell>=0){bb.classList.remove('ring');void bb.offsetWidth;bb.classList.add('ring')}lastBell=n;
   const toNotify=fresh.filter(a=>+new Date(a.t)>nt);
   if(!nt){try{localStorage.setItem(notKey(),Date.now())}catch(e){}return}
-  if(toNotify.length&&'Notification' in window&&Notification.permission==='granted'&&navigator.serviceWorker){navigator.serviceWorker.ready.then(reg=>toNotify.slice(0,3).forEach(a=>reg.showNotification('Code 3: '+a.txt,{body:a.sub,icon:'icon-192.png',badge:'icon-192.png',tag:a.c+a.id+a.t}))).catch(()=>{})}
+  if(toNotify.length&&!pushReady()&&'Notification' in window&&Notification.permission==='granted'&&navigator.serviceWorker){navigator.serviceWorker.ready.then(reg=>toNotify.slice(0,3).forEach(a=>reg.showNotification('Code 3: '+a.txt,{body:a.sub,icon:'icon-192.png',badge:'icon-192.png',tag:a.c+a.id+a.t}))).catch(()=>{})}
   try{localStorage.setItem(notKey(),Date.now())}catch(e){}}
 function openAlerts(){let seen=0;try{seen=+localStorage.getItem(seenKey())||0}catch(e){}const L=alertList(),perm='Notification' in window?Notification.permission:'unsupported';
-  $('#alertsBody').innerHTML=(perm==='default'?`<button class="go" id="bNotif" style="width:100%;margin-bottom:12px">Turn on phone alerts</button>`:perm==='denied'?`<p class="k" style="margin:0 0 10px">Phone alerts are blocked. Turn them on for this site in your browser's settings.</p>`:'')+
+  $('#alertsBody').innerHTML=(perm==='default'||(perm==='granted'&&PUSH_URL&&!pushReady())?`<button class="go" id="bNotif" style="width:100%;margin-bottom:12px">Turn on phone alerts</button>`:perm==='granted'&&pushReady()?`<div class="pushok"><span>✓ Phone alerts are on, even with Code 3 closed</span><button id="bTestPush">Send me a test</button></div>`:perm==='denied'?`<p class="k" style="margin:0 0 10px">Phone alerts are blocked. Turn them on for this site in your browser's settings.</p>`:'')+
     (L.length?`<ul class="alist">${L.map(a=>`<li class="a-${a.c}${+new Date(a.t)>seen&&a.by!==me?' new':''}" data-aid="${esc(a.id)}"${a.ppl?' data-ppl="1"':''}><i>${a.i}</i><div><b>${esc(a.txt)}</b><small>${esc(a.sub)} · ${fmtDT(a.t)}</small></div></li>`).join('')}</ul>`:'<p class="note">No alerts yet. Line moves, holds, overdue trucks, Down To, sign-offs and sig requests show up here.</p>');
   try{localStorage.setItem(seenKey(),Date.now())}catch(e){}lastBell=0;$('#bellN').hidden=true;if($('#bellN2'))$('#bellN2').hidden=true;openedAt=Date.now();$('#mAlerts').hidden=false}
 document.addEventListener('click',e=>{
   if(e.target.closest('#bStats')){openStats();return}
   if(e.target.closest('#bExp,#bExp2')){exportCSV();return}
   if(e.target.closest('#bBell')){openAlerts();return}
-  if(e.target.closest('#bNotif')){Notification.requestPermission().then(p=>{if(p==='granted'){toast('Phone alerts on');navigator.serviceWorker&&navigator.serviceWorker.ready.then(r=>r.showNotification('Code 3 alerts are on',{body:'You\'ll get alerts while Code 3 is open.',icon:'icon-192.png'}))}openAlerts()});return}
+  if(e.target.closest('#bNotif')){const bt=e.target.closest('#bNotif');bt.disabled=true;bt.textContent='Turning on…';(PUSH_URL?registerPush(true):Notification.requestPermission().then(p=>p==='granted')).then(ok=>{toast(ok?'Phone alerts are on':'Phone alerts are blocked. Allow notifications for this site in Chrome settings.');openAlerts()});return}
+  if(e.target.closest('#bTestPush')){notify('test','Code 3 test alert','If you see this, alerts work. Try it again with the app closed.','');toast('Test sent. It should pop up in a few seconds.');return}
   const pl=e.target.closest('#alertsBody [data-ppl]');if(pl){$('#mAlerts').hidden=true;renderPeople();$('#mPeople').hidden=false;return}const ln=e.target.closest('#alertsBody .a-line');if(ln){$('#mAlerts').hidden=true;$('#map').scrollIntoView({behavior:reduce?'auto':'smooth'});return}
   const li=e.target.closest('#alertsBody [data-aid]');if(li&&li.dataset.aid){$('#mAlerts').hidden=true;const c=document.querySelector(`.card[data-id="${CSS.escape(li.dataset.aid)}"]`);if(c){c.scrollIntoView({behavior:reduce?'auto':'smooth',block:'center'});c.classList.remove('flash');void c.offsetWidth;c.classList.add('flash')}}});
+// ---------- push alerts (work with the app closed) ----------
+const VAPID='BH6z9tYCd2ovLJeHyf7nzEKu1mgdMEVyxZlvpn0ykiXkUU7OH1Ff7yxw2yR0iJYXEdrSmGdaupQ6QUv1ChnXKrE';
+const PUSH_URL='https://code3-push.vyd02.workers.dev';
+const pushReady=()=>!!(PUSH_URL&&me&&lsGet('c3-push-'+me));
+const myName=()=>names[me]||'Someone';
+function notify(type,title,body,aud,tag){if(!PUSH_URL||!me||!window.C3FB||!C3FB.idToken)return;
+  C3FB.idToken().then(tk=>{if(!tk)return;return fetch(PUSH_URL+'/notify',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json',Authorization:'Bearer '+tk},body:JSON.stringify({type,title,body,aud:aud||'all',tag:tag||''})})}).catch(()=>{})}
+async function registerPush(ask){
+  if(!PUSH_URL||!me||!('Notification' in window)||!navigator.serviceWorker||!C3FB.pushToken)return false;
+  if(!(await C3FB.pushSupported()))return false;
+  let p=Notification.permission;if(p==='default'&&ask)p=await Notification.requestPermission();if(p!=='granted')return false;
+  try{const reg=await navigator.serviceWorker.ready;const tok=await C3FB.pushToken(VAPID,reg);if(!tok)return false;
+    const ref=db.doc('tokens/'+me),cur=await ref.get();let list=cur.exists?((cur.data()||{}).list||[]):[];
+    if(!list.includes(tok)||!lsGet('c3-push-'+me)){list=list.filter(x=>x!==tok).concat(tok).slice(-5);await ref.set({list,t:new Date().toISOString()})}
+    lsSet('c3-push-'+me,1);return true}catch(e){console.log('push setup failed',e);return false}}
 function openDrawer(){const d=$('#drawer');d.hidden=false;requestAnimationFrame(()=>requestAnimationFrame(()=>d.classList.add('open')));$('#bMenu').setAttribute('aria-expanded','true')}
 function closeDrawer(){const d=$('#drawer');if(!d||d.hidden)return;d.classList.remove('open');const mb=$('#bMenu');if(mb)mb.setAttribute('aria-expanded','false');setTimeout(()=>{if(!d.classList.contains('open'))d.hidden=true},280)}
 document.addEventListener('click',e=>{if(e.target.closest('#bMenu')){openDrawer();return}if(e.target.closest('[data-dclose]')){closeDrawer();return}if(e.target.closest('#me button')&&!e.target.closest('.seg'))closeDrawer()},true);
@@ -1268,7 +1290,7 @@ function syncPrivate(){
   else if(!isMgr()&&privUnsub){privUnsub();privUnsub=null;emails={};Object.keys(users).forEach(id=>{users[id].email=''})}}
 async function scrubEmail(id,v){if(scrubbed.has(id))return;scrubbed.add(id);try{if(v.email)await db.doc('private/'+id).set({email:String(v.email)});await db.doc('users/'+id).set({name:String(v.name||''),role:String(v.role||'pending'),created:String(v.created||'')})}catch(e){scrubbed.delete(id)}}
 function stopData(){dataUnsubs.forEach(u=>{try{u()}catch(e){}});dataUnsubs=[]}
-function startData(){if(dataUnsubs.length)return;const sy=()=>$('#sync');
+function startData(){if(dataUnsubs.length)return;setTimeout(()=>registerPush(false),2500);const sy=()=>$('#sync');
   let tmr=setTimeout(()=>{if(sy())sy().textContent="Can't reach the line yet. Check your signal."},10000);
   dataUnsubs.push(db.collection('trucks').onSnapshot(snap=>{S.trucks=snap.docs.map(x=>normTruck({...x.data(),id:x.id})).filter(Boolean);if(!snap.metadata.fromCache){clearTimeout(tmr);if(sy())sy().textContent='Live'}safeRender()},e=>{clearTimeout(tmr);if(sy())sy().textContent='Live updates stopped. Reopen to reconnect.'}));
   dataUnsubs.push(db.doc('plant/crews').onSnapshot(snap=>{S.info=normInfo(snap.exists?(snap.data()||{}).info:{});safeRender()},()=>{}));
@@ -1289,7 +1311,7 @@ async function enterApp(user){
       if(gone){gateNote='__bye__';FB.signOut();return}
       let owner=false;
       try{const o=await db.doc('meta/owner').get();if(!o.exists){await db.doc('meta/owner').set({uid:me});owner=true}else owner=(o.data()||{}).uid===me}catch(e){}
-      await db.doc('users/'+me).set({name:user.displayName||String(user.email||'').split('@')[0],role:owner?'admin':'pending',created:new Date().toISOString()})}
+      await db.doc('users/'+me).set({name:user.displayName||String(user.email||'').split('@')[0],role:owner?'admin':'pending',created:new Date().toISOString()});if(!owner)setTimeout(()=>notify('signup',`${user.displayName||String(user.email||'').split('@')[0]} is waiting for a role`,'Open People in Code 3 to give them access','mgr'),1500);}
     else{const v=mine.data()||{};if(v.email!==undefined){try{await db.doc('users/'+me).set({name:String(v.name||''),role:String(v.role||'pending'),created:String(v.created||'')})}catch(e){}}}
     try{await db.doc('private/'+me).set({email:user.email||''})}catch(e){}
     try{const o=await db.doc('meta/owner').get();ownerUid=o.exists?(o.data()||{}).uid:null;ownerId=ownerUid}catch(e){}
