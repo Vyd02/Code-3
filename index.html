@@ -63,6 +63,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .sig small{font-size:12px;color:var(--mut);font-weight:400}
 .sig:disabled{opacity:1;cursor:default}
 .by{color:var(--mut)}
+.role.owner{background:#ffc400;color:#121315}
+.ownpill{justify-self:start;background:#ffc400;color:#121315;border-radius:20px;padding:4px 14px;font-weight:700;font-size:14px}
+.prow .ownpill{grid-column:2}
 .sig.rq{border-style:solid;border-color:#d89a00;background:color-mix(in srgb,#ffc400 12%,var(--bg))}.sig.rq b{color:#b07d00}
 :root[data-theme=dark] .sig.rq b{color:#ffc94d}
 .prks{display:grid;gap:6px;max-height:42vh;overflow:auto}
@@ -392,8 +395,8 @@ label{display:grid;gap:4px;font-size:14px;font-weight:600}
 </div>
 
 <div class="modal" id="mPeople" hidden><div class="sheet"><div class="shead1"><h2>People</h2><button type="button" data-close aria-label="Close">✕</button></div>
-<p class="hint" style="margin:0">Pick a role for each person. New sign-ups wait here with no access until you choose.</p>
-<p class="k" style="margin:0">Admin: everything · Supervisor: move trucks and comment · Employee: view only</p>
+<p class="hint" style="margin:0">Pick a role for each person. New sign-ups wait here with no access until you choose. Only you, the owner, can change roles.</p>
+<p class="k" style="margin:0">Admin: runs the line, but can't change roles · Supervisor: moves trucks, comments, requests sigs · Inspector: signs Station 18 · Employee: view only</p>
 <div id="pplList" class="ppl"></div></div></div>
 <div class="modal" id="mStn" hidden><div class="sheet stn" id="stnSheet" role="dialog" aria-modal="true" aria-label="Station"></div></div>
 <div class="modal" id="mSig" hidden><form class="sheet" id="fSig" autocomplete="off"><div class="shead1"><h2 id="sigTitle">Signature</h2><button type="button" data-close aria-label="Close">✕</button></div>
@@ -539,8 +542,8 @@ function tile(s,cnt,bump){const c=cnt[s.k]||0,inf=S.info[s.k],on=sel===s.k,b=bum
   return `<button class="tl${c?' has':''}${on?' on':''}${b}" data-k="${s.k}" aria-pressed="${on}" title="${esc(inf.n)}"${s.c?` style="--sc:${s.c}"`:''}><b>${s.code}</b><span>${s.z==='fin'||s.z==='out'||!isDef(s.k)?esc(inf.n):(inf.sup?esc(inf.sup):'&nbsp;')}</span><i>${c||''}</i>${cm}</button>`}
 
 function renderMe(){const r=eff();
-  const label={admin:'Admin',emp:'Supervisor',insp:'Inspector',view:'Employee · view only'}[r];
-  $('#me').innerHTML=!shared?'':`<span>${me?esc(names[me]||'Signed in'):'Signed in'}</span><span class="role ${r==='admin'?'admin':r==='view'?'view':''}">${label}</span>${me&&me===ownerId?`<div class="seg" role="group" aria-label="View as">${[['admin','Admin'],['emp','Supervisor'],['insp','Inspector'],['view','Employee']].map(([v,l])=>`<button data-prev="${v}" class="${(preview||'admin')===v?'on':''}" aria-pressed="${(preview||'admin')===v}">${l}</button>`).join('')}</div>`:''}<span class="hbtns">${me&&me===ownerId?'<button id="bPeople">People</button>':''}<button id="bOut">Sign out</button></span><span class="sync" id="sync"></span>`;
+  const isOwn=me&&me===ownerId&&!preview,label=isOwn?'Owner':{admin:'Admin',emp:'Supervisor',insp:'Inspector',view:'Employee · view only'}[r];
+  $('#me').innerHTML=!shared?'':`<span>${me?esc(names[me]||'Signed in'):'Signed in'}</span><span class="role ${isOwn?'owner':r==='admin'?'admin':r==='view'?'view':''}">${label}</span>${me&&me===ownerId?`<div class="seg" role="group" aria-label="View as">${[['admin','Owner'],['emp','Supervisor'],['insp','Inspector'],['view','Employee']].map(([v,l])=>`<button data-prev="${v}" class="${(preview||'admin')===v?'on':''}" aria-pressed="${(preview||'admin')===v}">${l}</button>`).join('')}</div>`:''}<span class="hbtns">${me&&me===ownerId?'<button id="bPeople">People</button>':''}<button id="bOut">Sign out</button></span><span class="sync" id="sync"></span>`;
   $('#bAdd').hidden=!can('edit');$('#bStations').textContent=can('edit')?'Crews':'Crews';}
 
 function safeRender(b){if(animating){pendingRender=true;return}render(b)}
@@ -730,7 +733,7 @@ function doIndex(dest){
 let sigCtx=null;
 const signers=()=>Object.entries(users).filter(([,u])=>u.role==='inspector'||u.role==='admin').sort((a,b)=>(a[1].role==='inspector'?0:1)-(b[1].role==='inspector'?0:1)||a[1].name.localeCompare(b[1].name));
 const members=()=>Object.entries(users).filter(([,u])=>u.role&&u.role!=='pending').sort((a,b)=>(a[1].role==='inspector'?0:1)-(b[1].role==='inspector'?0:1)||a[1].name.localeCompare(b[1].name));
-const pickRows=(list,cur)=>list.length?list.map(([id,u])=>`<label class="prk"><input type="radio" name="who" value="${esc(id)}" ${cur===id?'checked':''}><span><b>${esc(u.name||u.email)}${id===me?' (you)':''}</b><em>${esc(ROLE_NAMES[u.role]||u.role)}</em></span></label>`).join(''):'';
+const pickRows=(list,cur)=>list.length?list.map(([id,u])=>`<label class="prk"><input type="radio" name="who" value="${esc(id)}" ${cur===id?'checked':''}><span><b>${esc(u.name||u.email)}${id===me?' (you)':''}</b><em>${id===ownerId?'Owner':esc(ROLE_NAMES[u.role]||u.role)}</em></span></label>`).join(''):'';
 function sign(t,k){const g=t.sig[k],rq=t.req[k],l=SIGS.find(x=>x[0]===k)[1],r=eff();sigCtx={id:t.id,k,mode:''};
   let body='',go='',extra='';
   if(r==='admin'){sigCtx.mode='admin';
@@ -903,11 +906,11 @@ FB.onAuth(async user=>{
 });
 
 // ---------- People screen (admin) ----------
-function renderPeople(){const list=Object.entries(users).sort((a,b)=>{const o={pending:0,admin:1,supervisor:2,inspector:3,employee:4};return(o[a[1].role]-o[b[1].role])||a[1].name.localeCompare(b[1].name)});
+function renderPeople(){const list=Object.entries(users).sort((a,b)=>{const o={pending:0,admin:2,supervisor:3,inspector:4,employee:5},ra=a[0]===ownerUid?1:o[a[1].role],rb=b[0]===ownerUid?1:o[b[1].role];return(ra-rb)||a[1].name.localeCompare(b[1].name)});
   const waiting=list.filter(([,u])=>u.role==='pending').length;
   $('#pplList').innerHTML=(waiting?`<p class="pwait">${waiting} ${waiting===1?'person is':'people are'} waiting for a role</p>`:'')+list.map(([id,u])=>{const locked=id===me||id===ownerUid;
     return `<div class="prow${u.role==='pending'?' pend':''}"><div class="pav">${esc((u.name||u.email||'?').trim().charAt(0).toUpperCase())}</div><div class="pinfo"><b>${esc(u.name||'No name')}${id===me?' (you)':''}</b><span class="k">${esc(u.email)}</span>${u.created?`<span class="k">Joined ${fmtDT(u.created)}</span>`:''}</div>
-      <select data-uid="${esc(id)}" aria-label="Role for ${esc(u.name||u.email)}" ${locked?'disabled':''}>${['pending','employee','inspector','supervisor','admin'].map(r=>`<option value="${r}" ${u.role===r?'selected':''}>${ROLE_NAMES[r]}</option>`).join('')}</select></div>`}).join('')||'<p class="k">No one has signed up yet.</p>'}
+      ${id===ownerUid?'<span class="ownpill">Owner</span>':`<select data-uid="${esc(id)}" aria-label="Role for ${esc(u.name||u.email)}" ${locked?'disabled':''}>${['pending','employee','inspector','supervisor','admin'].map(r=>`<option value="${r}" ${u.role===r?'selected':''}>${ROLE_NAMES[r]}</option>`).join('')}</select>`}</div>`}).join('')||'<p class="k">No one has signed up yet.</p>'}
 $('#pplList').addEventListener('change',async e=>{const s=e.target.closest('select[data-uid]');if(!s||me!==ownerId)return;const uid=s.dataset.uid,r=s.value;
   try{await db.doc('users/'+uid).update({role:r});toast(`${users[uid]?users[uid].name:'User'} is now ${ROLE_NAMES[r]}`)}catch(x){toast("Couldn't change that role.");renderPeople()}});
 document.addEventListener('click',e=>{if(e.target.closest('#bPeople')){if(me!==ownerId)return;renderPeople();$('#mPeople').hidden=false}else if(e.target.closest('#bOut')){undo=null;FB.signOut();toast('Signed out')}});
