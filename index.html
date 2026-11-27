@@ -443,7 +443,7 @@ label{display:grid;gap:4px;font-size:14px;font-weight:600}
 .hint{font-size:13px;color:var(--mut);font-weight:400}
 .toast{position:fixed;left:50%;bottom:18px;transform:translate(-50%,120px);background:var(--dk);color:#fff;border-radius:10px;padding:6px 6px 6px 16px;display:flex;gap:12px;align-items:center;z-index:30;transition:transform .35s cubic-bezier(.3,1.3,.5,1);max-width:calc(100% - 24px)}
 .toast{visibility:hidden}.toast.show{transform:translate(-50%,0);visibility:visible}
-.toast button{background:#fff;color:var(--dk);border:0;min-height:38px}
+.toast button{background:#fff;color:var(--dk);border:0;min-height:42px;flex:none;white-space:nowrap;font-weight:800;padding:0 16px}.toast{overflow:hidden;width:max-content}.toast .tbar{position:absolute;left:0;bottom:0;height:3px;width:100%;background:#ffd400;transform-origin:left;transform:scaleX(0)}.toast.undoable.run .tbar{animation:tbar var(--tt) linear forwards}@keyframes tbar{from{transform:scaleX(1)}to{transform:scaleX(0)}}#tMsg{min-width:0}
 @media(min-width:1000px){.z-build .tiles{grid-template-columns:repeat(15,minmax(0,1fr))}}
 @media(max-width:900px){.row2{grid-template-columns:minmax(0,1fr) minmax(0,2fr)}.row2 .z-fin{grid-column:1 / -1}}
 @media(max-width:400px){.seg button{font-size:12.5px;padding:0 2px}}
@@ -587,7 +587,7 @@ label{display:grid;gap:4px;font-size:14px;font-weight:600}
 <div id="tour" class="tour" hidden role="dialog" aria-modal="true" aria-labelledby="tTitleT"><div id="tHole" class="thole"></div>
 <div id="tCard" class="tcard"><div class="thead"><span id="tCount" class="k"></span><button type="button" id="tSkip" class="tskip">Skip tour</button></div>
 <h3 id="tTitleT"></h3><p id="tBody"></p><div class="tfoot"><div id="tDots" class="tdots"></div><div class="tbtns"><button type="button" id="tBack">Back</button><button type="button" class="go" id="tNext">Next</button></div></div></div></div>
-<div class="toast" id="toast" role="status"><span id="tMsg"></span><button id="tUndo">Undo</button></div>
+<div class="toast" id="toast" role="status"><span id="tMsg"></span><button id="tUndo">↶ Undo</button><i class="tbar"></i></div>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
   <g id="wh"><circle cx="11" cy="23" r="4.5" fill="#1b1c1e"/><circle cx="11" cy="23" r="1.8" fill="#c9ccd1"/><circle cx="38" cy="23" r="4.5" fill="#1b1c1e"/><circle cx="38" cy="23" r="1.8" fill="#c9ccd1"/></g>
@@ -667,8 +667,12 @@ async function delTruck(id){if(!shared){saveLocal();return}try{await db.collecti
 async function putInfo(){if(!shared){saveLocal();return}try{await db.doc('plant/crews').set({info:S.info})}catch(e){writeFail(e)}}
 async function putComment(c){if(!shared){saveLocal();return}try{await db.collection('comments').doc(c.id).set(c)}catch(e){writeFail(e)}}
 async function delComment(id){if(!shared){saveLocal();return}try{await db.collection('comments').doc(id).delete()}catch(e){writeFail(e)}}
-function remember(ids){undo=ids.map(id=>{const t=find(id);return{id,before:t?clone(t):null}})}
+let undoAt=0;
+function remember(ids){undoAt=Date.now();undo=ids.map(id=>{const t=find(id);return{id,before:t?clone(t):null}})}
 async function doUndo(){if(!undo)return;const u=undo;undo=null;$('#toast').classList.remove('show');
+  // Feature 7: tell everyone when a move gets undone
+  const back=u.filter(e=>e.before).map(e=>{const cur=find(e.id);return cur&&cur.k!==e.before.k?e.before:null}).filter(Boolean);
+  if(back.length)notify('undo',back.length===1?`${back[0].unit} move undone`:`Line move undone`,back.length===1?`Back at ${title(back[0].k)} · ${myName()}`:`${back.length} trucks back where they were · ${myName()}`,'all','undo');
   for(const e of u){if(e.before){const i=S.trucks.findIndex(t=>t.id===e.id);if(i>=0)S.trucks[i]=e.before;else S.trucks.push(e.before);putTruck(e.before)}else{S.trucks=S.trucks.filter(t=>t.id!==e.id);delTruck(e.id)}}
   saveLocal();render()}
 
@@ -1042,7 +1046,9 @@ $('#fPart').addEventListener('submit',e=>{e.preventDefault();const t=find(partId
 $('#chList').addEventListener('click',e=>{const b=e.target.closest('[data-ch]');if(!b||b.disabled)return;const o=chooseOpts[+b.dataset.ch];$('#mChoose').hidden=true;chooseOpts=[];if(o&&o.fn)setTimeout(o.fn,40)});
 $('#mvList').addEventListener('click',e=>{const b=e.target.closest('[data-pick]');if(!b||b.disabled)return;$('#mMove').hidden=true;const cb=pickCb;pickCb=null;if(cb)cb(b.dataset.pick)});
 
-function toast(m){$('#tMsg').textContent=m;$('#tUndo').hidden=!undo;$('#toast').classList.add('show');clearTimeout(tTimer);tTimer=setTimeout(()=>$('#toast').classList.remove('show'),5000)}
+function toast(m){const can=!!undo&&Date.now()-undoAt<400,el=$('#toast');$('#tMsg').textContent=m;$('#tUndo').hidden=!can;el.classList.toggle('undoable',can);
+  const ms=can?10000:4000;el.style.setProperty('--tt',ms+'ms');el.classList.remove('show','run');void el.offsetWidth;el.classList.add('show','run');
+  clearTimeout(tTimer);tTimer=setTimeout(()=>{el.classList.remove('show','run');if(can)undo=null},ms)}
 $('#tUndo').addEventListener('click',doUndo);
 
 // ---------- forms ----------
