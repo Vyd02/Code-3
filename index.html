@@ -63,6 +63,17 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .sig small{font-size:12px;color:var(--mut);font-weight:400}
 .sig:disabled{opacity:1;cursor:default}
 .by{color:var(--mut)}
+.z-bub{--zc:#2f9be0}
+#floor .bubg{cursor:pointer;outline:none}#floor .bubbox{fill:color-mix(in srgb,#2f9be0 10%,var(--bg));stroke:#2f9be0;stroke-width:2;stroke-dasharray:8 6}
+#floor .bubg.on .bubbox{stroke-width:3.5;stroke-dasharray:none}#floor .bubg.warn .bubbox{stroke:#d89a00;fill:color-mix(in srgb,#ffc400 12%,var(--bg))}
+#floor .bubg.pulse .bubbox{animation:npulse .8s ease}
+#floor .bfl{fill:none;stroke:#2f9be0;stroke-width:1.5;opacity:.5;animation:brise 4.5s ease-in-out infinite}
+#floor .bubg.warn .bfl{stroke:#d89a00}
+@keyframes brise{0%{transform:translateY(0);opacity:0}25%{opacity:.55}100%{transform:translateY(-34px);opacity:0}}
+#floor .bubn{font:700 13px Barlow,sans-serif;fill:#2f9be0;pointer-events:none}#floor .bubg.warn .bubn{fill:#b07d00}
+#floor .bubm,#floor .bube{font:600 12px Barlow,sans-serif;fill:var(--mut);pointer-events:none}
+button.bub{flex:1;border-color:#2f9be0;color:#2f9be0;background:transparent}
+
 .tour{position:fixed;inset:0;z-index:60;pointer-events:auto}.tour[hidden]{display:none}
 .thole{position:fixed;border-radius:14px;box-shadow:0 0 0 9999px rgba(10,11,12,.72);outline:3px solid var(--red);outline-offset:2px;transition:left .38s cubic-bezier(.4,0,.2,1),top .38s cubic-bezier(.4,0,.2,1),width .38s cubic-bezier(.4,0,.2,1),height .38s cubic-bezier(.4,0,.2,1);pointer-events:none;animation:tglow 1.6s ease-in-out infinite}
 @keyframes tglow{50%{outline-color:#ff7a7e;outline-offset:6px}}
@@ -483,13 +494,15 @@ const FIN=['Cleaning','Standard work','QC','Finish gigs','Sign the truck'];
 const OUT=[['paint','P','Paint shop','#d7141a'],['body','B','Body shop','#6b7078'],['graphics','G','Graphics','#1e7be5'],['under','U','Undercoating','#121315']];
 const SIGS=[['el','Electrical sig'],['co','Cosmetic sig']];
 const STEPS=[...Array(15)].map((_,i)=>({k:'s'+(i+1),code:String(i+1),def:'Station '+(i+1),z:'build',pos:i}))
+  .concat([{k:'bubble',code:'BB',def:'The Bubble',z:'bub',pos:15}])
   .concat(OUT.map(([k,code,def,c])=>({k,code,def,z:'out',pos:15,c})))
   .concat([16,17,18].map((n,j)=>({k:'s'+n,code:String(n),def:'Station '+n,z:'final',pos:16+j})))
   .concat(FIN.map((n,i)=>({k:'f'+(i+1),code:'F'+(i+1),def:n,z:'fin',pos:19+i})));
 const SEGS=24,DONEPOS=24,EMERG='s11',SIGSTN='s18';
 const segZone=j=>j<15?'build':j===15?'out':j<19?'final':'fin';
 const FLOW=['s16','s17','s18','f1','f2','f3','f4','f5','done'];
-const ZONES=[{z:'build',t:'Build line',sub:'Stations 1–15'},{z:'out',t:'Outside services',sub:''},{z:'final',t:'TAG line',sub:'Stations 16–18'},{z:'fin',t:'Final Line',sub:'Clean to sign-off'}];
+const BUBMAX=30,BUBWARN=3;
+const ZONES=[{z:'build',t:'Build line',sub:'Stations 1–15'},{z:'bub',t:'The Bubble',sub:'Waiting area · max 30'},{z:'out',t:'Outside services',sub:''},{z:'final',t:'TAG line',sub:'Stations 16–18'},{z:'fin',t:'Final Line',sub:'Clean to sign-off'}];
 const $=s=>document.querySelector(s);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -550,7 +563,7 @@ const nm=k=>S.info[k].n;
 const isDef=k=>nm(k)===step(k).def;
 const title=k=>{if(k==='done')return'Signed off';if(k==='sig-el')return'Electrical sig signed';if(k==='sig-co')return'Cosmetic sig signed';if(k==='req-el')return'Electrical sig requested';if(k==='req-co')return'Cosmetic sig requested';if(k==='unreq-el'||k==='unreq-co')return'Sig request canceled';if(k==='unsig-el')return'Electrical sig cleared';if(k==='unsig-co')return'Cosmetic sig cleared';const s=step(k);if(!s)return k;if(s.z==='build'||s.z==='final')return isDef(k)?nm(k):`Stn ${s.code} · ${nm(k)}`;return nm(k)};
 const short=k=>{if(k==='done')return'Signed off';const s=step(k);if(s.z==='build'||s.z==='final')return isDef(k)?'Stn '+s.code:nm(k);return nm(k)};
-const sub=k=>{const s=step(k);return s.z==='fin'?`Final Line ${s.code.slice(1)} of 5`:s.z==='out'?'Outside service':s.z==='final'?'TAG line':`Build line · ${s.code} of 15`};
+const sub=k=>{const s=step(k);return s.z==='bub'?'Waiting area after Station 15':s.z==='fin'?`Final Line ${s.code.slice(1)} of 5`:s.z==='out'?'Outside service':s.z==='final'?'TAG line':`Build line · ${s.code} of 15`};
 const moves=t=>t.h.filter(e=>e.k==='done'||!!step(e.k));
 const lastMove=t=>{const m=moves(t);return m[m.length-1]||null};
 const days=t=>{const l=lastMove(t);return l?Math.max(0,Math.floor((Date.now()-new Date(l.t))/864e5)):0};
@@ -565,8 +578,9 @@ const vtype=t=>{if(t.vt)return t.vt;const m=(t.model||'').toLowerCase();
   if(/rescue|squad/.test(m))return'rescue';if(/\brv\b|coach|motorhome|class [abc]|camper/.test(m))return'rv';if(/pump|engine/.test(m))return'pumper';return'amb'};
 const icon=(t,w=48,h=28,cls='')=>`<svg viewBox="0 0 48 28" width="${w}" height="${h}"${cls?` class="${cls}"`:''}><use href="#v-${vtype(t)}"/></svg>`;
 const at=k=>S.trucks.filter(t=>t.k===k);
-const single=k=>k!=='done'&&!!step(k)&&step(k).z!=='out';
-const occupied=(k,except)=>single(k)&&S.trucks.some(t=>t.k===k&&t.id!==except);
+const single=k=>k!=='done'&&!!step(k)&&step(k).z!=='out'&&step(k).z!=='bub';
+const bubCount=except=>S.trucks.filter(t=>t.k==='bubble'&&t.id!==except).length;
+const occupied=(k,except)=>k==='bubble'?bubCount(except)>=BUBMAX:single(k)&&S.trucks.some(t=>t.k===k&&t.id!==except);
 const holder=(k,except)=>S.trucks.find(t=>t.k===k&&t.id!==except);
 const fullMsg=(k,except)=>`${short(k)} already has ${holder(k,except).unit}. Move that truck first.`;
 const setK=(t,k)=>{t.k=k;t.h=t.h.concat({k,t:now(),by:me||''})};
@@ -616,7 +630,8 @@ function render(bump){
   const card=t=>{const s=step(t.k),inf=S.info[t.k],d=days(t),isLate=t.due&&t.due<td,p=s.pos,lm=lastMove(t),nc=comments(t.k).length;
     const E=can('edit')?'<button data-edit>Edit</button>':'';
     let acts;
-    if(s.z==='build'){acts=E+(t.k==='s1'&&can('move')?`<button class="go" data-index>Move line ▸</button>`:t.k===EMERG&&can('edit')?`<button class="warn" data-pull>Emergency pull</button>`:`<span class="lk">Moves when the line moves</span>`)}
+    if(s.z==='build'){acts=E+(t.k==='s1'&&can('move')?`<button class="go" data-index>Move line ▸</button>`:t.k==='s15'&&can('edit')?`<button class="bub" data-tobub>To the Bubble</button>`:t.k===EMERG&&can('edit')?`<button class="warn" data-pull>Emergency pull</button>`:`<span class="lk">Moves when the line moves</span>`)}
+    else if(s.z==='bub')acts=E+(can('edit')?`<button class="go" data-moveto>Bring out… ▸</button>`:`<span class="lk">Waiting in the Bubble</span>`);
     else if(s.z==='out')acts=E+(can('move')?`<button class="go" data-moveto>Move to… ▸</button>`:'');
     else{const i=FLOW.indexOf(t.k),nx=FLOW[i+1],pv=FLOW[i-1],needSig=t.k===SIGSTN&&!sigsDone(t),full=nx&&occupied(nx,t.id),blocked=needSig||full;
       acts=(can('edit')?`<button data-back ${i===0||(pv&&occupied(pv,t.id))?'disabled':''} aria-label="Move back one step">◂</button>`:'')+E+(can('move')?`<button class="go" data-adv ${blocked?'disabled':''}>${needSig?'Needs both sigs':full?esc(short(nx))+' is full':nx==='done'?'Sign off ✓':'To '+esc(short(nx))+' ▸'}</button>`:'')}
@@ -666,8 +681,10 @@ function computeFloor(){
   const ks=z=>STEPS.filter(s=>s.z===z).map(s=>s.k);
   label('Build line','Stations 1–15');const b=rows(ks('build'));roads.push(b);
   const lastB=b[b.length-1];
+  label('The Bubble','Waiting area · max 30');const by=y-16,bh=wide?104:132,bx=pad-22,bw=VW-2*pad+44;
+  conns.push(`M${lastB.x} ${lastB.y}V${by}`);P.bubble={x:bx+bw/2,y:by+bh/2,d:1,bub:{x:bx,y:by,w:bw,h:bh}};y=by+bh;
   label('Outside services','');const sy=y-16,sh=wide?88:96,sx=pad-22,sw=VW-2*pad+44;
-  conns.push(`M${lastB.x} ${lastB.y}V${sy}`);
+  conns.push(`M${lastB.x} ${by+bh}V${sy}`);
   const bays=ks('out').map((k,i)=>{const bw=(sw-10*5)/4,bx=sx+10+i*(bw+10);P[k]={x:bx+bw/2,y:sy+sh/2+8,d:1,bay:{x:bx,y:sy+10,w:bw,h:sh-20}};return k});
   y=sy+sh;dir=1;
   label('TAG line','Stations 16–18');const t=rows(ks('final'));roads.push(t);
@@ -678,10 +695,11 @@ function computeFloor(){
   const lastF=f[f.length-1];y+=44;
   const lot={x:pad-22,y,w:VW-2*pad+44,h:58};P.done={x:lot.x+lot.w/2,y:lot.y+lot.h/2,d:1};
   conns.push(`M${lastF.x} ${lastF.y}V${lot.y}`);
-  return{VW,VH:lot.y+lot.h+10,P,labels,roads,conns,svc:{x:sx,y:sy,w:sw,h:sh},lot,bays,wide}}
+  return{VW,VH:lot.y+lot.h+10,P,labels,roads,conns,svc:{x:sx,y:sy,w:sw,h:sh},bub:{x:bx,y:by,w:bw,h:bh},lot,bays,wide}}
 
 function truckSpots(on){const g={};on.forEach(t=>{(g[t.k]=g[t.k]||[]).push(t)});const out={};
   Object.entries(g).forEach(([k,list])=>{const p=FL.P[k];if(!p)return;const n=list.length;
+    if(p.bub){const cols=FL.wide?11:6,rows=2,cw=(p.bub.w-28)/cols;list.slice(0,cols*rows).forEach((t,i)=>{out[t.id]={x:p.bub.x+14+cw*(i%cols+.5),y:p.bub.y+52+Math.floor(i/cols)*40,d:1}});return}
     list.forEach((t,i)=>{if(p.bay){const sp=Math.min(26,(p.bay.w-30)/Math.max(1,n-1));out[t.id]={x:p.x+(i-(n-1)/2)*sp,y:p.y+6,d:1}}
       else out[t.id]={x:p.x+(i-(n-1)/2)*26,y:p.y-30,d:p.d}})});return out}
 
@@ -694,11 +712,15 @@ function renderFloor(bump){
   const roadD=FL.roads.map(pts=>'M'+pts.map(p=>`${p.x} ${p.y}`).join('L')).join('');
   const labs=FL.labels.map(l=>`<text class="zl" x="${FL.svc.x+4}" y="${l.y}">${l.t}</text>${l.sub?`<text class="zs" x="${FL.svc.x+4}" y="${l.y+15}">${l.sub}</text>`:''}`).join('');
   let h=FL.conns.map(d=>`<path class="conn" d="${d}"/>`).join('')+`<path class="road" d="${roadD}"/><path class="roadc" d="${roadD}"/>`;
+  {const B=FL.bub,bc=cnt.bubble||0,cols=FL.wide?11:6,shown=cols*2,warn=bc>BUBWARN,nc=comments('bubble').length;
+   h+=`<g class="bubg${warn?' warn':''}${pop==='bubble'?' on':''}${bump&&bump.has('bubble')?' pulse':''}" data-k="bubble" tabindex="0" role="button" aria-label="The Bubble, ${bc} trucks"><rect class="bubbox" x="${B.x}" y="${B.y}" width="${B.w}" height="${B.h}" rx="28"/>
+   ${[[.12,.8,5],[.3,.7,3.5],[.55,.85,6],[.78,.75,4],[.9,.82,3]].map(([fx,fy,r],i)=>`<circle class="bfl" cx="${B.x+B.w*fx}" cy="${B.y+B.h*fy}" r="${r}" style="animation-delay:${i*0.7}s"/>`).join('')}
+   <text class="bubn" x="${B.x+B.w-16}" y="${B.y+22}" text-anchor="end">${bc} / ${BUBMAX}${warn?' · over '+BUBWARN:''}</text>${bc>shown?`<text class="bubm" x="${B.x+B.w-16}" y="${B.y+B.h-12}" text-anchor="end">+${bc-shown} more</text>`:''}${bc?'':`<text class="bube" x="${B.x+B.w/2}" y="${B.y+B.h/2+5}" text-anchor="middle">Empty</text>`}${nc?`<circle cx="${B.x+18}" cy="${B.y+18}" r="8" class="ncm"/><text class="ncmt" x="${B.x+18}" y="${B.y+18}">${nc}</text>`:''}</g>`}
   const s=FL.svc;h+=`<rect class="svcbox" x="${s.x}" y="${s.y}" width="${s.w}" height="${s.h}" rx="12"/><rect x="${s.x+12}" y="${s.y-2}" width="${s.w-24}" height="4" rx="2" fill="url(#pg)"/>`;
   FL.bays.forEach(k=>{const p=FL.P[k],b=p.bay,st=step(k),nc=comments(k).length;
     h+=`<g class="bayg" data-k="${k}"><rect class="bay${pop===k?' on':''}${bump&&bump.has(k)?' pulse':''}" x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="8" style="--sc:${st.c}"/><rect x="${b.x}" y="${b.y}" width="${b.w}" height="4" rx="2" fill="${st.c}"/>
       <text class="bayl${FL.wide?'':' sm'}" x="${b.x+(FL.wide?8:5)}" y="${b.y+19}">${esc(FL.wide?(S.info[k].n.length>16?S.info[k].n.slice(0,15)+'…':S.info[k].n):(S.info[k].n.length>9?S.info[k].n.slice(0,8)+'…':S.info[k].n))}</text>${cnt[k]&&FL.wide?`<text class="bays" x="${b.x+b.w-8}" y="${b.y+19}" text-anchor="end">${cnt[k]}</text>`:''}${nc?`<circle cx="${b.x+b.w-6}" cy="${b.y+b.h-6}" r="7" class="ncm"/><text class="ncmt" x="${b.x+b.w-6}" y="${b.y+b.h-6}">${nc}</text>`:''}</g>`});
-  STEPS.filter(x=>x.z!=='out').forEach(st=>{const p=FL.P[st.k],inf=S.info[st.k],nc=comments(st.k).length,named=st.z==='fin'||!isDef(st.k);
+  STEPS.filter(x=>x.z!=='out'&&x.z!=='bub').forEach(st=>{const p=FL.P[st.k],inf=S.info[st.k],nc=comments(st.k).length,named=st.z==='fin'||!isDef(st.k);
     const lab=named?(inf.n.length>11?inf.n.slice(0,10)+'…':inf.n):(inf.sup?(inf.sup.length>11?inf.sup.slice(0,10)+'…':inf.sup):'');
     h+=`<g class="node z-${st.z}${pop===st.k?' on':''}${bump&&bump.has(st.k)?' pulse':''}${cnt[st.k]?' has':''}" data-k="${st.k}" tabindex="0" role="button" aria-label="${esc(title(st.k))}"><circle class="hit" cx="${p.x}" cy="${p.y-8}" r="28"/><circle class="nc" cx="${p.x}" cy="${p.y}" r="14"/><circle class="hold" cx="${p.x}" cy="${p.y}" r="19" transform="rotate(-90 ${p.x} ${p.y})"/><text class="nt" x="${p.x}" y="${p.y+1}">${st.code}</text>${lab?`<text class="nl" x="${p.x}" y="${p.y+29}">${esc(lab)}</text>`:''}${nc?`<circle cx="${p.x+12}" cy="${p.y-11}" r="7" class="ncm"/><text class="ncmt" x="${p.x+12}" y="${p.y-11}">${nc}</text>`:''}</g>`});
   const L=FL.lot;h+=`<g class="lotg" data-done tabindex="0" role="button" aria-label="Signed off trucks"><rect class="lot${bump&&bump.has('done')?' pulse':''}" x="${L.x}" y="${L.y}" width="${L.w}" height="${L.h}" rx="12"/><text class="lott" x="${L.x+18}" y="${L.y+L.h/2+1}">✓ Signed off</text><text class="lotn" x="${L.x+L.w-18}" y="${L.y+L.h/2+1}" text-anchor="end">${dn.length}</text></g>`;
@@ -768,7 +790,7 @@ function moveTo(t,k,msg){const zChange=k==='done'||step(k).z!==step(t.k).z,dir=p
 
 function indexLine(){if(!can('move'))return;
   const last=at('s15');
-  if(last.length)pick('Move the line',`${last.map(t=>t.unit).join(', ')} at Station 15 leaves the line. Which outside service is it going to?`,STEPS.filter(s=>s.z==='out').map(s=>s.k),doIndex);
+  if(last.length)pick('Move the line',`${last.map(t=>t.unit).join(', ')} at Station 15 leaves the line. Where is it going?`,STEPS.filter(s=>s.z==='out'||(s.z==='bub'&&can('edit'))).map(s=>s.k),doIndex);
   else doIndex(null)}
 function doIndex(dest){
   const B=S.trucks.filter(t=>isBuild(t.k));
@@ -815,7 +837,7 @@ $('#sigExtra').addEventListener('click',e=>{const b=e.target.closest('[data-siga
 
 function pick(t,msg,keys,cb,except){pickCb=cb;$('#mvTitle').textContent=t;$('#mvMsg').textContent=msg;
   $('#mvList').innerHTML=ZONES.map(z=>{const ks=keys.filter(k=>k!=='done'&&step(k).z===z.z);if(!ks.length)return'';
-    return `<h3>${z.t}</h3>`+ks.map(k=>{const s=step(k),occ=occupied(k,except);return `<button class="pk" data-pick="${k}" ${occ?'disabled':''}><b>${s.code}</b><span>${esc(title(k))}</span>${occ?`<em>Has ${esc(at(k)[0].unit)}</em>`:''}</button>`}).join('')}).join('');
+    return `<h3>${z.t}</h3>`+ks.map(k=>{const s=step(k),occ=occupied(k,except);return `<button class="pk" data-pick="${k}" ${occ?'disabled':''}><b>${s.code}</b><span>${esc(title(k))}</span>${occ?`<em>${k==='bubble'?'Full ('+BUBMAX+')':'Has '+esc(at(k)[0].unit)}</em>`:k==='bubble'?`<em>${bubCount(except)} / ${BUBMAX}</em>`:''}</button>`}).join('')}).join('');
   $('#mMove').hidden=false}
 $('#mvList').addEventListener('click',e=>{const b=e.target.closest('[data-pick]');if(!b||b.disabled)return;$('#mMove').hidden=true;const cb=pickCb;pickCb=null;if(cb)cb(b.dataset.pick)});
 
@@ -830,7 +852,7 @@ function openTruck(id){if(!can('edit'))return;editing=id||null;const t=id?find(i
   f.k.value=t?t.k:(sel||(occupied('s1')?(STEPS.find(s=>s.z==='build'&&!occupied(s.k))||{k:'s1'}).k:'s1'));
   $('#tDel').hidden=!t;$('#mTruck').hidden=false;setTimeout(()=>f.unit.focus(),50)}
 $('#fTruck').addEventListener('submit',e=>{e.preventDefault();const f=e.target,k=f.k.value;
-  if(occupied(k,editing)){$('#tErr').textContent=`${title(k)} already has ${at(k).find(t=>t.id!==editing).unit}. Each station holds one truck. Pick an open spot.`;$('#tErr').hidden=false;return}
+  if(occupied(k,editing)){$('#tErr').textContent=k==='bubble'?`The Bubble is full (${BUBMAX} trucks). Bring one out first.`:`${title(k)} already has ${at(k).find(t=>t.id!==editing).unit}. Each station holds one truck. Pick an open spot.`;$('#tErr').hidden=false;return}
   const v={unit:f.unit.value.trim(),model:f.model.value.trim(),vt:f.vt.value,cust:f.cust.value.trim(),due:f.due.value,notes:f.notes.value.trim()};
   let t;if(editing){t=find(editing);remember([t.id]);if(t.k!==k)setK(t,k);Object.assign(t,v);toast(`Saved ${t.unit}`)}
   else{t=normTruck({id:nid(),...v,k,h:[{k,t:now(),by:me||''}]});remember([t.id]);S.trucks.push(t);toast(`Added ${v.unit} at ${title(k)}`)}
@@ -875,7 +897,8 @@ document.addEventListener('click',e=>{
   if(b.dataset.sig){sign(t,b.dataset.sig);return}
   if(b.hasAttribute('data-edit'))openTruck(id);
   else if(b.hasAttribute('data-pull')&&can('edit'))pick('Emergency pull',`Take ${t.unit} off Station 11. Where is it going?`,notBuild(),k=>moveTo(t,k,`${t.unit} pulled off Station 11 → ${title(k)}`));
-  else if(b.hasAttribute('data-moveto')&&can('move'))pick(`Move ${t.unit}`,'Where is it going next?',STEPS.map(s=>s.k).filter(k=>k!==t.k),k=>moveTo(t,k),t.id);
+  else if(b.hasAttribute('data-moveto')&&can('move')){if(t.k==='bubble'&&!can('edit'))return;pick(`Move ${t.unit}`,'Where is it going next?',STEPS.map(s=>s.k).filter(k=>k!==t.k&&(k!=='bubble'||can('edit'))),k=>moveTo(t,k),t.id)}
+  else if(b.hasAttribute('data-tobub')&&can('edit')){if(occupied('bubble',t.id)){toast(`The Bubble is full (${BUBMAX}).`);return}moveTo(t,'bubble',`${t.unit} → The Bubble`)}
   else if(b.hasAttribute('data-adv')&&can('move')){const i=FLOW.indexOf(t.k);if(t.k===SIGSTN&&!sigsDone(t)){toast('Station 18 needs both sigs first');return}if(i>=0&&i<FLOW.length-1){const nx=FLOW[i+1];if(occupied(nx,t.id)){toast(fullMsg(nx,t.id));return}moveTo(t,nx)}}
   else if(b.hasAttribute('data-back')&&can('edit')){const i=FLOW.indexOf(t.k);if(i>0){const pv=FLOW[i-1];if(occupied(pv,t.id)){toast(fullMsg(pv,t.id));return}moveTo(t,pv)}}
   else if(b.hasAttribute('data-return')&&can('edit')){if(occupied('f5',t.id)){toast(fullMsg('f5',t.id));return}remember([t.id]);setK(t,'f5');putTruck(t);render(new Set(['f5']));toast(`${t.unit} back at ${title('f5')}`)}});
@@ -953,6 +976,7 @@ function tourSteps(){const r=eff(),mgr=isMgr()&&!preview,admin=r==='admin';const
   else if(r==='emp')S.push({c:true,t:'Signatures',b:'At Station 18, tap a sig box to ask an inspector to sign. They get a yellow banner. The truck can move on once both sigs are in.'});
   else if(admin)S.push({c:true,t:'Station 18 sigs',b:'Tap a sig box to pick who signed or type a name. A truck needs both the electrical and cosmetic sig before it can leave Station 18.'});
   if(can('comment'))S.push({c:true,t:'Comments',b:'Open any station to leave a note for the crew. Red dots on the map show how many comments a station has.'});
+  S.push({el:'#floor .bubg',t:'The Bubble',b:`The waiting area after Station 15. It holds up to 30 trucks and turns yellow when more than 3 are waiting.${admin?' Send a truck here from Station 15, and bring it out when it\'s ready.':' Only admins move trucks in and out.'}`});
   if(admin)S.push({el:'#bAdd',t:'Add a truck',b:'Add a new truck and pick where it starts. Each station holds one truck. Outside services can hold more than one.'});
   if(mgr)S.push({el:'#bPeople',t:'People',b:'New sign-ups wait here with no access. Give each person a role: Supervisor, Inspector, Employee or Admin.'});
   S.push({el:'#bInv',t:'Invite people',b:'Show the QR code, text or email the link, or print the flyer for the break room.'});

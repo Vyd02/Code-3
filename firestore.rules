@@ -50,7 +50,8 @@ service cloud.firestore {
       allow read: if isMember();
       allow create, delete: if isAdmin();
       allow update: if isAdmin()
-        || (isSupervisor() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['k', 'h', 'req']))
+        || (isSupervisor() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['k', 'h', 'req'])
+            && request.resource.data.k != 'bubble' && resource.data.k != 'bubble')
         || (isInspector() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['sig', 'req', 'h']));
     }
 
