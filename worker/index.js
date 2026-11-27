@@ -11,7 +11,7 @@ const AUD = {
   mgrish: r => ['supervisor', 'admin', 'coowner', 'owner'].includes(r),
   mgr: r => ['coowner', 'owner'].includes(r)
 };
-const TYPES = new Set(['move', 'line', 'pull', 'wait', 'down', 'hold', 'unhold', 'done', 's18', 'sig', 'req', 'signup', 'test']);
+const TYPES = new Set(['move', 'line', 'pull', 'wait', 'down', 'part', 'hold', 'unhold', 'done', 's18', 'sig', 'req', 'signup', 'test', 'undo']);
 
 export default {
   async fetch(req, env, ctx) {

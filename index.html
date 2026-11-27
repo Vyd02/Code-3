@@ -39,7 +39,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .menub b{position:absolute;top:-7px;right:-7px}#bBell b{margin-left:auto}.menub b[hidden],#bBell b[hidden]{display:none}
 .menub.ring{animation:ring 1s 2}@keyframes ring{10%,30%{transform:rotate(10deg)}20%,40%{transform:rotate(-10deg)}50%{transform:none}}@keyframes bpop{from{transform:scale(0)}}
 .holdbar{display:grid;gap:2px;background:color-mix(in srgb,#e11d2a 12%,transparent);border-left:4px solid #e11d2a;border-radius:10px;padding:10px 12px}
-.dnbar{background:color-mix(in srgb,#f08a24 14%,transparent);border-left-color:#f08a24}.dnbar b{color:#f08a24!important}
+.dnbar{background:color-mix(in srgb,#f08a24 14%,transparent);border-left-color:#f08a24}.dnbar>b{color:#f08a24!important}
 .holdbar b{color:#e11d2a;font:800 15px "Barlow Condensed",sans-serif;text-transform:uppercase;letter-spacing:.06em}.holdbar small{color:var(--mut)}
 .card.held{box-shadow:0 0 0 2px #e11d2a inset}
 .holdb{width:100%;min-height:42px;border:1.5px dashed #e11d2a;color:#e11d2a;background:transparent;border-radius:12px;font-weight:700}.holdb.on{border-style:solid;background:#e11d2a;color:#fff}
@@ -379,6 +379,7 @@ body.tabs #bMenu{display:none!important}body.tabs .toast{bottom:96px;z-index:55}
 .notes{font-size:15px;margin:0;padding:8px 10px;border-left:3px solid var(--red);background:var(--bg);border-radius:4px}
 .acts{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.acts>button{flex:1 1 auto}
 .mvbig{display:block;width:100%;min-height:56px;font:800 20px 'Barlow Condensed',sans-serif;letter-spacing:.04em;text-transform:uppercase;border-radius:14px;margin:4px 0 8px;box-shadow:0 6px 16px -8px var(--red);transition:transform .12s}.mvbig:active{transform:scale(.97)}.mvbig[aria-disabled=true]{background:var(--line,#ccc);border-color:transparent;color:var(--mut,#666);box-shadow:none}
+.parts{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}.parts li{display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:10px;padding:6px 6px 6px 10px}.parts li>span{flex:1;display:flex;flex-direction:column;min-width:0}.parts small{color:var(--mut)}.parts b{color:var(--ink)!important;font:700 16px Barlow,sans-serif!important;text-transform:none!important;letter-spacing:0!important}.parts li.in b{text-decoration:line-through;text-decoration-color:var(--mut)}.parts li.in small{color:var(--ok)}.parr{border-color:var(--ok);color:var(--ok);min-height:38px;padding:0 10px}.parr.on{border-color:var(--line);color:var(--mut)}.prm{min-height:38px;width:38px;padding:0}.padd{width:100%;margin-top:8px;border-style:dashed;border-color:#f08a24;color:#f08a24}.pok{margin:6px 0 0;color:var(--ok);font-weight:800}.dlab{display:flex;flex-direction:column;gap:4px;font-weight:600}#fPart{display:flex;flex-direction:column;gap:10px;margin-top:10px}#fPart .go{min-height:50px}
 .chlist{display:flex;flex-direction:column;gap:10px;margin-top:12px}.chopt{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;min-height:58px;padding:10px 16px;border-radius:12px;animation:chin .3s both}.chopt:nth-child(2){animation-delay:.05s}.chopt:nth-child(3){animation-delay:.1s}.chopt b{font-size:17px}.chopt small{opacity:.8;font-weight:500}.chopt.dnc{border-color:#f08a24;color:#f08a24}@keyframes chin{from{opacity:0;transform:translateY(8px)}}.acts .go,.acts .warn{flex:1;min-width:0}
 .warn{border-color:var(--red);color:var(--red);background:transparent}
 .lk{flex:1;font-size:14px;color:var(--mut);display:flex;align-items:center;gap:6px}
@@ -555,7 +556,7 @@ label{display:grid;gap:4px;font-size:14px;font-weight:600}
 <form id="fHold"><input id="holdR" maxlength="80" placeholder="Or type a reason" autocomplete="off"><button class="go" type="submit">Put on hold</button></form></div></div>
 <div class="modal" id="mDown" hidden><div class="sheet"><div class="shead1"><h2 id="downT">Down To</h2><button type="button" data-close aria-label="Close">✕</button></div>
 <p class="hint" style="margin:0">What OEM parts is it waiting on? You can leave this blank.</p>
-<form id="fDown"><input id="downR" maxlength="80" placeholder="e.g. Ford door module" autocomplete="off"><button class="go" type="submit">Send to Down To</button></form></div></div>
+<form id="fDown"><input id="downR" maxlength="80" placeholder="e.g. Ford door module" autocomplete="off"><label class="dlab">Ordered on<input id="downO" type="date"></label><button class="go" type="submit">Send to Down To</button></form></div></div>
 <div class="modal" id="mStats" hidden><div class="sheet statsheet"><div class="shead1"><h2>Line stats</h2><button type="button" data-close aria-label="Close">✕</button></div><div id="statsBody"></div></div></div>
 <div class="modal" id="mAlerts" hidden><div class="sheet"><div class="shead1"><h2>Alerts</h2><button type="button" data-close aria-label="Close">✕</button></div><div id="alertsBody"></div></div></div>
 <div class="modal" id="mPin" hidden><div class="sheet pinsheet" id="pinBody"></div></div>
@@ -569,6 +570,7 @@ label{display:grid;gap:4px;font-size:14px;font-weight:600}
 <div class="modal" id="mSig" hidden><form class="sheet" id="fSig" autocomplete="off"><div class="shead1"><h2 id="sigTitle">Signature</h2><button type="button" data-close aria-label="Close">✕</button></div>
 <div id="sigBody" style="display:grid;gap:10px"></div><p class="err" id="sigErr" hidden></p>
 <div class="row"><span id="sigExtra" style="margin-right:auto"></span><button type="button" data-close>Cancel</button><button class="go" type="submit" id="sigGo">Save</button></div></form></div>
+<div class="modal" id="mPart" hidden><div class="sheet"><div class="shead1"><h2 id="partT">Add part</h2><button type="button" data-close aria-label="Close">✕</button></div><form id="fPart"><label>Part<input id="partN" maxlength="80" required placeholder="e.g. Ford door module" autocomplete="off"></label><label>Ordered on<input id="partO" type="date"></label><button class="go" type="submit">Add part</button></form></div></div>
 <div class="modal" id="mChoose" hidden><div class="sheet"><div class="shead1"><h2 id="chT">Move</h2><button type="button" data-close aria-label="Close">✕</button></div><p class="hint" id="chM" style="margin:0"></p><div id="chList" class="chlist"></div></div></div>
 <div class="modal" id="mMove" hidden>
   <div class="sheet">
@@ -636,7 +638,7 @@ const can=a=>{const r=eff();if(r==='admin')return true;if(r==='emp')return['move
 
 function normInfo(src){const info={};STEPS.forEach(s=>{const x=(src||{})[s.k]||{};info[s.k]={n:String(x.n||'').trim()||s.def,sup:String(x.sup||''),crew:Array.isArray(x.crew)?x.crew.map(String).filter(Boolean):[]}});return info}
 function normTruck(t){if(!t||!t.id)return null;const k=(t.k==='done'||STEPS.some(s=>s.k===t.k))?t.k:'s1';
-  return{id:String(t.id),unit:String(t.unit||''),model:String(t.model||''),plate:String(t.plate||'').toUpperCase(),dn:t.dn&&t.dn.t?{r:String(t.dn.r||'').slice(0,80),by:String(t.dn.by||''),t:String(t.dn.t)}:null,mon:/^(1[0-2]|[1-9])$/.test(String(t.mon||''))?String(t.mon):'',vt:String(t.vt||''),cust:String(t.cust||''),due:String(t.due||''),notes:String(t.notes||''),k,
+  return{id:String(t.id),unit:String(t.unit||''),model:String(t.model||''),plate:String(t.plate||'').toUpperCase(),dn:t.dn&&t.dn.t?{r:String(t.dn.r||'').slice(0,80),by:String(t.dn.by||''),t:String(t.dn.t),parts:Array.isArray(t.dn.parts)?t.dn.parts.filter(x=>x&&x.id&&x.n).slice(0,20).map(x=>({id:String(x.id),n:String(x.n).slice(0,80),o:/^\d{4}-\d\d-\d\d$/.test(x.o||'')?x.o:'',a:x.a?String(x.a):'',by:String(x.by||'')})):[]}:null,mon:/^(1[0-2]|[1-9])$/.test(String(t.mon||''))?String(t.mon):'',vt:String(t.vt||''),cust:String(t.cust||''),due:String(t.due||''),notes:String(t.notes||''),k,
     h:Array.isArray(t.h)?t.h.filter(e=>e&&e.k&&e.t).map(e=>{const o={k:String(e.k),t:String(e.t),by:e.by?String(e.by):''};if(e.r)o.r=String(e.r).slice(0,80);if(e.lm)o.lm=String(e.lm);if(e.em)o.em=1;return o}):[],
     hold:t.hold&&t.hold.t?{r:String(t.hold.r||'').slice(0,80),by:String(t.hold.by||''),t:String(t.hold.t)}:null,
     sig:{el:t.sig&&t.sig.el&&t.sig.el.t?{t:String(t.sig.el.t),by:String(t.sig.el.by||''),name:String(t.sig.el.name||''),uid:String(t.sig.el.uid||'')}:null,co:t.sig&&t.sig.co&&t.sig.co.t?{t:String(t.sig.co.t),by:String(t.sig.co.by||''),name:String(t.sig.co.name||''),uid:String(t.sig.co.uid||'')}:null},
@@ -676,7 +678,7 @@ const isBuild=k=>/^s([1-9]|1[0-5])$/.test(k);
 const posOf=k=>k==='done'?DONEPOS:step(k).pos;
 const nm=k=>S.info[k].n;
 const isDef=k=>nm(k)===step(k).def;
-const title=k=>{if(k==='done')return'Signed off';if(k==='hold')return'Put on hold';if(k==='unhold')return'Hold released';if(k==='sig-el')return'Electrical sig signed';if(k==='sig-co')return'Cosmetic sig signed';if(k==='req-el')return'Electrical sig requested';if(k==='req-co')return'Cosmetic sig requested';if(k==='unreq-el'||k==='unreq-co')return'Sig request canceled';if(k==='unsig-el')return'Electrical sig cleared';if(k==='unsig-co')return'Cosmetic sig cleared';const s=step(k);if(!s)return k;if(s.z==='build'||s.z==='final')return isDef(k)?nm(k):`Stn ${s.code} · ${nm(k)}`;return nm(k)};
+const title=k=>{if(k==='done')return'Signed off';if(k==='part')return'Part arrived';if(k==='hold')return'Put on hold';if(k==='unhold')return'Hold released';if(k==='sig-el')return'Electrical sig signed';if(k==='sig-co')return'Cosmetic sig signed';if(k==='req-el')return'Electrical sig requested';if(k==='req-co')return'Cosmetic sig requested';if(k==='unreq-el'||k==='unreq-co')return'Sig request canceled';if(k==='unsig-el')return'Electrical sig cleared';if(k==='unsig-co')return'Cosmetic sig cleared';const s=step(k);if(!s)return k;if(s.z==='build'||s.z==='final')return isDef(k)?nm(k):`Stn ${s.code} · ${nm(k)}`;return nm(k)};
 const short=k=>{if(k==='done')return'Signed off';const s=step(k);if(s.z==='build'||s.z==='final')return isDef(k)?'Stn '+s.code:nm(k);return nm(k)};
 const sub=k=>{const s=step(k);return s.z==='bub'?'Waiting area after Station 15':s.z==='nxt'?'Waiting area after Station 18':s.z==='fin'?`Final Line ${s.code.slice(1)} of 5`:s.z==='out'?'Outside service':s.z==='final'?'TAG line':`Build line · ${s.code} of 15`};
 const moves=t=>t.h.filter(e=>e.k==='done'||!!step(e.k));
@@ -713,6 +715,7 @@ const histEv=t=>{const ev=[],h=t.h||[],isMv=k=>k==='done'||STEPS.some(x=>x.k===k
     else{const m=/^(un)?(sig|req)-(el|co)$/.exec(e.k)||[];let txt=title(e.k);
       if(m[2]==='sig'&&!m[1]){const g=t.sig&&t.sig[m[3]];const later=h.slice(i+1).some(x=>x.k===e.k||x.k==='un'+e.k);if(g&&g.name&&!later)txt+=`: ${g.name}`}
       if(m[2]==='req'&&!m[1]){const r=t.req&&t.req[m[3]];const later=h.slice(i+1).some(x=>x.k===e.k||x.k==='un'+e.k);if(r&&r.uid&&!later)txt+=` from ${who(r.uid)}`}
+      if(e.k==='part'){ev.push({t:e.t,ic:'done',txt:'Part arrived'+(e.r?': '+e.r:''),by:e.by});return}
       if(e.k==='hold'){ev.push({t:e.t,ic:'hold',txt:'Put on hold'+(e.r?': '+e.r:''),by:e.by});return}if(e.k==='unhold'){ev.push({t:e.t,ic:'done',txt:'Hold released',by:e.by});return}
       ev.push({t:e.t,ic:m[1]?'move':m[2]||'move',txt,by:e.by})}});
   return ev.sort((a,b)=>new Date(b.t)-new Date(a.t))};
@@ -791,11 +794,11 @@ function render(bump){queueMicrotask(alertsTick);
       ${sigs}
       ${single(t.k)&&S.trucks.some(x=>x.k===t.k&&x.id!==t.id)?`<p class="dup">⚠ Shares ${esc(short(t.k))} with ${esc(S.trucks.filter(x=>x.k===t.k&&x.id!==t.id).map(x=>x.unit).join(', '))}. Only one truck fits here. ${can('edit')?'Tap Edit and move one to an open spot.':'Ask an admin to fix it.'}</p>`:''}
       ${t.notes?`<p class="notes">${esc(t.notes)}</p>`:''}
-      ${t.k==='down'?`<div class="holdbar dnbar"><b>Down To · waiting on OEM parts</b><span>${esc(t.dn&&t.dn.r||'Parts not listed')}</span>${t.dn?`<small>${esc(who(t.dn.by)||'')}${t.dn.by?' · ':''}${fmtDT(t.dn.t)} · ${spanT(t.dn.t,Date.now())}</small>`:''}</div>`:''}
+      ${t.k==='down'?partsBox(t):''}
       ${t.hold&&t.k!=='down'&&t.k!=='done'?`<div class="holdbar"><b>On hold</b><span>${esc(t.hold.r||'No reason given')}</span><small>${esc(who(t.hold.by)||'')}${t.hold.by?' · ':''}${fmtDT(t.hold.t)} · ${spanT(t.hold.t,Date.now())}</small></div>`:''}
       ${acts}${t.k!=='done'&&t.k!=='down'&&can('move')?`<button class="holdb${t.hold?' on':''}" data-hold>${t.hold?'Release hold':'Put on hold'}</button>`:''}${hist(t)}</article>`};
   const row=t=>{const s=step(t.k),late=isL(t),dd=late?Math.max(1,Math.round((new Date(td)-new Date(t.due))/864e5)):0;
-    const tag=late?`<span class="tag t-late">Overdue ${dd}d</span>`:t.k==='down'?`<span class="tag t-down">OEM parts</span>`:heldT(t)?`<span class="tag t-hold">On hold</span>`:t.k===SIGSTN&&!sigsDone(t)?`<span class="tag t-sig">${SIGS.filter(([k])=>t.sig[k]).length} of 2 sigs</span>`:t.mon?`<small>Month ${esc(t.mon)}</small>`:'';
+    const tag=late?`<span class="tag t-late">Overdue ${dd}d</span>`:t.k==='down'?`<span class="tag t-down">${partsTag(t)}</span>`:heldT(t)?`<span class="tag t-hold">On hold</span>`:t.k===SIGSTN&&!sigsDone(t)?`<span class="tag t-sig">${SIGS.filter(([k])=>t.sig[k]).length} of 2 sigs</span>`:t.mon?`<small>Month ${esc(t.mon)}</small>`:'';
     return `<button class="trow${late?' late':''}" data-open="${esc(t.id)}" style="animation-delay:${Math.min(n++,10)*30}ms"><span class="st z-${s.z}">${esc(s.code.replace(/^S/,''))}</span><span class="mid"><b>${esc(t.unit)}</b><span>${esc([t.cust,title(t.k)].filter(Boolean).join(' · '))}</span></span><span class="rt">${tag}<small>Due ${fmtDue(t.due)}</small></span></button>`};
   window.__card=card;
   const big=cardMode()==='full';
@@ -1029,6 +1032,8 @@ function pick(t,msg,keys,cb,except){pickCb=cb;$('#mvTitle').textContent=t;$('#mv
     const free=ks.filter(k=>!occupied(k,except)).length;
     return `<details class="pz"${only?' open':''}><summary><span class="pzt">${z.t}</span><span class="pzc">${WAIT[ks[0]]&&ks.length===1?waitCount(ks[0],except)+' / '+WAIT[ks[0]].max:ks.length===1?'':free+' of '+ks.length+' open'}</span><i class="pzv"></i></summary><div class="pzl">`+ks.map(k=>{const s=step(k),occ=occupied(k,except);return `<button class="pk" data-pick="${k}" ${occ?'disabled':''}><b>${s.code}</b><span>${esc(title(k))}</span>${occ?`<em>${WAIT[k]?'Full ('+WAIT[k].max+')':'Has '+esc(at(k)[0].unit)}</em>`:WAIT[k]?`<em>${waitCount(k,except)} / ${WAIT[k].max}</em>`:''}</button>`}).join('')+'</div></details>'}).join('');
   $('#mMove').hidden=false}
+$('#fPart').addEventListener('submit',e=>{e.preventDefault();const t=find(partId);if(!t||!can('edit'))return;const n=$('#partN').value.trim();if(!n)return;
+  const P=partsOf(t).map(({legacy,...x})=>x);P.push({id:nid(),n:n.slice(0,80),o:$('#partO').value||'',a:'',by:me||''});$('#mPart').hidden=true;partsSave(t,P);toast(`Added ${n} to ${t.unit}`)});
 $('#chList').addEventListener('click',e=>{const b=e.target.closest('[data-ch]');if(!b||b.disabled)return;const o=chooseOpts[+b.dataset.ch];$('#mChoose').hidden=true;chooseOpts=[];if(o&&o.fn)setTimeout(o.fn,40)});
 $('#mvList').addEventListener('click',e=>{const b=e.target.closest('[data-pick]');if(!b||b.disabled)return;$('#mMove').hidden=true;const cb=pickCb;pickCb=null;if(cb)cb(b.dataset.pick)});
 
@@ -1090,6 +1095,9 @@ document.addEventListener('click',e=>{
   if(b.hasAttribute('data-hold')&&can('move')){if(t.hold){remember([t.id]);t.hold=null;t.h.push({k:'unhold',t:now(),by:me||''});putTruck(t);notify('unhold',`${t.unit} is off hold`,myName(),'all');render();toast(`${t.unit} is off hold`)}else openHold(t);return}
   if(b.hasAttribute('data-edit'))openTruck(id);
   else if(b.hasAttribute('data-pull')&&can('edit'))pick('Emergency pull',`Take ${t.unit} off Station 11. Where is it going?`,notBuild(),k=>{t._em=1;moveTo(t,k,`${t.unit} pulled off Station 11 → ${title(k)}`)});
+  else if(b.dataset.parr){partArrive(t,b.dataset.parr)}
+  else if(b.dataset.prm){partRemove(t,b.dataset.prm)}
+  else if(b.hasAttribute('data-padd')&&can('edit')){openPart(t)}
   else if(b.hasAttribute('data-mv1')){const m=nextMove(t);if(!m)return;if(m.dis){toast(m.why);return}m.run()}
   else if(b.hasAttribute('data-moveto')&&can('move')){movePick(t)}
   else if(b.hasAttribute('data-todown')&&can('edit')){if(occupied('down',t.id)){toast('Down To is full (30).');return}openDown(t)}
@@ -1212,8 +1220,25 @@ $('#fHold').addEventListener('submit',e=>{e.preventDefault();setHold($('#holdR')
 
 // ---------- down to ----------
 let downId=null;
-function openDown(t){downId=t.id;$('#downT').textContent=`${t.unit} → Down To`;$('#downR').value=t.hold&&t.hold.r&&!/^waiting on parts$/i.test(t.hold.r)?t.hold.r:'';openedAt=Date.now();$('#mDown').hidden=false;setTimeout(()=>$('#downR').focus(),80)}
-$('#fDown').addEventListener('submit',e=>{e.preventDefault();const t=find(downId);if(!t)return;$('#mDown').hidden=true;const prevR=t.hold&&t.hold.r||'';moveTo(t,'down',`${t.unit} → Down To`);t.dn={r:$('#downR').value.trim()||(t.dn&&t.dn.r)||prevR,by:me||'',t:now()};t.hold=null;const last=t.h[t.h.length-1];if(last&&last.k==='down'&&t.dn.r)last.r=t.dn.r;putTruck(t);render();notify('down',`${t.unit} → Down To`,`${t.dn.r?(/^waiting on/i.test(t.dn.r)?t.dn.r:'Waiting on '+t.dn.r):'Waiting on OEM parts'} · ${myName()}`,'all')});
+// Feature 4: Down To parts log
+const dWait=d=>{if(!d)return 0;return Math.max(0,Math.floor((new Date(iso(new Date())+'T12:00')-new Date(d+'T12:00'))/864e5))};
+const dTxt=n=>n===0?'today':n===1?'1 day':n+' days';
+function partsOf(t){const d=t.dn;if(!d)return[];if(d.parts&&d.parts.length)return d.parts;return d.r?[{id:'p0',n:d.r,o:d.t.slice(0,10),a:'',by:d.by,legacy:1}]:[]}
+function partsTag(t){const P=partsOf(t),w=P.filter(x=>!x.a);if(P.length&&!w.length)return'Parts in ✓';const old=w.reduce((m,x)=>Math.max(m,dWait(x.o)),0);return w.length?`Parts · ${old}d`:'OEM parts'}
+function partsBox(t){const P=partsOf(t),ed=can('edit'),w=P.filter(x=>!x.a);
+  return `<div class="holdbar dnbar"><b>Down To · waiting on OEM parts</b>${t.dn?`<small>Sent ${fmtDT(t.dn.t)}${t.dn.by?' by '+esc(who(t.dn.by)):''} · ${spanT(t.dn.t,Date.now())} ago</small>`:''}
+  ${P.length?`<ul class="parts">${P.map(x=>`<li class="${x.a?'in':''}"><span><b>${esc(x.n)}</b><small>${x.a?`✓ Arrived ${fmtDT(x.a)}`:x.o?(dWait(x.o)?`Ordered ${fmtDue(x.o)} · waiting ${dTxt(dWait(x.o))}`:'Ordered today'):'Not ordered yet'}</small></span>${ed?`<button type="button" class="parr${x.a?' on':''}" data-parr="${esc(x.id)}">${x.a?'Undo':'Arrived'}</button><button type="button" class="prm" data-prm="${esc(x.id)}" aria-label="Remove part">✕</button>`:''}</li>`).join('')}</ul>`:'<span>No parts listed yet</span>'}
+  ${P.length&&!w.length?'<p class="pok">✓ All parts are in. Ready to sign off.</p>':''}${ed?'<button type="button" class="padd" data-padd>+ Add part</button>':''}</div>`}
+function partsSave(t,P){t.dn=t.dn||{r:'',by:me||'',t:now()};t.dn.parts=P;t.dn.r=P.filter(x=>!x.a).map(x=>x.n).join(', ').slice(0,80);putTruck(t);render()}
+function partArrive(t,id){if(!can('edit'))return;const P=partsOf(t).map(x=>({...x}));const x=P.find(p=>p.id===id);if(!x)return;delete x.legacy;
+  if(x.a){x.a='';partsSave(t,P);return}
+  x.a=now();t.h=t.h.concat({k:'part',t:now(),by:me||'',r:x.n.slice(0,80)});P.forEach(p=>delete p.legacy);partsSave(t,P);
+  const all=P.every(p=>p.a);notify('part',`${t.unit}: ${x.n} arrived`,all?`All parts are in · ready to sign off · ${myName()}`:`${P.filter(p=>!p.a).length} still waiting · ${myName()}`,'all');toast(all?`All parts are in for ${t.unit}`:`${x.n} arrived`)}
+function partRemove(t,id){if(!can('edit'))return;partsSave(t,partsOf(t).filter(x=>x.id!==id).map(({legacy,...x})=>x))}
+let partId=null;
+function openPart(t){partId=t.id;$('#partT').textContent=`Add part · ${t.unit}`;$('#partN').value='';$('#partO').value=iso(new Date());openedAt=Date.now();$('#mPart').hidden=false;setTimeout(()=>$('#partN').focus(),80)}
+function openDown(t){downId=t.id;$('#downO').value=iso(new Date());$('#downT').textContent=`${t.unit} → Down To`;$('#downR').value=t.hold&&t.hold.r&&!/^waiting on parts$/i.test(t.hold.r)?t.hold.r:'';openedAt=Date.now();$('#mDown').hidden=false;setTimeout(()=>$('#downR').focus(),80)}
+$('#fDown').addEventListener('submit',e=>{e.preventDefault();const t=find(downId);if(!t)return;$('#mDown').hidden=true;const prevR=t.hold&&t.hold.r||'';moveTo(t,'down',`${t.unit} → Down To`);t.dn={r:$('#downR').value.trim()||(t.dn&&t.dn.r)||prevR,by:me||'',t:now()};t.dn.parts=t.dn.r?[{id:nid(),n:t.dn.r,o:$('#downO').value||iso(new Date()),a:'',by:me||''}]:[];t.hold=null;const last=t.h[t.h.length-1];if(last&&last.k==='down'&&t.dn.r)last.r=t.dn.r;putTruck(t);render();notify('down',`${t.unit} → Down To`,`${t.dn.r?(/^waiting on/i.test(t.dn.r)?t.dn.r:'Waiting on '+t.dn.r):'Waiting on OEM parts'} · ${myName()}`,'all')});
 
 // ---------- stats ----------
 const isMvK=k=>k==='done'||STEPS.some(x=>x.k===k);
@@ -1254,6 +1279,7 @@ function alertList(){if(!me)return[];const r=eff(),out=[],wk=Date.now()-7*864e5,
       if(e.em){out.push({t:e.t,c:'hold',i:'⚠',txt:`${t.unit} pulled off Station 11`,sub:`Emergency pull → ${title(e.k)} · ${who(e.by)||''}`,id:t.id,by:e.by});return}
       if(i>0&&WAIT[e.k]){out.push({t:e.t,c:e.k==='down'?'hold':'s18',i:e.k==='down'?'⏳':'◎',txt:`${t.unit} → ${WAIT[e.k].t}`,sub:(e.k==='down'?(e.r?(/^waiting on/i.test(e.r)?e.r:'Waiting on '+e.r):'Waiting on OEM parts')+' · ':'')+(who(e.by)||''),id:t.id,by:e.by});return}
       if(e.k==='hold')out.push({t:e.t,c:'hold',i:'!',txt:`${t.unit} put on hold`,sub:(e.r||'No reason')+' · '+(who(e.by)||''),id:t.id,by:e.by});
+      else if(e.k==='part')out.push({t:e.t,c:'done',i:'📦',txt:`${t.unit}: part arrived`,sub:(e.r||'')+' · '+(who(e.by)||''),id:t.id,by:e.by});
       else if(e.k==='unhold')out.push({t:e.t,c:'done',i:'✓',txt:`${t.unit} is off hold`,sub:who(e.by)||'',id:t.id,by:e.by});
       else if(e.k==='done')out.push({t:e.t,c:'done',i:'✓',txt:`${t.unit} signed off`,sub:who(e.by)||'',id:t.id,by:e.by});
       else if(e.k===SIGSTN&&(r==='admin'||r==='insp'))out.push({t:e.t,c:'s18',i:'18',txt:`${t.unit} reached Station 18`,sub:'Ready for sigs',id:t.id,by:e.by});
