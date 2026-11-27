@@ -569,8 +569,8 @@ const SEGS=24,DONEPOS=24,EMERG='s11',SIGSTN='s18';
 const segZone=j=>j<15?'build':j===15?'out':j<19?'final':'fin';
 const FLOW=['s16','s17','s18','f1','f2','f3','f4','f5','done'];
 const BUBMAX=30,BUBWARN=3;
-const WAIT={bubble:{max:30,warn:3,t:'The Bubble',c:'#2f9be0'},next:{max:10,warn:99,t:'Next Truck',c:'#19a463'}};const isWaitZ=z=>z==='bub'||z==='nxt';
-const ZONES=[{z:'build',t:'Build line',sub:'Stations 1–15'},{z:'bub',t:'The Bubble',sub:'Waiting area · max 30'},{z:'out',t:'Outside services',sub:''},{z:'final',t:'TAG line',sub:'Stations 16–18'},{z:'nxt',t:'Next Truck',sub:'Waiting area · max 10'},{z:'fin',t:'Final Line',sub:'Clean to sign-off'}];
+const WAIT={bubble:{max:30,warn:3,t:'The Bubble',c:'#2f9be0'},next:{max:30,warn:99,t:'Next Truck',c:'#19a463'}};const isWaitZ=z=>z==='bub'||z==='nxt';
+const ZONES=[{z:'build',t:'Build line',sub:'Stations 1–15'},{z:'bub',t:'The Bubble',sub:'Waiting area · max 30'},{z:'out',t:'Outside services',sub:''},{z:'final',t:'TAG line',sub:'Stations 16–18'},{z:'nxt',t:'Next Truck',sub:'Waiting area · max 30'},{z:'fin',t:'Final Line',sub:'Clean to sign-off'}];
 const $=s=>document.querySelector(s);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -778,7 +778,7 @@ function computeFloor(){
   label('TAG line','Stations 16–18');const t=rows(ks('final'));roads.push(t);
   conns.push(`M${t[0].x} ${sy+sh}V${t[0].y}`);
   const lastT=t[t.length-1];
-  label('Next Truck','Waiting area · max 10');const ny=y-16,nh=bh,nx=bx,nw=bw;
+  label('Next Truck','Waiting area · max 30');const ny=y-16,nh=bh,nx=bx,nw=bw;
   conns.push(`M${lastT.x} ${lastT.y}V${ny}`);P.next={x:nx+nw/2,y:ny+nh/2,d:1,bub:{x:nx,y:ny,w:nw,h:nh}};y=ny+nh;dir=-1;
   label('Final Line','Clean to sign-off');const f=rows(ks('fin'));roads.push(f);
   conns.push(`M${f[0].x} ${ny+nh}V${f[0].y}`);
@@ -1073,7 +1073,7 @@ function tourSteps(){const r=eff(),mgr=isMgr()&&!preview,admin=r==='admin';const
   else if(admin)S.push({c:true,t:'Station 18 sigs',b:'Tap a sig box to pick who signed or type a name. A truck needs both the electrical and cosmetic sig before it can leave Station 18.'});
   if(can('comment'))S.push({c:true,t:'Comments',b:'Open any station to leave a note for the crew. Red dots on the map show how many comments a station has.'});
   S.push({el:'#floor .bubg:not(.nx)',t:'The Bubble',b:`The waiting area after Station 15. It holds up to 30 trucks and turns yellow when more than 3 are waiting.${admin?' Send a truck here from Station 15, and bring it out when it\'s ready.':' Only admins move trucks in and out.'}`});
-  S.push({el:'#floor .bubg.nx',t:'Next Truck',b:`The waiting area after Station 18, before the Final Line. It holds up to 10 trucks.${admin?' Send a signed truck here from Station 18, and bring it out to the Final Line when it\'s ready.':' Only admins move trucks in and out.'}`});
+  S.push({el:'#floor .bubg.nx',t:'Next Truck',b:`The waiting area after Station 18, before the Final Line. It holds up to 30 trucks.${admin?' Send a signed truck here from Station 18, and bring it out to the Final Line when it\'s ready.':' Only admins move trucks in and out.'}`});
   if(admin)S.push({el:'#bAdd',t:'Add a truck',b:'Add a new truck and pick where it starts. Each station holds one truck. Outside services can hold more than one.'});
   S.push({el:'#bMenu',t:'The menu',b:`Tap ☰ for ${mgr?'People (give roles), ':''}${me===ownerId&&!preview?'View as, ':''}Help, Invite, your quick PIN and Sign out.`});
   if(false)S.push({el:'#bPeople',t:'People',b:'New sign-ups wait here with no access. Give each person a role: Supervisor, Inspector, Employee or Admin.'});
