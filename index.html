@@ -63,6 +63,14 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .sig small{font-size:12px;color:var(--mut);font-weight:400}
 .sig:disabled{opacity:1;cursor:default}
 .by{color:var(--mut)}
+.invsheet{justify-items:center;text-align:center}.invsheet .shead1{width:100%;text-align:left}
+.invqr{width:min(280px,72vw);border:3px solid var(--ink);border-radius:22px;padding:10px;background:#fff;animation:qrpop .5s cubic-bezier(.3,1.4,.5,1)}
+.invqr img{display:block;width:100%}
+@keyframes qrpop{from{transform:scale(.85);opacity:0}}
+.invurl{display:grid;gap:2px}.invurl b{font:800 26px "Barlow Condensed",sans-serif}
+.invbtns{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.btnlike{display:inline-flex;align-items:center;min-height:44px;border-radius:8px;border:1.5px solid var(--line);padding:0 14px;font-weight:600;color:inherit;text-decoration:none;background:var(--bg)}
+
 .gchk{display:flex;align-items:center;gap:10px;font-weight:500;font-size:15px}.gchk input{width:22px;height:22px;min-height:0;accent-color:var(--red)}
 .pinwrap{display:grid;justify-items:center;gap:6px;text-align:center}.pinwrap h2{margin-top:6px}
 .pav.pbig{width:64px;height:64px;font-size:30px;grid-row:auto;background:#121315;color:#fff}
@@ -418,6 +426,12 @@ label{display:grid;gap:4px;font-size:14px;font-weight:600}
 <p class="k" style="margin:0">Co-owner: full control except the owner · Admin: runs the line, but can't change roles · Supervisor: moves trucks, comments, requests sigs · Inspector: signs Station 18 · Employee: view only</p>
 <div id="pplList" class="ppl"></div></div></div>
 <div class="modal" id="mPin" hidden><div class="sheet pinsheet" id="pinBody"></div></div>
+<div class="modal" id="mInv" hidden><div class="sheet invsheet"><div class="shead1"><h2>Invite people</h2><button type="button" data-close aria-label="Close">✕</button></div>
+<div class="invqr"><img src="qr.svg" alt="QR code for vyd02.github.io/Code-3"></div>
+<p class="gmsg" style="margin:0">Have them scan this with their phone camera.</p>
+<div class="invurl"><span class="k">Can't scan? The link is</span><b>vyd02.github.io/Code-3</b></div>
+<div class="invbtns"><button class="go" id="invShare" type="button">Share…</button><a class="btnlike" id="invSms" href="#">Text it</a><a class="btnlike" id="invMail" href="#">Email it</a><button id="invCopy" type="button">Copy link</button><a class="btnlike" href="invite.html" target="_blank" rel="noopener">Printable flyer</a></div>
+<p class="hint" style="margin:0">New sign-ups wait on the People screen until they get a role.</p></div></div>
 <div class="modal" id="mStn" hidden><div class="sheet stn" id="stnSheet" role="dialog" aria-modal="true" aria-label="Station"></div></div>
 <div class="modal" id="mSig" hidden><form class="sheet" id="fSig" autocomplete="off"><div class="shead1"><h2 id="sigTitle">Signature</h2><button type="button" data-close aria-label="Close">✕</button></div>
 <div id="sigBody" style="display:grid;gap:10px"></div><p class="err" id="sigErr" hidden></p>
@@ -564,7 +578,7 @@ function tile(s,cnt,bump){const c=cnt[s.k]||0,inf=S.info[s.k],on=sel===s.k,b=bum
 
 function renderMe(){const r=eff();
   const isOwn=me&&me===ownerId&&!preview,isCo=!isOwn&&myRaw==='coowner'&&!preview,label=isOwn?'Owner':isCo?'Co-owner':{admin:'Admin',emp:'Supervisor',insp:'Inspector',view:'Employee · view only'}[r];
-  $('#me').innerHTML=!shared?'':`<span>${me?esc(names[me]||'Signed in'):'Signed in'}</span><span class="role ${isOwn?'owner':isCo?'coowner':r==='admin'?'admin':r==='view'?'view':''}">${label}</span>${isMgr()?`<div class="seg" role="group" aria-label="View as">${[['admin',me===ownerId?'Owner':'Co-owner'],['emp','Supervisor'],['insp','Inspector'],['view','Employee']].map(([v,l])=>`<button data-prev="${v}" class="${(preview||'admin')===v?'on':''}" aria-pressed="${(preview||'admin')===v}">${l}</button>`).join('')}</div>`:''}<span class="hbtns">${isMgr()?'<button id="bPeople">People</button>':''}${pinFor(me)?'<button id="bLock">Lock</button>':''}<button id="bPin">PIN</button><button id="bOut">Sign out</button></span><span class="sync" id="sync"></span>`;
+  $('#me').innerHTML=!shared?'':`<span>${me?esc(names[me]||'Signed in'):'Signed in'}</span><span class="role ${isOwn?'owner':isCo?'coowner':r==='admin'?'admin':r==='view'?'view':''}">${label}</span>${isMgr()?`<div class="seg" role="group" aria-label="View as">${[['admin',me===ownerId?'Owner':'Co-owner'],['emp','Supervisor'],['insp','Inspector'],['view','Employee']].map(([v,l])=>`<button data-prev="${v}" class="${(preview||'admin')===v?'on':''}" aria-pressed="${(preview||'admin')===v}">${l}</button>`).join('')}</div>`:''}<span class="hbtns">${isMgr()?'<button id="bPeople">People</button>':''}${pinFor(me)?'<button id="bLock">Lock</button>':''}<button id="bInv">Invite</button><button id="bPin">PIN</button><button id="bOut">Sign out</button></span><span class="sync" id="sync"></span>`;
   $('#bAdd').hidden=!can('edit');$('#bStations').textContent=can('edit')?'Crews':'Crews';}
 
 function safeRender(b){if(animating){pendingRender=true;return}render(b)}
@@ -910,6 +924,15 @@ $('#gate').addEventListener('submit',async e=>{e.preventDefault();const f=e.targ
   }catch(x){err.textContent=authErr(x);if(act!=='reset')ssSet('c3-open',null)}
   btn.disabled=false;btn.textContent=old});
 
+
+// ---------- invite ----------
+{const URL_='https://vyd02.github.io/Code-3/',MSG='Join Code 3, our line tracker: '+URL_+' Tap "Create an account", then you\'ll get access once you\'re approved.';
+ $('#invSms').href='sms:?&body='+encodeURIComponent(MSG);
+ $('#invMail').href='mailto:?subject='+encodeURIComponent('Join Code 3')+'&body='+encodeURIComponent(MSG);
+ if(!navigator.share)$('#invShare').hidden=true;
+ $('#invShare').addEventListener('click',()=>{navigator.share({title:'Code 3',text:MSG,url:URL_}).catch(()=>{})});
+ $('#invCopy').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(URL_);toast('Link copied')}catch(e){toast('Copy failed. The link is vyd02.github.io/Code-3')}});
+ document.addEventListener('click',e=>{if(e.target.closest('#bInv'))$('#mInv').hidden=false});}
 // ---------- quick PIN and sign-out-on-close ----------
 function lsGet(k){try{const v=localStorage.getItem(k);return v==null?null:JSON.parse(v)}catch(e){return null}}
 function lsSet(k,v){try{if(v==null)localStorage.removeItem(k);else localStorage.setItem(k,JSON.stringify(v))}catch(e){}}

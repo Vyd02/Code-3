@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Join Code 3</title>
+<link rel="icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#e9eaec;font:16px/1.5 Barlow,system-ui,sans-serif;color:#121315}
+.sheet{width:min(8.5in,100%);margin:20px auto;background:#fff;box-shadow:0 10px 40px rgba(0,0,0,.15);overflow:hidden}
+.top{background:#121315;color:#fff;padding:40px 44px 56px;position:relative;overflow:hidden}
+.top::after{content:"";position:absolute;right:0;bottom:16px;width:60%;height:22px;background:linear-gradient(#d7141a,#d7141a) 100% 0/100% 4px no-repeat,linear-gradient(#d7141a,#d7141a) 100% 9px/70% 4px no-repeat,linear-gradient(#fff,#fff) 100% 18px/42% 4px no-repeat}
+.top .row{display:flex;justify-content:space-between;align-items:center;gap:20px}
+h1{font:800 clamp(56px,11vw,96px)/.95 "Barlow Condensed",sans-serif;text-transform:uppercase;margin:0}
+.top p{margin:10px 0 0;font-size:20px;color:#c9ccd1}
+.top svg{width:clamp(130px,26vw,220px);flex:none}
+.mid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:36px;padding:44px;align-items:center}
+.qr{width:100%;max-width:330px;justify-self:center;border:3px solid #121315;border-radius:24px;padding:12px}
+.qr img{display:block;width:100%}
+h2{font:800 34px/1 "Barlow Condensed",sans-serif;text-transform:uppercase;margin:0 0 18px}
+ol{list-style:none;margin:0;padding:0;display:grid;gap:16px;counter-reset:s}
+li{counter-increment:s;display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:start;font-size:18px}
+li::before{content:counter(s);width:44px;height:44px;border-radius:50%;background:#d7141a;color:#fff;display:grid;place-items:center;font:800 24px "Barlow Condensed",sans-serif}
+li b{display:block;font-size:19px}
+.url{margin:0 44px 40px;border:2px dashed #b9bdc3;border-radius:16px;padding:18px 22px;display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline;justify-content:center;text-align:center}
+.url span{color:#5f646b}.url b{font:800 clamp(26px,5vw,40px) "Barlow Condensed",sans-serif;letter-spacing:.01em;overflow-wrap:anywhere}
+.foot{background:#f4f4f3;padding:14px 44px;font-size:14px;color:#5f646b;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.bar{display:flex;gap:10px;justify-content:center;margin:20px auto 0;width:min(8.5in,100%);flex-wrap:wrap}
+.bar button,.bar a{min-height:48px;border-radius:10px;border:0;background:#d7141a;color:#fff;font:600 17px Barlow,sans-serif;padding:0 22px;text-decoration:none;display:inline-flex;align-items:center;cursor:pointer}
+.bar a{background:#121315}
+@media(max-width:640px){.mid{grid-template-columns:1fr;padding:28px 22px}.top{padding:28px 22px 50px}.url{margin:0 22px 28px}.foot{padding:12px 22px}}
+@media print{body{background:#fff}.bar{display:none}.sheet{box-shadow:none;margin:0;width:100%}@page{size:letter;margin:0.3in}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style>
+</head>
+<body>
+<div class="bar"><button id="pr" type="button">Print this flyer</button><a href="./">Open Code 3</a></div>
+<div class="sheet">
+  <div class="top"><div class="row"><div><h1>Code 3</h1><p>Line tracker · every truck from Station 1 to signed off</p></div>
+    <svg viewBox="0 0 48 28" aria-hidden="true"><rect x="2" y="3.5" width="29" height="18" rx="2" fill="#f4f5f6"/><rect x="2" y="13" width="29" height="2.6" fill="#d7141a"/><rect x="6" y="6.5" width="7" height="4.5" rx=".8" fill="#4a5058"/><rect x="4" y="2" width="6" height="2" rx="1" fill="#ff2a2a"/><rect x="23" y="2" width="6" height="2" rx="1" fill="#2f7bff"/><path d="M31 9h8l6.5 6.5V22H31z" fill="#f4f5f6"/><path d="M33 11h5l4 4.5h-9z" fill="#cfe6ff"/><rect x="31" y="16" width="14.5" height="1.6" fill="#d7141a"/><circle cx="11" cy="23" r="4.5" fill="#000"/><circle cx="11" cy="23" r="1.8" fill="#c9ccd1"/><circle cx="38" cy="23" r="4.5" fill="#000"/><circle cx="38" cy="23" r="1.8" fill="#c9ccd1"/></svg></div></div>
+  <div class="mid">
+    <div class="qr"><img src="qr.svg" alt="QR code that opens vyd02.github.io/Code-3"></div>
+    <div><h2>Get on the line</h2><ol>
+      <li><span><b>Scan the code</b>Point your phone camera at it and tap the link.</span></li>
+      <li><span><b>Create an account</b>Use your email and a password.</span></li>
+      <li><span><b>Wait for your role</b>The app opens once you're approved.</span></li>
+    </ol></div>
+  </div>
+  <div class="url"><span>Can't scan? Type this in your browser:</span><b>vyd02.github.io/Code-3</b></div>
+  <div class="foot"><span>Tip: add it to your home screen for the app icon.</span><span>Code 3</span></div>
+</div>
+<script>document.getElementById('pr').addEventListener('click',()=>window.print());</script>
+</body>
+</html>
