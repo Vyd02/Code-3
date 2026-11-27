@@ -163,6 +163,8 @@ body.touring{overflow:hidden}
 
 .dup{margin:0;padding:8px 10px;border-radius:8px;background:color-mix(in srgb,var(--red) 14%,var(--bg));color:var(--red);font-size:14px;font-weight:600}
 body.locked{overflow:hidden}
+html.nosc,html.nosc body{overflow:hidden;overscroll-behavior:none}body.nosc{position:fixed;left:0;right:0;width:100%}
+.modal,.drawer{overscroll-behavior:contain;touch-action:none}.sheet,.dpanel{overscroll-behavior:contain;touch-action:pan-y}
 .gate{position:fixed;inset:0;z-index:50;background:#121315;color:#fff;overflow:auto;display:flex;align-items:center;justify-content:center;padding:24px 16px}
 .gate[hidden]{display:none}
 .gwrap{width:min(420px,100%);display:grid;gap:18px}
@@ -1286,6 +1288,10 @@ $('#pplList').addEventListener('change',async e=>{const s=e.target.closest('sele
 document.addEventListener('click',e=>{if(e.target.closest('#bPeople')){if(!isMgr())return;renderPeople();$('#mPeople').hidden=false}else if(e.target.closest('#bOut')){undo=null;ssSet('c3-open',null);FB.signOut();toast('Signed out')}});
 }
 </script>
+<script>(()=>{let y=0,on=false;const sync=()=>{const open=[...document.querySelectorAll('.modal')].some(m=>!m.hidden)||!document.getElementById('drawer').hidden;
+  if(open&&!on){on=true;y=window.scrollY;document.documentElement.classList.add('nosc');document.body.classList.add('nosc');document.body.style.top=-y+'px'}
+  else if(!open&&on){on=false;document.documentElement.classList.remove('nosc');document.body.classList.remove('nosc');document.body.style.top='';window.scrollTo(0,y)}};
+  const mo=new MutationObserver(sync);document.querySelectorAll('.modal,#drawer').forEach(m=>mo.observe(m,{attributes:true,attributeFilter:['hidden']}));})();</script>
 <script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});</script>
 </body>
 </html>
