@@ -26,6 +26,7 @@ Every change is its own commit, so any one can be undone without touching the ot
 | 11 | Hold removed | `6a6625c` | Put on hold button, On hold banner/tag, floor-map hold dot, hold alerts and the On hold stat are hidden, since Down To covers it. One switch in the code (`HOLDS`) brings it back. |
 | 12 | More alert sections | `a195c10` | Moves, Bubble, Next Truck, Down To, Parts, Sigs, Signed off, Late, each with a count. Single truck moves now show too. |
 | 13 | Bubble can't go back | `cce9472` | Trucks in the Bubble can't be moved back to Stations 1–15. |
+| 14 | Photos by station | `1694e17` | Each photo saves its station; the Photos section groups them by station in line order. Needs the updated rules. |
 
 ### Database rules changed
 - Photos: new `match /trucks/{id}/photos/{pid}` block (feature 8).
