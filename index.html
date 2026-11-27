@@ -39,11 +39,12 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .menub b{position:absolute;top:-7px;right:-7px}#bBell b{margin-left:auto}.menub b[hidden],#bBell b[hidden]{display:none}
 .menub.ring{animation:ring 1s 2}@keyframes ring{10%,30%{transform:rotate(10deg)}20%,40%{transform:rotate(-10deg)}50%{transform:none}}@keyframes bpop{from{transform:scale(0)}}
 .holdbar{display:grid;gap:2px;background:color-mix(in srgb,#e11d2a 12%,transparent);border-left:4px solid #e11d2a;border-radius:10px;padding:10px 12px}
+.dnbar{background:color-mix(in srgb,#f08a24 14%,transparent);border-left-color:#f08a24}.dnbar b{color:#f08a24!important}
 .holdbar b{color:#e11d2a;font:800 15px "Barlow Condensed",sans-serif;text-transform:uppercase;letter-spacing:.06em}.holdbar small{color:var(--mut)}
 .card.held{box-shadow:0 0 0 2px #e11d2a inset}
 .holdb{width:100%;min-height:42px;border:1.5px dashed #e11d2a;color:#e11d2a;background:transparent;border-radius:12px;font-weight:700}.holdb.on{border-style:solid;background:#e11d2a;color:#fff}
 .holdq{display:flex;flex-wrap:wrap;gap:8px}.holdq button{border-radius:20px;min-height:40px;padding:0 14px}
-#fHold{display:flex;gap:8px}#fHold input{flex:1;min-width:0}
+#fHold,#fDown{display:flex;gap:8px}#fHold input,#fDown input{flex:1;min-width:0}#fDown{flex-direction:column}#fDown .go{min-height:50px}
 .stg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stg div{background:var(--card,#1b1d21);border:1px solid var(--line);border-radius:12px;padding:10px}
 .stg b{display:block;font:800 30px "Barlow Condensed",sans-serif;line-height:1}.stg span{font-size:12.5px;color:var(--mut)}
 .sth{font:800 15px "Barlow Condensed",sans-serif;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);margin:16px 0 8px}
@@ -107,9 +108,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 #floor .bubg.warn .bfl{stroke:#d89a00}
 @keyframes brise{0%{transform:translateY(0);opacity:0}25%{opacity:.55}100%{transform:translateY(-34px);opacity:0}}
 #floor .bubn{font:700 13px Barlow,sans-serif;fill:#2f9be0;pointer-events:none}#floor .bubg.warn .bubn{fill:#b07d00}
+#floor .bubg.dn .bubbox{fill:color-mix(in srgb,#f08a24 10%,var(--bg));stroke:#f08a24}#floor .bubg.dn .bfl{stroke:#f08a24}#floor .bubg.dn .bubn{fill:#f08a24}
 #floor .bubg.nx .bubbox{fill:color-mix(in srgb,#19a463 10%,var(--bg));stroke:#19a463}#floor .bubg.nx .bfl{stroke:#19a463}#floor .bubg.nx .bubn{fill:#19a463}
 #floor .bubm,#floor .bube{font:600 12px Barlow,sans-serif;fill:var(--mut);pointer-events:none}
-button.bub{flex:1;border-color:#2f9be0;color:#2f9be0;background:transparent}button.bub.nx{border-color:#19a463;color:#19a463}
+button.bub{flex:1;border-color:#2f9be0;color:#2f9be0;background:transparent}button.bub.nx{border-color:#19a463;color:#19a463}button.bub.dn{border-color:#f08a24;color:#f08a24}
 
 .tour{position:fixed;inset:0;z-index:60;pointer-events:auto}.tour[hidden]{display:none}
 .thole{position:fixed;border-radius:14px;box-shadow:0 0 0 9999px rgba(10,11,12,.72);outline:3px solid var(--red);outline-offset:2px;transition:left .38s cubic-bezier(.4,0,.2,1),top .38s cubic-bezier(.4,0,.2,1),width .38s cubic-bezier(.4,0,.2,1),height .38s cubic-bezier(.4,0,.2,1);pointer-events:none;animation:tglow 1.6s ease-in-out infinite}
@@ -517,6 +519,9 @@ label{display:grid;gap:4px;font-size:14px;font-weight:600}
 <p class="hint" style="margin:0">Why is it on hold? Everyone will see this on the truck and the map.</p>
 <div class="holdq" id="holdQ"><button type="button">Waiting on parts</button><button type="button">Rework</button><button type="button">Waiting on QC</button><button type="button">Waiting on customer</button><button type="button">Engineering question</button></div>
 <form id="fHold"><input id="holdR" maxlength="80" placeholder="Or type a reason" autocomplete="off"><button class="go" type="submit">Put on hold</button></form></div></div>
+<div class="modal" id="mDown" hidden><div class="sheet"><div class="shead1"><h2 id="downT">Down To</h2><button type="button" data-close aria-label="Close">✕</button></div>
+<p class="hint" style="margin:0">What OEM parts is it waiting on? You can leave this blank.</p>
+<form id="fDown"><input id="downR" maxlength="80" placeholder="e.g. Ford door module" autocomplete="off"><button class="go" type="submit">Send to Down To</button></form></div></div>
 <div class="modal" id="mStats" hidden><div class="sheet statsheet"><div class="shead1"><h2>Line stats</h2><button type="button" data-close aria-label="Close">✕</button></div><div id="statsBody"></div></div></div>
 <div class="modal" id="mAlerts" hidden><div class="sheet"><div class="shead1"><h2>Alerts</h2><button type="button" data-close aria-label="Close">✕</button></div><div id="alertsBody"></div></div></div>
 <div class="modal" id="mPin" hidden><div class="sheet pinsheet" id="pinBody"></div></div>
@@ -569,13 +574,14 @@ const STEPS=[...Array(15)].map((_,i)=>({k:'s'+(i+1),code:String(i+1),def:'Statio
   .concat(OUT.map(([k,code,def,c])=>({k,code,def,z:'out',pos:15,c})))
   .concat([16,17,18].map((n,j)=>({k:'s'+n,code:String(n),def:'Station '+n,z:'final',pos:16+j})))
   .concat([{k:'next',code:'NT',def:'Next Truck',z:'nxt',pos:18.5}])
-  .concat(FIN.map((n,i)=>({k:'f'+(i+1),code:'F'+(i+1),def:n,z:'fin',pos:19+i})));
+  .concat(FIN.map((n,i)=>({k:'f'+(i+1),code:'F'+(i+1),def:n,z:'fin',pos:19+i})))
+  .concat([{k:'down',code:'DT',def:'Down To',z:'dwn',pos:23.5}]);
 const SEGS=24,DONEPOS=24,EMERG='s11',SIGSTN='s18';
 const segZone=j=>j<15?'build':j===15?'out':j<19?'final':'fin';
 const FLOW=['s16','s17','s18','f1','f2','f3','f4','f5','done'];
 const BUBMAX=30,BUBWARN=3;
-const WAIT={bubble:{max:30,warn:3,t:'The Bubble',c:'#2f9be0'},next:{max:30,warn:99,t:'Next Truck',c:'#19a463'}};const isWaitZ=z=>z==='bub'||z==='nxt';
-const ZONES=[{z:'build',t:'Build line',sub:'Stations 1–15'},{z:'bub',t:'The Bubble',sub:'Waiting area · max 30'},{z:'out',t:'Outside services',sub:''},{z:'final',t:'TAG line',sub:'Stations 16–18'},{z:'nxt',t:'Next Truck',sub:'Waiting area · max 30'},{z:'fin',t:'Final Line',sub:'Clean to sign-off'}];
+const WAIT={bubble:{max:30,warn:3,t:'The Bubble',c:'#2f9be0'},next:{max:30,warn:99,t:'Next Truck',c:'#19a463'},down:{max:30,warn:99,t:'Down To',c:'#f08a24'}};const isWaitZ=z=>z==='bub'||z==='nxt'||z==='dwn';
+const ZONES=[{z:'build',t:'Build line',sub:'Stations 1–15'},{z:'bub',t:'The Bubble',sub:'Waiting area · max 30'},{z:'out',t:'Outside services',sub:''},{z:'final',t:'TAG line',sub:'Stations 16–18'},{z:'nxt',t:'Next Truck',sub:'Waiting area · max 30'},{z:'fin',t:'Final Line',sub:'Clean to sign-off'},{z:'dwn',t:'Down To',sub:'Waiting on OEM parts · max 30'}];
 const $=s=>document.querySelector(s);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -595,7 +601,7 @@ const can=a=>{const r=eff();if(r==='admin')return true;if(r==='emp')return['move
 
 function normInfo(src){const info={};STEPS.forEach(s=>{const x=(src||{})[s.k]||{};info[s.k]={n:String(x.n||'').trim()||s.def,sup:String(x.sup||''),crew:Array.isArray(x.crew)?x.crew.map(String).filter(Boolean):[]}});return info}
 function normTruck(t){if(!t||!t.id)return null;const k=(t.k==='done'||STEPS.some(s=>s.k===t.k))?t.k:'s1';
-  return{id:String(t.id),unit:String(t.unit||''),model:String(t.model||''),plate:String(t.plate||'').toUpperCase(),mon:/^(1[0-2]|[1-9])$/.test(String(t.mon||''))?String(t.mon):'',vt:String(t.vt||''),cust:String(t.cust||''),due:String(t.due||''),notes:String(t.notes||''),k,
+  return{id:String(t.id),unit:String(t.unit||''),model:String(t.model||''),plate:String(t.plate||'').toUpperCase(),dn:t.dn&&t.dn.t?{r:String(t.dn.r||'').slice(0,80),by:String(t.dn.by||''),t:String(t.dn.t)}:null,mon:/^(1[0-2]|[1-9])$/.test(String(t.mon||''))?String(t.mon):'',vt:String(t.vt||''),cust:String(t.cust||''),due:String(t.due||''),notes:String(t.notes||''),k,
     h:Array.isArray(t.h)?t.h.filter(e=>e&&e.k&&e.t).map(e=>{const o={k:String(e.k),t:String(e.t),by:e.by?String(e.by):''};if(e.r)o.r=String(e.r).slice(0,80);return o}):[],
     hold:t.hold&&t.hold.t?{r:String(t.hold.r||'').slice(0,80),by:String(t.hold.by||''),t:String(t.hold.t)}:null,
     sig:{el:t.sig&&t.sig.el&&t.sig.el.t?{t:String(t.sig.el.t),by:String(t.sig.el.by||''),name:String(t.sig.el.name||''),uid:String(t.sig.el.uid||'')}:null,co:t.sig&&t.sig.co&&t.sig.co.t?{t:String(t.sig.co.t),by:String(t.sig.co.by||''),name:String(t.sig.co.name||''),uid:String(t.sig.co.uid||'')}:null},
@@ -657,13 +663,13 @@ const waitCount=(k,except)=>S.trucks.filter(t=>t.k===k&&t.id!==except).length;co
 const occupied=(k,except)=>WAIT[k]?waitCount(k,except)>=WAIT[k].max:single(k)&&S.trucks.some(t=>t.k===k&&t.id!==except);
 const holder=(k,except)=>S.trucks.find(t=>t.k===k&&t.id!==except);
 const fullMsg=(k,except)=>`${short(k)} already has ${holder(k,except).unit}. Move that truck first.`;
-const setK=(t,k)=>{t.k=k;t.h=t.h.concat({k,t:now(),by:me||''})};
+const setK=(t,k)=>{if(k!=='down')t.dn=null;t.k=k;t.h=t.h.concat({k,t:now(),by:me||''})};
 const sigsDone=t=>!!(t.sig.el&&t.sig.co);
 const comments=k=>C.filter(c=>c.k===k).sort((a,b)=>String(b.t).localeCompare(String(a.t)));
 const histEv=t=>{const ev=[],h=t.h||[],isMv=k=>k==='done'||STEPS.some(x=>x.k===k);
   const mv=h.map((e,i)=>i).filter(i=>isMv(h[i].k));let first=true;
   h.forEach((e,i)=>{if(isMv(e.k)){const ni=mv.find(j=>j>i),nx=ni!=null?h[ni]:null;
-      ev.push({t:e.t,ic:first?'start':e.k==='done'?'done':'move',txt:first?`Started at ${title(e.k)}`:e.k==='done'?'Signed off':`Moved to ${title(e.k)}`,by:e.by,stay:e.k==='done'?'':nx?spanT(e.t,nx.t):spanT(e.t,Date.now())+' so far'});first=false}
+      ev.push({t:e.t,ic:first?'start':e.k==='done'?'done':e.k==='down'?'hold':'move',txt:first?`Started at ${title(e.k)}`:e.k==='done'?'Signed off':`Moved to ${title(e.k)}`+(e.k==='down'&&e.r?': '+e.r:''),by:e.by,stay:e.k==='done'?'':nx?spanT(e.t,nx.t):spanT(e.t,Date.now())+' so far'});first=false}
     else{const m=/^(un)?(sig|req)-(el|co)$/.exec(e.k)||[];let txt=title(e.k);
       if(m[2]==='sig'&&!m[1]){const g=t.sig&&t.sig[m[3]];const later=h.slice(i+1).some(x=>x.k===e.k||x.k==='un'+e.k);if(g&&g.name&&!later)txt+=`: ${g.name}`}
       if(m[2]==='req'&&!m[1]){const r=t.req&&t.req[m[3]];const later=h.slice(i+1).some(x=>x.k===e.k||x.k==='un'+e.k);if(r&&r.uid&&!later)txt+=` from ${who(r.uid)}`}
@@ -719,10 +725,10 @@ function render(bump){queueMicrotask(alertsTick);
     const E=can('edit')?'<button data-edit>Edit</button>':'';
     let acts;
     if(s.z==='build'){acts=E+(t.k==='s1'&&can('move')?`<button class="go" data-index>Move line ▸</button>`:t.k==='s15'&&can('edit')?`<button class="bub" data-tobub>To the Bubble</button>`:t.k===EMERG&&can('edit')?`<button class="warn" data-pull>Emergency pull</button>`:'')+(can('move')?`<button class="go${t.k==='s1'?' ghost':''}" data-moveto>Move to… ▸</button>`:t.k==='s1'||t.k==='s15'||t.k===EMERG?'':`<span class="lk">Moves when the line moves</span>`)}
-    else if(isWaitZ(s.z))acts=E+(can('edit')?`<button class="go" data-moveto>Bring out… ▸</button>`:`<span class="lk">Waiting in ${s.z==='bub'?'the Bubble':'Next Truck'}</span>`);
+    else if(isWaitZ(s.z))acts=E+(can('edit')?(s.z==='dwn'?`<button data-moveto>Move… ▸</button><button class="go" data-signoff>Sign off ✓</button>`:`<button class="go" data-moveto>Bring out… ▸</button>`):`<span class="lk">Waiting in ${s.z==='bub'?'the Bubble':s.z==='nxt'?'Next Truck':'Down To'}</span>`);
     else if(s.z==='out')acts=E+(can('move')?`<button class="go" data-moveto>Move to… ▸</button>`:'');
     else{const i=FLOW.indexOf(t.k),nx=FLOW[i+1],pv=FLOW[i-1],needSig=t.k===SIGSTN&&!sigsDone(t),full=nx&&occupied(nx,t.id),blocked=needSig||full;
-      acts=(can('edit')?`<button data-back ${i===0||(pv&&occupied(pv,t.id))?'disabled':''} aria-label="Move back one step">◂</button>`:'')+E+(t.k==='s18'&&can('edit')?`<button class="bub nx" data-tonext ${needSig||occupied('next',t.id)?'disabled':''}>Next Truck</button>`:'')+(can('move')?`<button class="go" data-adv ${blocked?'disabled':''}>${needSig?'Needs both sigs':full?esc(short(nx))+' is full':nx==='done'?'Sign off ✓':'To '+esc(short(nx))+' ▸'}</button>`:'')}
+      acts=(can('edit')?`<button data-back ${i===0||(pv&&occupied(pv,t.id))?'disabled':''} aria-label="Move back one step">◂</button>`:'')+E+(t.k==='f5'&&can('edit')?`<button class="bub dn" data-todown ${occupied('down',t.id)?'disabled':''}>Down To</button>`:'')+(t.k==='s18'&&can('edit')?`<button class="bub nx" data-tonext ${needSig||occupied('next',t.id)?'disabled':''}>Next Truck</button>`:'')+(can('move')?`<button class="go" data-adv ${blocked?'disabled':''}>${needSig?'Needs both sigs':full?esc(short(nx))+' is full':nx==='done'?'Sign off ✓':'To '+esc(short(nx))+' ▸'}</button>`:'')}
     const sigs=t.k===SIGSTN?`<div class="sigs">${SIGS.map(([k,l])=>{const g=t.sig[k],rq=t.req[k],r=eff();
       let cls='sig',main,small='',on=false;
       if(g){cls+=' ok';main='✓ '+esc(g.name||who(g.uid||g.by)||'Signed');small=fmtDT(g.t)+(g.by&&g.by!==g.uid?' · entered by '+esc(who(g.by)):'');on=r==='admin'||(r==='insp'&&g.uid===me)}
@@ -740,6 +746,7 @@ function render(bump){queueMicrotask(alertsTick);
       ${sigs}
       ${single(t.k)&&S.trucks.some(x=>x.k===t.k&&x.id!==t.id)?`<p class="dup">⚠ Shares ${esc(short(t.k))} with ${esc(S.trucks.filter(x=>x.k===t.k&&x.id!==t.id).map(x=>x.unit).join(', '))}. Only one truck fits here. ${can('edit')?'Tap Edit and move one to an open spot.':'Ask an admin to fix it.'}</p>`:''}
       ${t.notes?`<p class="notes">${esc(t.notes)}</p>`:''}
+      ${t.k==='down'?`<div class="holdbar dnbar"><b>Down To · waiting on OEM parts</b><span>${esc(t.dn&&t.dn.r||'Parts not listed')}</span>${t.dn?`<small>${esc(who(t.dn.by)||'')}${t.dn.by?' · ':''}${fmtDT(t.dn.t)} · ${spanT(t.dn.t,Date.now())}</small>`:''}</div>`:''}
       ${t.hold?`<div class="holdbar"><b>On hold</b><span>${esc(t.hold.r||'No reason given')}</span><small>${esc(who(t.hold.by)||'')}${t.hold.by?' · ':''}${fmtDT(t.hold.t)} · ${spanT(t.hold.t,Date.now())}</small></div>`:''}
       ${acts?`<div class="acts">${acts}</div>`:''}${t.k!=='done'&&can('move')?`<button class="holdb${t.hold?' on':''}" data-hold>${t.hold?'Release hold':'Put on hold'}</button>`:''}${hist(t)}</article>`};
   let html='';
@@ -788,14 +795,16 @@ function computeFloor(){
   conns.push(`M${lastT.x} ${lastT.y}V${ny}`);P.next={x:nx+nw/2,y:ny+nh/2,d:1,bub:{x:nx,y:ny,w:nw,h:nh}};y=ny+nh;dir=-1;
   label('Final Line','Clean to sign-off');const f=rows(ks('fin'));roads.push(f);
   conns.push(`M${f[0].x} ${ny+nh}V${f[0].y}`);
-  const lastF=f[f.length-1];y+=8;
+  const lastF=f[f.length-1];
+  label('Down To','Waiting on OEM parts · max 30');const dX=pad+(wide?90:56),dW=VW-pad+22-dX,dH=bh,dY=y-16;
+  P.down={x:dX+dW/2,y:dY+dH/2,d:1,bub:{x:dX,y:dY,w:dW,h:dH,cols:wide?9:5}};y=dY+dH+28;
   const lot={x:pad-22,y,w:VW-2*pad+44,h:58};P.done={x:lot.x+lot.w/2,y:lot.y+lot.h/2,d:1};
-  conns.push(`M${lastF.x} ${lastF.y}V${lot.y}`);
-  return{VW,VH:lot.y+lot.h+10,P,labels,roads,conns,svc:{x:sx,y:sy,w:sw,h:sh},bub:{x:bx,y:by,w:bw,h:bh},boxes:{bubble:P.bubble.bub,next:P.next.bub},lot,bays,wide}}
+  conns.push(`M${lastF.x} ${lastF.y}V${lot.y}`);conns.push(`M${lastF.x} ${dY+dH/2}H${dX}`);conns.push(`M${dX+dW/2} ${dY+dH}V${lot.y}`);
+  return{VW,VH:lot.y+lot.h+10,P,labels,roads,conns,svc:{x:sx,y:sy,w:sw,h:sh},bub:{x:bx,y:by,w:bw,h:bh},boxes:{bubble:P.bubble.bub,next:P.next.bub,down:P.down.bub},lot,bays,wide}}
 
 function truckSpots(on){const g={};on.forEach(t=>{(g[t.k]=g[t.k]||[]).push(t)});const out={};
   Object.entries(g).forEach(([k,list])=>{const p=FL.P[k];if(!p)return;const n=list.length;
-    if(p.bub){const cols=FL.wide?11:6,rows=2,cw=(p.bub.w-28)/cols;list.slice(0,cols*rows).forEach((t,i)=>{out[t.id]={x:p.bub.x+14+cw*(i%cols+.5),y:p.bub.y+52+Math.floor(i/cols)*40,d:1}});return}
+    if(p.bub){const cols=p.bub.cols||(FL.wide?11:6),rows=2,cw=(p.bub.w-28)/cols;list.slice(0,cols*rows).forEach((t,i)=>{out[t.id]={x:p.bub.x+14+cw*(i%cols+.5),y:p.bub.y+52+Math.floor(i/cols)*40,d:1}});return}
     list.forEach((t,i)=>{if(p.bay){const sp=Math.min(26,(p.bay.w-30)/Math.max(1,n-1));out[t.id]={x:p.x+(i-(n-1)/2)*sp,y:p.y+6,d:1}}
       else out[t.id]={x:p.x+(i-(n-1)/2)*26,y:p.y-30,d:p.d}})});return out}
 
@@ -808,8 +817,8 @@ function renderFloor(bump){
   const roadD=FL.roads.map(pts=>'M'+pts.map(p=>`${p.x} ${p.y}`).join('L')).join('');
   const labs=FL.labels.map(l=>`<text class="zl" x="${FL.svc.x+4}" y="${l.y}">${l.t}</text>${l.sub?`<text class="zs" x="${FL.svc.x+4}" y="${l.y+15}">${l.sub}</text>`:''}`).join('');
   let h=FL.conns.map(d=>`<path class="conn" d="${d}"/>`).join('')+`<path class="road" d="${roadD}"/><path class="roadc" d="${roadD}"/>`;
-  Object.entries(FL.boxes).forEach(([wk,B])=>{const W=WAIT[wk],bc=cnt[wk]||0,cols=FL.wide?11:6,shown=cols*2,warn=bc>W.warn,nc=comments(wk).length;
-   h+=`<g class="bubg${wk==='next'?' nx':''}${warn?' warn':''}${pop===wk?' on':''}${bump&&bump.has(wk)?' pulse':''}" data-k="${wk}" tabindex="0" role="button" aria-label="${W.t}, ${bc} trucks"><rect class="bubbox" x="${B.x}" y="${B.y}" width="${B.w}" height="${B.h}" rx="28"/>
+  Object.entries(FL.boxes).forEach(([wk,B])=>{const W=WAIT[wk],bc=cnt[wk]||0,cols=B.cols||(FL.wide?11:6),shown=cols*2,warn=bc>W.warn,nc=comments(wk).length;
+   h+=`<g class="bubg${wk==='next'?' nx':wk==='down'?' dn':''}${warn?' warn':''}${pop===wk?' on':''}${bump&&bump.has(wk)?' pulse':''}" data-k="${wk}" tabindex="0" role="button" aria-label="${W.t}, ${bc} trucks"><rect class="bubbox" x="${B.x}" y="${B.y}" width="${B.w}" height="${B.h}" rx="28"/>
    ${[[.12,.8,5],[.3,.7,3.5],[.55,.85,6],[.78,.75,4],[.9,.82,3]].map(([fx,fy,r],i)=>`<circle class="bfl" cx="${B.x+B.w*fx}" cy="${B.y+B.h*fy}" r="${r}" style="animation-delay:${i*0.7}s"/>`).join('')}
    <text class="bubn" x="${B.x+B.w-16}" y="${B.y+22}" text-anchor="end">${bc} / ${W.max}${warn?' · over '+W.warn:''}</text>${bc>shown?`<text class="bubm" x="${B.x+B.w-16}" y="${B.y+B.h-12}" text-anchor="end">+${bc-shown} more</text>`:''}${bc?'':`<text class="bube" x="${B.x+B.w/2}" y="${B.y+B.h/2+5}" text-anchor="middle">Empty</text>`}${nc?`<circle cx="${B.x+18}" cy="${B.y+18}" r="8" class="ncm"/><text class="ncmt" x="${B.x+18}" y="${B.y+18}">${nc}</text>`:''}</g>`})
   const s=FL.svc;h+=`<rect class="svcbox" x="${s.x}" y="${s.y}" width="${s.w}" height="${s.h}" rx="12"/><rect x="${s.x+12}" y="${s.y-2}" width="${s.w-24}" height="4" rx="2" fill="url(#pg)"/>`;
@@ -997,6 +1006,8 @@ document.addEventListener('click',e=>{
   if(b.hasAttribute('data-edit'))openTruck(id);
   else if(b.hasAttribute('data-pull')&&can('edit'))pick('Emergency pull',`Take ${t.unit} off Station 11. Where is it going?`,notBuild(),k=>moveTo(t,k,`${t.unit} pulled off Station 11 → ${title(k)}`));
   else if(b.hasAttribute('data-moveto')&&can('move')){if(WAIT[t.k]&&!can('edit'))return;pick(`Move ${t.unit}`,'Where is it going next?',STEPS.map(s=>s.k).filter(k=>k!==t.k&&(!WAIT[k]||can('edit'))),k=>{if(occupied(k,t.id)){toast(WAIT[k]?`${WAIT[k].t} is full`:`${title(k)} already has ${at(k)[0].unit}. Move that truck first.`);return}moveTo(t,k)},t.id)}
+  else if(b.hasAttribute('data-todown')&&can('edit')){if(occupied('down',t.id)){toast('Down To is full (30).');return}openDown(t)}
+  else if(b.hasAttribute('data-signoff')&&can('edit')){moveTo(t,'done',`${t.unit} signed off ✓`)}
   else if(b.hasAttribute('data-tonext')&&can('edit')){if(!sigsDone(t)){toast('Station 18 needs both sigs first');return}if(occupied('next',t.id)){toast(`Next Truck is full (${WAIT.next.max}).`);return}moveTo(t,'next',`${t.unit} → Next Truck`)}
   else if(b.hasAttribute('data-tobub')&&can('edit')){if(occupied('bubble',t.id)){toast(`The Bubble is full (${BUBMAX}).`);return}moveTo(t,'bubble',`${t.unit} → The Bubble`)}
   else if(b.hasAttribute('data-adv')&&can('move')){const i=FLOW.indexOf(t.k);if(t.k===SIGSTN&&!sigsDone(t)){toast('Station 18 needs both sigs first');return}if(i>=0&&i<FLOW.length-1){const nx=FLOW[i+1];if(occupied(nx,t.id)){toast(fullMsg(nx,t.id));return}moveTo(t,nx)}}
@@ -1078,8 +1089,9 @@ function tourSteps(){const r=eff(),mgr=isMgr()&&!preview,admin=r==='admin';const
   else if(r==='emp')S.push({c:true,t:'Signatures',b:'At Station 18, tap a sig box to ask an inspector to sign. They get a yellow banner. The truck can move on once both sigs are in.'});
   else if(admin)S.push({c:true,t:'Station 18 sigs',b:'Tap a sig box to pick who signed or type a name. A truck needs both the electrical and cosmetic sig before it can leave Station 18.'});
   if(can('comment'))S.push({c:true,t:'Comments',b:'Open any station to leave a note for the crew. Red dots on the map show how many comments a station has.'});
-  S.push({el:'#floor .bubg:not(.nx)',t:'The Bubble',b:`The waiting area after Station 15. It holds up to 30 trucks and turns yellow when more than 3 are waiting.${admin?' Send a truck here from Station 15, and bring it out when it\'s ready.':' Only admins move trucks in and out.'}`});
+  S.push({el:'#floor .bubg:not(.nx):not(.dn)',t:'The Bubble',b:`The waiting area after Station 15. It holds up to 30 trucks and turns yellow when more than 3 are waiting.${admin?' Send a truck here from Station 15, and bring it out when it\'s ready.':' Only admins move trucks in and out.'}`});
   S.push({el:'#floor .bubg.nx',t:'Next Truck',b:`The waiting area after Station 18, before the Final Line. It holds up to 30 trucks.${admin?' Send a signed truck here from Station 18, and bring it out to the Final Line when it\'s ready.':' Only admins move trucks in and out.'}`});
+  S.push({el:'#floor .bubg.dn',t:'Down To',b:`After F5, a truck either gets signed off or goes to Down To while it waits on OEM parts. It holds up to 30.${admin?' Tap Down To on an F5 truck, then Sign off ✓ when the parts are in.':' Only admins move trucks in and out.'}`});
   if(admin)S.push({el:'#bAdd',t:'Add a truck',b:'Add a new truck and pick where it starts. Each station holds one truck. Outside services can hold more than one.'});
   S.push({el:'#bMenu',t:'The menu',b:`Tap ☰ for ${mgr?'People (give roles), ':''}${me===ownerId&&!preview?'View as, ':''}Help, Invite, your quick PIN and Sign out.`});
   if(false)S.push({el:'#bPeople',t:'People',b:'New sign-ups wait here with no access. Give each person a role: Supervisor, Inspector, Employee or Admin.'});
@@ -1111,6 +1123,11 @@ function openHold(t){holdId=t.id;$('#holdT').textContent=`Put ${t.unit} on hold`
 function setHold(r){const t=find(holdId);if(!t)return;remember([t.id]);t.hold={r:r||'',by:me||'',t:now()};t.h.push({k:'hold',t:now(),by:me||'',r:r||''});putTruck(t);$('#mHold').hidden=true;render();toast(`${t.unit} is on hold`)}
 $('#holdQ').addEventListener('click',e=>{const b=e.target.closest('button');if(b)setHold(b.textContent)});
 $('#fHold').addEventListener('submit',e=>{e.preventDefault();setHold($('#holdR').value.trim())});
+
+// ---------- down to ----------
+let downId=null;
+function openDown(t){downId=t.id;$('#downT').textContent=`${t.unit} → Down To`;$('#downR').value='';openedAt=Date.now();$('#mDown').hidden=false;setTimeout(()=>$('#downR').focus(),80)}
+$('#fDown').addEventListener('submit',e=>{e.preventDefault();const t=find(downId);if(!t)return;$('#mDown').hidden=true;moveTo(t,'down',`${t.unit} → Down To`);t.dn={r:$('#downR').value.trim(),by:me||'',t:now()};const last=t.h[t.h.length-1];if(last&&last.k==='down'&&t.dn.r)last.r=t.dn.r;putTruck(t);render()});
 
 // ---------- stats ----------
 const isMvK=k=>k==='done'||STEPS.some(x=>x.k===k);
