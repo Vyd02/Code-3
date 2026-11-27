@@ -664,7 +664,7 @@ const waitCount=(k,except)=>S.trucks.filter(t=>t.k===k&&t.id!==except).length;co
 const occupied=(k,except)=>WAIT[k]?waitCount(k,except)>=WAIT[k].max:single(k)&&S.trucks.some(t=>t.k===k&&t.id!==except);
 const holder=(k,except)=>S.trucks.find(t=>t.k===k&&t.id!==except);
 const fullMsg=(k,except)=>`${short(k)} already has ${holder(k,except).unit}. Move that truck first.`;
-const setK=(t,k)=>{if(k!=='down')t.dn=null;t.k=k;const e={k,t:now(),by:me||''};if(t._lm){e.lm=t._lm;delete t._lm}if(t._em){e.em=1;delete t._em}t.h=t.h.concat(e);
+const setK=(t,k)=>{if(k!=='down')t.dn=null;if(k==='down'&&t.hold){t.dn={r:t.hold.r||'',by:t.hold.by||me||'',t:now()};t.hold=null}t.k=k;const e={k,t:now(),by:me||''};if(t._lm){e.lm=t._lm;delete t._lm}if(t._em){e.em=1;delete t._em}t.h=t.h.concat(e);
   if(!e.lm){const by=myName();if(e.em)notify('pull',`${t.unit} pulled off Station 11`,`Emergency pull → ${title(k)} · ${by}`,'all');
     else if(k==='done')notify('done',`${t.unit} signed off ✓`,by,'all');
     else if(k==='bubble'||k==='next')notify('wait',`${t.unit} → ${WAIT[k].t}`,by,'all');
@@ -741,7 +741,7 @@ function render(bump){queueMicrotask(alertsTick);
       else if(rq){cls+=' rq';main='Waiting on '+esc(rq.uid===me?'you':(users[rq.uid]?users[rq.uid].name:who(rq.uid))||'someone');small='Asked by '+esc(who(rq.by)||'someone')+' · '+fmtDT(rq.t);on=r!=='view'}
       else{main=r==='admin'?'Tap to sign':r==='insp'?'Tap to sign':r==='emp'?'Tap to request':'Not signed yet';on=r!=='view'}
       return `<button class="${cls}" data-sig="${k}" ${on?'':'disabled'}><span>${l}</span><b>${main}</b>${small?`<small>${small}</small>`:''}</button>`}).join('')}</div>`:'';
-    return `<article class="card z-${s.z}${t.hold?' held':''}${isLate?' late':''}" data-id="${esc(t.id)}" style="animation-delay:${Math.min(n++,8)*40}ms">
+    return `<article class="card z-${s.z}${t.hold&&t.k!=='down'&&t.k!=='done'?' held':''}${isLate?' late':''}" data-id="${esc(t.id)}" style="animation-delay:${Math.min(n++,8)*40}ms">
       <div class="top"><div><h3>${esc(t.unit)}</h3><p>${esc(t.cust)||'&nbsp;'}</p></div>
       <div class="due${isLate?' late':''}">${t.mon?`<span class="monb">Month ${t.mon}</span>`:''}Due<b>${fmtDue(t.due)}</b></div></div>
       ${isLate?`<div class="overdue"><b>Overdue</b><span>${(n=>n===1?'1 day':n+' days')(Math.max(1,Math.round((new Date(td)-new Date(t.due))/864e5)))} past the due date</span></div>`:''}
@@ -753,8 +753,8 @@ function render(bump){queueMicrotask(alertsTick);
       ${single(t.k)&&S.trucks.some(x=>x.k===t.k&&x.id!==t.id)?`<p class="dup">⚠ Shares ${esc(short(t.k))} with ${esc(S.trucks.filter(x=>x.k===t.k&&x.id!==t.id).map(x=>x.unit).join(', '))}. Only one truck fits here. ${can('edit')?'Tap Edit and move one to an open spot.':'Ask an admin to fix it.'}</p>`:''}
       ${t.notes?`<p class="notes">${esc(t.notes)}</p>`:''}
       ${t.k==='down'?`<div class="holdbar dnbar"><b>Down To · waiting on OEM parts</b><span>${esc(t.dn&&t.dn.r||'Parts not listed')}</span>${t.dn?`<small>${esc(who(t.dn.by)||'')}${t.dn.by?' · ':''}${fmtDT(t.dn.t)} · ${spanT(t.dn.t,Date.now())}</small>`:''}</div>`:''}
-      ${t.hold?`<div class="holdbar"><b>On hold</b><span>${esc(t.hold.r||'No reason given')}</span><small>${esc(who(t.hold.by)||'')}${t.hold.by?' · ':''}${fmtDT(t.hold.t)} · ${spanT(t.hold.t,Date.now())}</small></div>`:''}
-      ${acts?`<div class="acts">${acts}</div>`:''}${t.k!=='done'&&can('move')?`<button class="holdb${t.hold?' on':''}" data-hold>${t.hold?'Release hold':'Put on hold'}</button>`:''}${hist(t)}</article>`};
+      ${t.hold&&t.k!=='down'&&t.k!=='done'?`<div class="holdbar"><b>On hold</b><span>${esc(t.hold.r||'No reason given')}</span><small>${esc(who(t.hold.by)||'')}${t.hold.by?' · ':''}${fmtDT(t.hold.t)} · ${spanT(t.hold.t,Date.now())}</small></div>`:''}
+      ${acts?`<div class="acts">${acts}</div>`:''}${t.k!=='done'&&t.k!=='down'&&can('move')?`<button class="holdb${t.hold?' on':''}" data-hold>${t.hold?'Release hold':'Put on hold'}</button>`:''}${hist(t)}</article>`};
   let html='';
   if(!L.length)html=`<div class="empty"><svg viewBox="0 0 48 28"><use href="#v-amb"/></svg><p>${sel?'No trucks here right now.':q?'No trucks match that search.':'No trucks on the line yet.'}</p>${!q&&!sel&&can('edit')?'<p class="k">Tap <b>+ Add truck</b> at the top to add one.</p>':''}</div>`;
   else ZONES.forEach(z=>{const g=L.filter(t=>step(t.k).z===z.z);if(!g.length)return;html+=`<h2 class="zh z-${z.z}">${z.t} <span>${g.length} truck${g.length===1?'':'s'}</span></h2><div class="list">${g.map(card).join('')}</div>`});
@@ -845,7 +845,7 @@ function renderFloor(bump){
       const inner=document.createElementNS(SVGNS,'g');inner.setAttribute('class','mti');const u=document.createElementNS(SVGNS,'use');u.setAttribute('x','-18');u.setAttribute('y','-11');u.setAttribute('width','36');u.setAttribute('height','21');inner.appendChild(u);g.appendChild(inner);
       const tx=document.createElementNS(SVGNS,'text');tx.setAttribute('class','mtl');tx.setAttribute('y','-15');g.appendChild(tx);
       const start=prevOn.size&&!prevOn.has(t.id)?spots[t.id]:sp;g.style.transform=`translate(${start.x}px,${start.y}px)`;layer.appendChild(g)}
-    g.classList.toggle('held',!!t.hold);if(!g.querySelector('.hb')){const c=document.createElementNS(SVGNS,'circle');c.setAttribute('class','hb');c.setAttribute('cx','15');c.setAttribute('cy','-10');c.setAttribute('r','5');g.appendChild(c)}g.querySelector('use').setAttribute('href','#v-'+vtype(t));g.querySelector('text').textContent=t.unit;g.setAttribute('aria-label',`${t.unit} at ${title(t.k)}`);
+    g.classList.toggle('held',!!t.hold&&t.k!=='down'&&t.k!=='done');if(!g.querySelector('.hb')){const c=document.createElementNS(SVGNS,'circle');c.setAttribute('class','hb');c.setAttribute('cx','15');c.setAttribute('cy','-10');c.setAttribute('r','5');g.appendChild(c)}g.querySelector('use').setAttribute('href','#v-'+vtype(t));g.querySelector('text').textContent=t.unit;g.setAttribute('aria-label',`${t.unit} at ${title(t.k)}`);
     g.querySelector('.mti').style.transform=`scaleX(${sp.d<0?-1:1})`;
     const cur=g.style.transform,next=`translate(${sp.x}px, ${sp.y}px)`;
     if(!fresh&&cur.replace(/\s/g,'')!==next.replace(/\s/g,'')&&!reduce){g.classList.add('moving');clearTimeout(g._t);g._t=setTimeout(()=>g.classList.remove('moving'),950)}
@@ -1135,8 +1135,8 @@ $('#fHold').addEventListener('submit',e=>{e.preventDefault();setHold($('#holdR')
 
 // ---------- down to ----------
 let downId=null;
-function openDown(t){downId=t.id;$('#downT').textContent=`${t.unit} → Down To`;$('#downR').value='';openedAt=Date.now();$('#mDown').hidden=false;setTimeout(()=>$('#downR').focus(),80)}
-$('#fDown').addEventListener('submit',e=>{e.preventDefault();const t=find(downId);if(!t)return;$('#mDown').hidden=true;moveTo(t,'down',`${t.unit} → Down To`);t.dn={r:$('#downR').value.trim(),by:me||'',t:now()};const last=t.h[t.h.length-1];if(last&&last.k==='down'&&t.dn.r)last.r=t.dn.r;putTruck(t);render();notify('down',`${t.unit} → Down To`,`${t.dn.r?'Waiting on '+t.dn.r:'Waiting on OEM parts'} · ${myName()}`,'all')});
+function openDown(t){downId=t.id;$('#downT').textContent=`${t.unit} → Down To`;$('#downR').value=t.hold&&t.hold.r&&!/^waiting on parts$/i.test(t.hold.r)?t.hold.r:'';openedAt=Date.now();$('#mDown').hidden=false;setTimeout(()=>$('#downR').focus(),80)}
+$('#fDown').addEventListener('submit',e=>{e.preventDefault();const t=find(downId);if(!t)return;$('#mDown').hidden=true;const prevR=t.hold&&t.hold.r||'';moveTo(t,'down',`${t.unit} → Down To`);t.dn={r:$('#downR').value.trim()||(t.dn&&t.dn.r)||prevR,by:me||'',t:now()};t.hold=null;const last=t.h[t.h.length-1];if(last&&last.k==='down'&&t.dn.r)last.r=t.dn.r;putTruck(t);render();notify('down',`${t.unit} → Down To`,`${t.dn.r?'Waiting on '+t.dn.r:'Waiting on OEM parts'} · ${myName()}`,'all')});
 
 // ---------- stats ----------
 const isMvK=k=>k==='done'||STEPS.some(x=>x.k===k);
@@ -1146,7 +1146,7 @@ function openStats(){const T=S.trucks,nowD=new Date(),wk=new Date(nowD);wk.setHo
   const done=T.filter(t=>t.k==='done'),dw=done.filter(t=>doneAt(t)>=wk).length,dm=done.filter(t=>doneAt(t)>=mo).length;
   const builds=done.map(t=>{const a=t.h&&t.h[0]&&new Date(t.h[0].t),b=doneAt(t);return a&&b?(b-a)/6e4:null}).filter(x=>x!=null);
   const avgB=builds.length?builds.reduce((a,b)=>a+b,0)/builds.length:null;
-  const td=new Date().toISOString().slice(0,10),onLine=T.filter(t=>t.k!=='done'),held=onLine.filter(t=>t.hold).length,late=onLine.filter(t=>t.due&&t.due<td).length;
+  const td=new Date().toISOString().slice(0,10),onLine=T.filter(t=>t.k!=='done'),held=onLine.filter(t=>t.hold&&t.k!=='down').length,late=onLine.filter(t=>t.due&&t.due<td).length;
   const per={};T.forEach(t=>{const mv=(t.h||[]).filter(e=>isMvK(e.k));mv.forEach((e,i)=>{const nx=mv[i+1];if(!nx||e.k==='done')return;(per[e.k]=per[e.k]||[]).push((new Date(nx.t)-new Date(e.t))/6e4)})});
   const rows=STEPS.filter(x=>per[x.k]&&per[x.k].length).map(x=>({k:x.k,n:per[x.k].length,a:per[x.k].reduce((a,b)=>a+b,0)/per[x.k].length}));
   const mx=Math.max(1,...rows.map(r=>r.a)),slow=rows.length?rows.reduce((a,b)=>b.a>a.a?b:a):null;
