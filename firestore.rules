@@ -27,6 +27,7 @@ service cloud.firestore {
       allow read: if signedIn() && (request.auth.uid == uid || isMember());
       allow create: if signedIn() && request.auth.uid == uid
         && request.resource.data.keys().hasOnly(['name', 'role', 'created'])
+        && !exists(/databases/$(database)/documents/blocked/$(request.auth.uid))
         && (request.resource.data.role == 'pending' || (request.resource.data.role == 'admin' && isOwner()));
       allow update: if isOwner()
         || (isCoOwner() && uid != get(ownerDoc()).data.uid && resource.data.role != 'coowner'
@@ -34,7 +35,16 @@ service cloud.firestore {
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role']))
         || (request.auth.uid == uid && request.resource.data.role == resource.data.role
             && request.resource.data.keys().hasOnly(['name', 'role', 'created']));
-      allow delete: if isOwner();
+      allow delete: if (isOwner() && uid != request.auth.uid)
+        || (isCoOwner() && uid != get(ownerDoc()).data.uid && uid != request.auth.uid && resource.data.role != 'coowner');
+    }
+
+    match /blocked/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isOwner() || isCoOwner());
+      allow create: if (isOwner() && uid != request.auth.uid)
+        || (isCoOwner() && uid != get(ownerDoc()).data.uid && uid != request.auth.uid);
+      allow update: if false;
+      allow delete: if isOwner() || isCoOwner();
     }
 
     // Emails: only the person, the owner and co-owners can read them
@@ -42,7 +52,7 @@ service cloud.firestore {
       allow read: if signedIn() && (request.auth.uid == uid || isOwner() || isCoOwner());
       allow create, update: if signedIn() && (request.auth.uid == uid || isOwner())
         && request.resource.data.keys().hasOnly(['email']);
-      allow delete: if isOwner();
+      allow delete: if isOwner() || isCoOwner();
     }
 
     // Trucks: admins do everything, supervisors only move them

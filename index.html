@@ -179,6 +179,9 @@ body.locked{overflow:hidden}
 .shead1{display:flex;justify-content:space-between;align-items:center}.shead1 button{width:44px;padding:0}
 .ppl{display:grid;gap:8px}
 .pwait{margin:0;background:color-mix(in srgb,var(--red) 12%,var(--bg));color:var(--red);border-radius:10px;padding:8px 12px;font-weight:600;font-size:14px}
+.prm,.prs{grid-column:2;justify-self:start;min-height:38px;padding:0 14px;border-radius:10px;background:transparent;border:1.5px solid #e11d2a;color:#e11d2a;font-weight:700}
+.prm.arm{background:#e11d2a;color:#fff;animation:shk .3s}.prs{border-color:#19a463;color:#19a463}@keyframes shk{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+.prh{margin:18px 0 8px;font:800 15px "Barlow Condensed",sans-serif;text-transform:uppercase;letter-spacing:.06em;color:var(--mut)}.prow.gone{opacity:.75;border-style:dashed}
 .prow{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;align-items:center;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px}
 .prow.pend{border-color:var(--red)}
 .pav{width:40px;height:40px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;font:800 18px "Barlow Condensed",sans-serif;grid-row:span 2}
@@ -1212,8 +1215,10 @@ document.addEventListener('click',e=>{if(e.target.closest('#bPin'))pinModal(pinF
 
 
 // ---------- private emails (owner and co-owners only) ----------
-let emails={},privUnsub=null;const scrubbed=new Set();
-function syncPrivate(){if(isMgr()&&!privUnsub){privUnsub=db.collection('private').onSnapshot(snap=>{emails={};snap.docs.forEach(x=>{emails[x.id]=String((x.data()||{}).email||'')});Object.keys(users).forEach(id=>{users[id].email=emails[id]||''});if(!$('#mPeople').hidden)renderPeople()},()=>{})}
+let emails={},privUnsub=null,blocked={},blkUnsub=null;const scrubbed=new Set();
+function syncPrivate(){
+  if(isMgr()&&!blkUnsub){blkUnsub=db.collection('blocked').onSnapshot(snap=>{blocked={};snap.docs.forEach(x=>{const v=x.data()||{};blocked[x.id]={name:String(v.name||''),email:String(v.email||''),t:String(v.t||''),by:String(v.by||'')}});if(!$('#mPeople').hidden)renderPeople()},()=>{})}
+  else if(!isMgr()&&blkUnsub){blkUnsub();blkUnsub=null;blocked={}}if(isMgr()&&!privUnsub){privUnsub=db.collection('private').onSnapshot(snap=>{emails={};snap.docs.forEach(x=>{emails[x.id]=String((x.data()||{}).email||'')});Object.keys(users).forEach(id=>{users[id].email=emails[id]||''});if(!$('#mPeople').hidden)renderPeople()},()=>{})}
   else if(!isMgr()&&privUnsub){privUnsub();privUnsub=null;emails={};Object.keys(users).forEach(id=>{users[id].email=''})}}
 async function scrubEmail(id,v){if(scrubbed.has(id))return;scrubbed.add(id);try{if(v.email)await db.doc('private/'+id).set({email:String(v.email)});await db.doc('users/'+id).set({name:String(v.name||''),role:String(v.role||'pending'),created:String(v.created||'')})}catch(e){scrubbed.delete(id)}}
 function stopData(){dataUnsubs.forEach(u=>{try{u()}catch(e){}});dataUnsubs=[]}
@@ -1226,7 +1231,7 @@ function startData(){if(dataUnsubs.length)return;const sy=()=>$('#sync');
 
 FB.onAuth(async user=>{
   authUser=user;if(meUnsub){meUnsub();meUnsub=null}
-  if(!user){stopData();if(privUnsub){privUnsub();privUnsub=null}emails={};$('#pplList').innerHTML='';$('#mPeople').hidden=true;['#mStn','#mSig','#mTruck','#mSt','#mMove','#mInv','#mPin'].forEach(q=>{const m=$(q);if(m)m.hidden=true});shared=false;me=null;role='view';preview=null;S={info:normInfo({}),trucks:[]};C=[];users={};render();gateShow('signin',gateNote);gateNote=null;return}
+  if(!user){stopData();if(privUnsub){privUnsub();privUnsub=null}if(blkUnsub){blkUnsub();blkUnsub=null}blocked={};emails={};$('#pplList').innerHTML='';$('#mPeople').hidden=true;['#mStn','#mSig','#mTruck','#mSt','#mMove','#mInv','#mPin'].forEach(q=>{const m=$(q);if(m)m.hidden=true});shared=false;me=null;role='view';preview=null;S={info:normInfo({}),trucks:[]};C=[];users={};render();gateShow('signin',gateNote);gateNote=null;return}
   if(!ssGet('c3-open')){if(pinFor(user.uid)){pinBuf='';gateShow('pin');return}FB.signOut();return}
   enterApp(user)});
 async function enterApp(user){
@@ -1234,14 +1239,16 @@ async function enterApp(user){
   gateShow('loading');db=FB.db;me=user.uid;shared=true;
   try{
     const mine=await db.doc('users/'+me).get();
-    if(!mine.exists){let owner=false;
+    if(!mine.exists){let gone=false;try{gone=(await db.doc('blocked/'+me).get()).exists}catch(e){}
+      if(gone){gateNote='Your access to Code 3 was removed. Ask the owner if you need it back.';FB.signOut();return}
+      let owner=false;
       try{const o=await db.doc('meta/owner').get();if(!o.exists){await db.doc('meta/owner').set({uid:me});owner=true}else owner=(o.data()||{}).uid===me}catch(e){}
       await db.doc('users/'+me).set({name:user.displayName||String(user.email||'').split('@')[0],role:owner?'admin':'pending',created:new Date().toISOString()})}
     else{const v=mine.data()||{};if(v.email!==undefined){try{await db.doc('users/'+me).set({name:String(v.name||''),role:String(v.role||'pending'),created:String(v.created||'')})}catch(e){}}}
     try{await db.doc('private/'+me).set({email:user.email||''})}catch(e){}
     try{const o=await db.doc('meta/owner').get();ownerUid=o.exists?(o.data()||{}).uid:null;ownerId=ownerUid}catch(e){}
   }catch(e){gateShow('signin',/permission/.test((e&&e.code)||'')?"Signed in, but the database is still locked. The admin needs to publish the Firestore rules, then sign in again.":"Couldn't load your account. Check your signal and try again.");return}
-  meUnsub=db.doc('users/'+me).onSnapshot(snap=>{const v=snap.exists?snap.data()||{}:{};names[me]=v.name||user.displayName||'';
+  meUnsub=db.doc('users/'+me).onSnapshot(snap=>{if(!snap.exists&&!snap.metadata.hasPendingWrites&&!snap.metadata.fromCache){stopData();gateNote='Your access to Code 3 was removed. Ask the owner if you need it back.';FB.signOut();return}const v=snap.exists?snap.data()||{}:{};names[me]=v.name||user.displayName||'';
     const r=String(v.role||'pending');
     if(!ROLE_MAP[r]){stopData();gateShow('pending');return}
     myRaw=r;role=ROLE_MAP[r];if(!(me&&me===ownerId))preview=null;syncPrivate();const first=$('#gate').hidden===false;gateHide();startData();render();if(first)firstRun()},()=>gateShow('signin',"Couldn't load your account. Try again."));
@@ -1250,9 +1257,18 @@ async function enterApp(user){
 // ---------- People screen (admin) ----------
 function renderPeople(){const list=Object.entries(users).sort((a,b)=>{const o={pending:0,coowner:2,admin:3,supervisor:4,inspector:5,employee:6},ra=a[0]===ownerUid?1:o[a[1].role],rb=b[0]===ownerUid?1:o[b[1].role];return(ra-rb)||a[1].name.localeCompare(b[1].name)});
   const waiting=list.filter(([,u])=>u.role==='pending').length;
-  $('#pplList').innerHTML=(waiting?`<p class="pwait">${waiting} ${waiting===1?'person is':'people are'} waiting for a role</p>`:'')+list.map(([id,u])=>{const locked=id===me||id===ownerUid||(me!==ownerUid&&u.role==='coowner');
+  $('#pplList').innerHTML=(waiting?`<p class="pwait">${waiting} ${waiting===1?'person is':'people are'} waiting for a role</p>`:'')+(list.map(([id,u])=>{const locked=id===me||id===ownerUid||(me!==ownerUid&&u.role==='coowner');
     return `<div class="prow${u.role==='pending'?' pend':''}"><div class="pav">${esc((u.name||u.email||'?').trim().charAt(0).toUpperCase())}</div><div class="pinfo"><b>${esc(u.name||'No name')}${id===me?' (you)':''}</b><span class="k">${esc(u.email)}</span>${u.created?`<span class="k">Joined ${fmtDT(u.created)}</span>`:''}</div>
-      ${id===ownerUid?'<span class="ownpill">Owner</span>':u.role==='coowner'&&me!==ownerUid?'<span class="ownpill co">Co-owner</span>':`<select data-uid="${esc(id)}" aria-label="Role for ${esc(u.name||u.email)}" ${locked?'disabled':''}>${(me===ownerUid?['pending','employee','inspector','supervisor','admin','coowner']:['pending','employee','inspector','supervisor','admin']).map(r=>`<option value="${r}" ${u.role===r?'selected':''}>${ROLE_NAMES[r]}</option>`).join('')}</select>`}</div>`}).join('')||'<p class="k">No one has signed up yet.</p>'}
+      ${id===ownerUid?'<span class="ownpill">Owner</span>':u.role==='coowner'&&me!==ownerUid?'<span class="ownpill co">Co-owner</span>':`<select data-uid="${esc(id)}" aria-label="Role for ${esc(u.name||u.email)}" ${locked?'disabled':''}>${(me===ownerUid?['pending','employee','inspector','supervisor','admin','coowner']:['pending','employee','inspector','supervisor','admin']).map(r=>`<option value="${r}" ${u.role===r?'selected':''}>${ROLE_NAMES[r]}</option>`).join('')}</select>`}${!locked?`<button class="prm" data-rm="${esc(id)}">Remove</button>`:''}</div>`}).join('')||'<p class="k">No one has signed up yet.</p>')
+  +(Object.keys(blocked).length?`<h3 class="prh">Removed</h3>`+Object.entries(blocked).sort((a,b)=>b[1].t.localeCompare(a[1].t)).map(([id,u])=>`<div class="prow gone"><div class="pav">${esc((u.name||u.email||'?').trim().charAt(0).toUpperCase())}</div><div class="pinfo"><b>${esc(u.name||'No name')}</b><span class="k">${esc(u.email)}</span><span class="k">Removed ${fmtDT(u.t)}${u.by?' by '+esc(who(u.by)):''}</span></div><button class="prs" data-restore="${esc(id)}">Let back in</button></div>`).join(''):'')}
+let rmArm=null,rmTmr=null;
+$('#pplList').addEventListener('click',async e=>{const rb=e.target.closest('[data-rm]'),sb=e.target.closest('[data-restore]');if(!isMgr())return;
+  if(rb){const uid=rb.dataset.rm,u=users[uid];if(!u||uid===me||uid===ownerId||(me!==ownerId&&u.role==='coowner'))return;
+    if(rmArm!==uid){rmArm=uid;clearTimeout(rmTmr);document.querySelectorAll('[data-rm]').forEach(b=>{b.classList.remove('arm');b.textContent='Remove'});rb.classList.add('arm');rb.textContent='Tap again to remove';rmTmr=setTimeout(()=>{rmArm=null;rb.classList.remove('arm');rb.textContent='Remove'},4000);return}
+    rmArm=null;clearTimeout(rmTmr);rb.disabled=true;rb.textContent='Removing…';
+    try{await db.doc('blocked/'+uid).set({name:u.name||'',email:emails[uid]||u.email||'',by:me,t:new Date().toISOString()});await db.doc('users/'+uid).delete();try{await db.doc('private/'+uid).delete()}catch(x){}
+      toast(`${u.name||'They'} can't get into Code 3 anymore`)}catch(x){toast("Couldn't remove them. Make sure the newest rules are published.");renderPeople()}return}
+  if(sb){const uid=sb.dataset.restore,u=blocked[uid];sb.disabled=true;try{await db.doc('blocked/'+uid).delete();toast(`${u&&u.name||'They'} can sign in again. They'll need a role.`)}catch(x){toast("Couldn't do that. Make sure the newest rules are published.");renderPeople()}}});
 $('#pplList').addEventListener('change',async e=>{const s=e.target.closest('select[data-uid]');if(!s||!isMgr())return;const uid=s.dataset.uid,r=s.value;if(me!==ownerId&&(r==='coowner'||(users[uid]&&users[uid].role==='coowner')||uid===ownerId)){renderPeople();return}
   try{await db.doc('users/'+uid).update({role:r});toast(`${users[uid]?users[uid].name:'User'} is now ${ROLE_NAMES[r]}`)}catch(x){toast("Couldn't change that role.");renderPeople()}});
 document.addEventListener('click',e=>{if(e.target.closest('#bPeople')){if(!isMgr())return;renderPeople();$('#mPeople').hidden=false}else if(e.target.closest('#bOut')){undo=null;ssSet('c3-open',null);FB.signOut();toast('Signed out')}});
