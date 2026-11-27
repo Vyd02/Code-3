@@ -222,6 +222,8 @@ html.nosc,html.nosc body{overflow:hidden;overscroll-behavior:none}body.nosc{posi
 #floor{width:100%;height:auto;display:block;overflow:visible;-webkit-tap-highlight-color:transparent}
 #floor .road{fill:none;stroke:var(--line);stroke-width:18;stroke-linecap:round;stroke-linejoin:round}
 #floor .roadc{fill:none;stroke:var(--mut);stroke-width:1.5;stroke-dasharray:7 9;opacity:.55;animation:belt2 1.4s linear infinite}
+#floor.flowing .roadc{stroke:#ffd400;stroke-width:3;opacity:1;animation-duration:.35s}#floor.flowing .road{stroke:color-mix(in srgb,#ffd400 22%,var(--line));transition:stroke .3s}
+#floor .puff{fill:var(--mut);opacity:.5;animation:puff .8s ease-out both;pointer-events:none;transform-box:fill-box;transform-origin:center}@keyframes puff{to{opacity:0;transform:translate(-10px,-6px) scale(1.8)}}
 @keyframes belt2{to{stroke-dashoffset:-32}}
 #floor .conn{fill:none;stroke:var(--line);stroke-width:5;stroke-dasharray:1 9;stroke-linecap:round}
 #floor .zl{font:800 16px "Barlow Condensed",sans-serif;text-transform:uppercase;fill:var(--ink)}
@@ -867,6 +869,7 @@ function truckSpots(on){const g={};on.forEach(t=>{(g[t.k]=g[t.k]||[]).push(t)});
     list.forEach((t,i)=>{if(p.bay){const sp=Math.min(26,(p.bay.w-30)/Math.max(1,n-1));out[t.id]={x:p.x+(i-(n-1)/2)*sp,y:p.y+6,d:1}}
       else out[t.id]={x:p.x+(i-(n-1)/2)*26,y:p.y-30,d:p.d}})});return out}
 
+function puff(layer,x,y){for(let i=0;i<4;i++){const c=document.createElementNS(SVGNS,'circle');c.setAttribute('class','puff');c.setAttribute('cx',x-14+i*3);c.setAttribute('cy',y+6);c.setAttribute('r',3+i);c.style.animationDelay=i*60+'ms';layer.insertBefore(c,layer.firstChild);setTimeout(()=>c.remove(),900)}}
 function renderFloor(bump){
   const host=$('#map');
   if(!FL||flWide!==(host.clientWidth>=760)){FL=computeFloor();flWide=FL.wide;host.innerHTML=`<svg id="floor" viewBox="0 0 ${FL.VW} ${FL.VH}" role="img" aria-label="Plant floor map"><g id="fStatic"></g><g id="fTrucks"></g></svg>`;prevOn=new Set()}
@@ -891,7 +894,12 @@ function renderFloor(bump){
   h+=labs;
   $('#fStatic').innerHTML=`<defs><linearGradient id="pg"><stop offset="0" stop-color="#d7141a"/><stop offset=".3" stop-color="#ff7a00"/><stop offset=".55" stop-color="#ffd400"/><stop offset=".75" stop-color="#19a463"/><stop offset="1" stop-color="#1e7be5"/></linearGradient></defs>`+h;
   // trucks: keep the same elements so they glide to new spots
+  // Feature 3: if the Floor tab is hidden, wait and play the slide when it opens
+  if(document.body.classList.contains('tabs')&&document.body.dataset.tab&&document.body.dataset.tab!=='floor'&&prevOn.size)return;
   const layer=$('#fTrucks'),spots=truckSpots(on),seen=new Set();
+  const movers=on.filter(t=>{const g=layer.querySelector(`[data-tid="${CSS.escape(t.id)}"]`),sp=spots[t.id];return g&&sp&&(g._to||g.style.transform.replace(/\s/g,''))!==`translate(${sp.x}px,${sp.y}px)`}).sort((a,b)=>posOf(b.k)-posOf(a.k));
+  const lag=new Map(movers.map((t,i)=>[t.id,Math.min(i,10)*90]));
+  if(movers.length>1&&!reduce){const f=$('#floor');f.classList.remove('flowing');void f.getBBox;requestAnimationFrame(()=>f.classList.add('flowing'));clearTimeout(f._fl);f._fl=setTimeout(()=>f.classList.remove('flowing'),1800)}
   on.forEach(t=>{const sp=spots[t.id];if(!sp)return;seen.add(t.id);
     let g=layer.querySelector(`[data-tid="${CSS.escape(t.id)}"]`);const fresh=!g;
     if(fresh){g=document.createElementNS(SVGNS,'g');g.setAttribute('class','mt');g.dataset.tid=t.id;g.setAttribute('role','button');g.setAttribute('tabindex','0');
@@ -900,8 +908,9 @@ function renderFloor(bump){
       const start=prevOn.size&&!prevOn.has(t.id)?spots[t.id]:sp;g.style.transform=`translate(${start.x}px,${start.y}px)`;layer.appendChild(g)}
     g.classList.toggle('held',!!t.hold&&t.k!=='down'&&t.k!=='done');if(!g.querySelector('.hb')){const c=document.createElementNS(SVGNS,'circle');c.setAttribute('class','hb');c.setAttribute('cx','15');c.setAttribute('cy','-10');c.setAttribute('r','5');g.appendChild(c)}g.querySelector('use').setAttribute('href','#v-'+vtype(t));g.querySelector('text').textContent=t.unit;g.setAttribute('aria-label',`${t.unit} at ${title(t.k)}`);
     g.querySelector('.mti').style.transform=`scaleX(${sp.d<0?-1:1})`;
-    const cur=g.style.transform,next=`translate(${sp.x}px, ${sp.y}px)`;
-    if(!fresh&&cur.replace(/\s/g,'')!==next.replace(/\s/g,'')&&!reduce){g.classList.add('moving');clearTimeout(g._t);g._t=setTimeout(()=>g.classList.remove('moving'),950)}
+    const cur=g.style.transform,next=`translate(${sp.x}px, ${sp.y}px)`,nk=next.replace(/\s/g,''),was=g._to;g._to=nk;
+    if(!fresh&&was!==nk&&cur.replace(/\s/g,'')!==nk&&!reduce){const d=lag.get(t.id)||0;g.style.transitionDelay=d+'ms';g.classList.add('moving');clearTimeout(g._t);g._t=setTimeout(()=>{g.classList.remove('moving');g.style.transitionDelay=''},1050+d);
+      const m=/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/.exec(cur);if(m)setTimeout(()=>puff(layer,+m[1],+m[2]),d)}
     g.classList.remove('gone');requestAnimationFrame(()=>{g.style.transform=next})});
   layer.querySelectorAll('.mt').forEach(g=>{if(seen.has(g.dataset.tid))return;const t=find(g.dataset.tid);
     if(t&&t.k==='done'&&!g.classList.contains('gone')){g.classList.add('gone','moving');g.style.transform=`translate(${FL.P.done.x}px,${FL.P.done.y}px)`;setTimeout(()=>g.remove(),950)}
