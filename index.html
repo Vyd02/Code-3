@@ -668,7 +668,8 @@ const setK=(t,k)=>{if(k!=='down')t.dn=null;t.k=k;const e={k,t:now(),by:me||''};i
   if(!e.lm){const by=myName();if(e.em)notify('pull',`${t.unit} pulled off Station 11`,`Emergency pull → ${title(k)} · ${by}`,'all');
     else if(k==='done')notify('done',`${t.unit} signed off ✓`,by,'all');
     else if(k==='bubble'||k==='next')notify('wait',`${t.unit} → ${WAIT[k].t}`,by,'all');
-    else if(k===SIGSTN)notify('s18',`${t.unit} reached Station 18`,'Ready for sigs · moved by '+by,'insp')}};
+    else if(k===SIGSTN)notify('s18',`${t.unit} reached Station 18`,'Ready for sigs · moved by '+by,'all');
+    else if(k!=='down')notify('move',`${t.unit} → ${title(k)}`,by,'all')}};
 const sigsDone=t=>!!(t.sig.el&&t.sig.co);
 const comments=k=>C.filter(c=>c.k===k).sort((a,b)=>String(b.t).localeCompare(String(a.t)));
 const histEv=t=>{const ev=[],h=t.h||[],isMv=k=>k==='done'||STEPS.some(x=>x.k===k);
@@ -1192,7 +1193,7 @@ function alertsTick(){const bb=$('#bMenu');if(!bb||!me)return;let seen=0,nt=0;tr
   if(toNotify.length&&!pushReady()&&'Notification' in window&&Notification.permission==='granted'&&navigator.serviceWorker){navigator.serviceWorker.ready.then(reg=>toNotify.slice(0,3).forEach(a=>reg.showNotification('Code 3: '+a.txt,{body:a.sub,icon:'icon-192.png',badge:'icon-192.png',tag:a.c+a.id+a.t}))).catch(()=>{})}
   try{localStorage.setItem(notKey(),Date.now())}catch(e){}}
 function openAlerts(){let seen=0;try{seen=+localStorage.getItem(seenKey())||0}catch(e){}const L=alertList(),perm='Notification' in window?Notification.permission:'unsupported';
-  $('#alertsBody').innerHTML=(perm==='default'||(perm==='granted'&&PUSH_URL&&!pushReady())?`<button class="go" id="bNotif" style="width:100%;margin-bottom:12px">Turn on phone alerts</button>`:perm==='granted'&&pushReady()?`<div class="pushok"><span>✓ Phone alerts are on, even with Code 3 closed</span><button id="bTestPush">Send me a test</button></div>`:perm==='denied'?`<p class="k" style="margin:0 0 10px">Phone alerts are blocked. Turn them on for this site in your browser's settings.</p>`:'')+
+  $('#alertsBody').innerHTML=(perm==='default'||(perm==='granted'&&PUSH_URL&&!pushReady())?`<button class="go" id="bNotif" style="width:100%;margin-bottom:12px">Turn on phone alerts</button>`:perm==='granted'&&pushReady()?`<div class="pushok"><span>✓ Phone alerts are on, even with Code 3 closed</span><button id="bTestPush">Send me a test</button></div>${(L=>L?`<p class="k" style="margin:-4px 0 12px">Last alert ${L.ok?`went to ${L.sent} phone${L.sent===1?'':'s'}`:'failed: '+esc(L.err)} · ${fmtDT(new Date(L.t).toISOString())}</p>`:'')(lsGet('c3-push-last'))}`:perm==='denied'?`<p class="k" style="margin:0 0 10px">Phone alerts are blocked. Turn them on for this site in your browser's settings.</p>`:'')+
     (L.length?`<ul class="alist">${L.map(a=>`<li class="a-${a.c}${+new Date(a.t)>seen&&a.by!==me?' new':''}" data-aid="${esc(a.id)}"${a.ppl?' data-ppl="1"':''}><i>${a.i}</i><div><b>${esc(a.txt)}</b><small>${esc(a.sub)} · ${fmtDT(a.t)}</small></div></li>`).join('')}</ul>`:'<p class="note">No alerts yet. Line moves, holds, overdue trucks, Down To, sign-offs and sig requests show up here.</p>');
   try{localStorage.setItem(seenKey(),Date.now())}catch(e){}lastBell=0;$('#bellN').hidden=true;if($('#bellN2'))$('#bellN2').hidden=true;openedAt=Date.now();$('#mAlerts').hidden=false}
 document.addEventListener('click',e=>{
@@ -1209,7 +1210,7 @@ const PUSH_URL='https://code3-push.vyd02.workers.dev';
 const pushReady=()=>!!(PUSH_URL&&me&&lsGet('c3-push-'+me));
 const myName=()=>names[me]||'Someone';
 function notify(type,title,body,aud,tag){if(!PUSH_URL||!me||!window.C3FB||!C3FB.idToken)return;
-  C3FB.idToken().then(tk=>{if(!tk)return;return fetch(PUSH_URL+'/notify',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json',Authorization:'Bearer '+tk},body:JSON.stringify({type,title,body,aud:aud||'all',tag:tag||''})})}).catch(()=>{})}
+  C3FB.idToken().then(tk=>{if(!tk)return;return fetch(PUSH_URL+'/notify',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json',Authorization:'Bearer '+tk},body:JSON.stringify({type,title,body,aud:aud||'all',tag:tag||''})}).then(r=>r.json().catch(()=>({})).then(j=>lsSet('c3-push-last',{t:Date.now(),ok:r.ok,sent:j.sent||0,err:j.error||''})))}).catch(e=>lsSet('c3-push-last',{t:Date.now(),ok:false,sent:0,err:'no connection'}))}
 async function registerPush(ask){
   if(!PUSH_URL||!me||!('Notification' in window)||!navigator.serviceWorker||!C3FB.pushToken)return false;
   if(!(await C3FB.pushSupported()))return false;
