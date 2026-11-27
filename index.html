@@ -1402,6 +1402,8 @@ document.addEventListener('click',e=>{if(e.target.closest('#bPeople')){if(!isMgr
   if(open&&!on){on=true;y=window.scrollY;document.documentElement.classList.add('nosc');document.body.classList.add('nosc');document.body.style.top=-y+'px'}
   else if(!open&&on){on=false;document.documentElement.classList.remove('nosc');document.body.classList.remove('nosc');document.body.style.top='';window.scrollTo(0,y)}};
   const mo=new MutationObserver(sync);document.querySelectorAll('.modal,#drawer').forEach(m=>mo.observe(m,{attributes:true,attributeFilter:['hidden']}));})();</script>
-<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});</script>
+<script>if('serviceWorker' in navigator){const hadCtl=!!navigator.serviceWorker.controller;let reloaded=false;
+navigator.serviceWorker.addEventListener('controllerchange',()=>{if(hadCtl&&!reloaded){reloaded=true;location.reload()}});
+navigator.serviceWorker.register('sw.js').then(r=>{const chk=()=>r.update().catch(()=>{});document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')chk()});setInterval(chk,30*60e3)}).catch(()=>{})}</script>
 </body>
 </html>
