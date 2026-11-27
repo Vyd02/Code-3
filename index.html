@@ -737,12 +737,12 @@ function render(bump){queueMicrotask(alertsTick);
       ${t.hold?`<div class="holdbar"><b>On hold</b><span>${esc(t.hold.r||'No reason given')}</span><small>${esc(who(t.hold.by)||'')}${t.hold.by?' · ':''}${fmtDT(t.hold.t)} · ${spanT(t.hold.t,Date.now())}</small></div>`:''}
       ${acts?`<div class="acts">${acts}</div>`:''}${t.k!=='done'&&can('move')?`<button class="holdb${t.hold?' on':''}" data-hold>${t.hold?'Release hold':'Put on hold'}</button>`:''}${hist(t)}</article>`};
   let html='';
-  if(!L.length)html=`<div class="empty"><svg viewBox="0 0 48 28"><use href="#v-amb"/></svg><p>${sel?'No trucks here right now.':q?'No trucks match that search.':'No trucks on the line yet.'}</p>${!q&&!sel&&can('edit')?'<button class="go" data-addempty>+ Add your first truck</button>':''}</div>`;
+  if(!L.length)html=`<div class="empty"><svg viewBox="0 0 48 28"><use href="#v-amb"/></svg><p>${sel?'No trucks here right now.':q?'No trucks match that search.':'No trucks on the line yet.'}</p>${!q&&!sel&&can('edit')?'<p class="k">Tap <b>+ Add truck</b> at the top to add one.</p>':''}</div>`;
   else ZONES.forEach(z=>{const g=L.filter(t=>step(t.k).z===z.z);if(!g.length)return;html+=`<h2 class="zh z-${z.z}">${z.t} <span>${g.length} truck${g.length===1?'':'s'}</span></h2><div class="list">${g.map(card).join('')}</div>`});
   $('#list').innerHTML=html;
   {const own=ownerId&&users[ownerId]?users[ownerId].name:'',cos=Object.values(users).filter(u=>u.role==='coowner').map(u=>u.name).filter(Boolean);
    $('#credits').innerHTML=own?`Code 3 · built by <b>${esc(own)}</b>${cos.length?` with co-owner${cos.length>1?'s':''} <b>${cos.map(esc).join('</b>, <b>')}</b>`:''}`:''}
-  const shEl=$('#shipped'),wasOpen=shEl.open;
+  const shEl=$('#shipped'),wasOpen=shEl.open;shEl.hidden=!dn.length;
   const dl=dn.slice().sort((a,b)=>String((lastMove(b)||{}).t).localeCompare(String((lastMove(a)||{}).t)));
   shEl.innerHTML=`<summary>Signed off (${dn.length})</summary>`+(dn.length?dl.map(t=>{const lm=lastMove(t)||{};return `<div class="srow" data-id="${esc(t.id)}"><div class="sv">${icon(t,44,26)}<div><b>${esc(t.unit)}</b> <span>${esc(t.model)}${t.cust?' · '+esc(t.cust):''}</span>
     <div class="signed">✓ Signed off <b>${fmtDT(lm.t)}</b>${lm.by?` by <b>${esc(who(lm.by))}</b>`:''}</div>
@@ -971,7 +971,7 @@ document.addEventListener('click',e=>{
   const a=e.target.closest('[data-showk]');if(a){e.preventDefault();openStn(a.dataset.showk,false);return}
   const mt=e.target.closest('#floor [data-tid]');if(mt){const c=document.querySelector(`.card[data-id="${CSS.escape(mt.dataset.tid)}"]`);if(c){c.scrollIntoView({behavior:reduce?'auto':'smooth',block:'center'});c.classList.remove('flash');void c.offsetWidth;c.classList.add('flash')}else{const t=find(mt.dataset.tid);if(t&&t.k!=='done')openStn(t.k,false)}return}
   const nd=e.target.closest('#floor [data-k]');if(nd){if(longFired){longFired=false;return}openStn(nd.dataset.k,false);return}
-  if(e.target.closest('#floor [data-done]')){$('#shipped').open=true;$('#shipped').scrollIntoView({behavior:reduce?'auto':'smooth'});return}
+  if(e.target.closest('#floor [data-done]')){if($('#shipped').hidden){toast('No trucks signed off yet');return}$('#shipped').open=true;$('#shipped').scrollIntoView({behavior:reduce?'auto':'smooth'});return}
   const b=e.target.closest('button,[data-close]');if(!b||b.closest('#mvList'))return;
   if(b.hasAttribute('data-close')){closeModal(b.closest('.modal'));return}
   if(b.hasAttribute('data-stnedit')){stnEdit=true;refreshStn(true);return}
