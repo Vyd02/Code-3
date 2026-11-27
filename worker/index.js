@@ -11,7 +11,7 @@ const AUD = {
   mgrish: r => ['supervisor', 'admin', 'coowner', 'owner'].includes(r),
   mgr: r => ['coowner', 'owner'].includes(r)
 };
-const TYPES = new Set(['move', 'line', 'pull', 'wait', 'down', 'part', 'hold', 'unhold', 'done', 's18', 'sig', 'req', 'signup', 'test', 'undo']);
+const TYPES = new Set(['move', 'line', 'pull', 'wait', 'down', 'part', 'hold', 'unhold', 'done', 's18', 'sig', 'req', 'signup', 'test', 'undo', 'recap']);
 
 export default {
   async fetch(req, env, ctx) {
@@ -40,6 +40,13 @@ export default {
       if (ev.type === 'signup') { if (!me) return json({ error: 'no user' }, 403, cors); ev.aud = 'mgr'; }
       else if (!me || !(MEMBER.includes(me.role) || me.role === 'owner')) return json({ error: 'not allowed' }, 403, cors);
       if (ev.type === 'test') ev.aud = 'uid:' + user.uid;
+      // Owner/co-owner can preview the weekly recap on their own phone
+      if (ev.type === 'recap') {
+        if (!['owner', 'coowner'].includes(me.role)) return json({ error: 'not allowed' }, 403, cors);
+        const r = recapMsg(await list(env.PROJECT_ID, tok, 'trucks'));
+        const sent = await sendAll(env.PROJECT_ID, tok, pickTargets(people, 'uid:' + user.uid, null), { ...r, tag: 'recap-test', url: './' });
+        return json({ ok: true, sent, ...r }, 200, cors);
+      }
       const targets = pickTargets(people, String(ev.aud || 'all'), ev.type === 'test' ? null : user.uid);
       const sent = await sendAll(env.PROJECT_ID, tok, targets, { title, body, tag: clip(ev.tag || ev.type, 60), url: './' });
       return json({ ok: true, sent }, 200, cors);
@@ -50,6 +57,7 @@ export default {
 
   async scheduled(event, env, ctx) {
     ctx.waitUntil(overdueSweep(env));
+    ctx.waitUntil(weeklyRecap(env));
   }
 };
 
@@ -185,6 +193,38 @@ async function overdueSweep(env) {
   const targets = pickTargets(people, 'all', null);
   const title = late.length === 1 ? `${units[0]} is overdue` : `${late.length} trucks are overdue`;
   await sendAll(env.PROJECT_ID, tok, targets, { title, body: late.length === 1 ? 'It passed its due date yesterday.' : units.join(', ') + ' passed their due date yesterday.', tag: 'overdue-' + yesterday, url: './' });
+}
+
+// ---------- Monday weekly recap (feature 5) ----------
+function hist(d) {
+  const v = d.fields && d.fields.h && d.fields.h.arrayValue && d.fields.h.arrayValue.values || [];
+  return v.map(x => { const f = x.mapValue && x.mapValue.fields || {}; return { k: str(f, 'k'), t: str(f, 't'), lm: str(f, 'lm') }; });
+}
+function recapMsg(trucks) {
+  const wk = Date.now() - 7 * 864e5, inWk = t => t && Date.parse(t) >= wk;
+  let signed = 0, totalDays = 0, down = 0, onLine = 0, late = 0; const lines = new Set();
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date());
+  for (const d of trucks) {
+    const h = hist(d), k = str(d.fields, 'k'), due = str(d.fields, 'due');
+    if (k !== 'done') { onLine++; if (due && due < today) late++; }
+    h.forEach(e => { if (!inWk(e.t)) return; if (e.k === 'down') down++; if (e.lm) lines.add(e.lm); });
+    const end = [...h].reverse().find(e => e.k === 'done');
+    if (k === 'done' && end && inWk(end.t)) { signed++; if (h[0] && h[0].t) totalDays += (Date.parse(end.t) - Date.parse(h[0].t)) / 864e5; }
+  }
+  const avg = signed ? Math.round(totalDays / signed) : 0;
+  const title = `Weekly recap: ${signed} truck${signed === 1 ? '' : 's'} signed off`;
+  const body = [signed ? `${avg} day${avg === 1 ? '' : 's'} avg start to sign-off` : '', `${lines.size} line move${lines.size === 1 ? '' : 's'}`, `${down} to Down To`, `${onLine} on the line now`, late ? `${late} overdue` : ''].filter(Boolean).join(' · ');
+  return { title, body };
+}
+async function weeklyRecap(env) {
+  const day = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', weekday: 'short' }).format(new Date());
+  if (day !== 'Mon') return;
+  const sa = JSON.parse(env.FIREBASE_SA);
+  const tok = await accessToken(sa);
+  const trucks = await list(env.PROJECT_ID, tok, 'trucks');
+  const people = await loadPeople(env.PROJECT_ID, tok);
+  const r = recapMsg(trucks);
+  await sendAll(env.PROJECT_ID, tok, pickTargets(people, 'all', null), { ...r, tag: 'recap', url: './' });
 }
 
 // ---------- helpers ----------
