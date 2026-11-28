@@ -856,10 +856,10 @@ function computeFloor(){
   const VW=wide?1000:360,cols=wide?8:5,pad=wide?60:34,rowH=wide?96:84,cw=(VW-2*pad)/(cols-1);
   const P={},labels=[],roads=[],conns=[];let y=0,dir=1;
   const colX=i=>dir>0?pad+i*cw:VW-pad-i*cw;
-  const label=(t,sub)=>{y+=34;labels.push({t,sub,y});y+=58};
+  const label=(t,sub,room)=>{y+=34;labels.push({t,sub,y});y+=58+(room?36:0)};
   const rows=keys=>{const pts=[];for(let r=0;r<keys.length;r+=cols){keys.slice(r,r+cols).forEach((k,i)=>{P[k]={x:colX(i),y,d:dir};pts.push(P[k])});y+=rowH;dir=-dir}y-=rowH;y+=46;return pts};
   const ks=z=>STEPS.filter(s=>s.z===z).map(s=>s.k);
-  label('Build line','Stations 1–15');const b=rows(ks('build'));roads.push(b);
+  label('Build line','Stations 1–15',1);const b=rows(ks('build'));roads.push(b);
   const lastB=b[b.length-1];
   label('The Bubble','Waiting area · max 30');const by=y-16,bh=wide?104:132,bx=pad-22,bw=VW-2*pad+44;
   conns.push(`M${lastB.x} ${lastB.y}V${by}`);P.bubble={x:bx+bw/2,y:by+bh/2,d:1,bub:{x:bx,y:by,w:bw,h:bh}};y=by+bh;
@@ -867,12 +867,12 @@ function computeFloor(){
   conns.push(`M${lastB.x} ${by+bh}V${sy}`);
   const bays=ks('out').map((k,i)=>{const bw=(sw-10*5)/4,bx=sx+10+i*(bw+10);P[k]={x:bx+bw/2,y:sy+sh/2+8,d:1,bay:{x:bx,y:sy+10,w:bw,h:sh-20}};return k});
   y=sy+sh;dir=1;
-  label('TAG line','Stations 16–18');const t=rows(ks('final'));roads.push(t);
+  label('TAG line','Stations 16–18',1);const t=rows(ks('final'));roads.push(t);
   conns.push(`M${t[0].x} ${sy+sh}V${t[0].y}`);
   const lastT=t[t.length-1];
   label('Next Truck','Waiting area · max 30');const ny=y-16,nh=bh,nx=bx,nw=bw;
   conns.push(`M${lastT.x} ${lastT.y}V${ny}`);P.next={x:nx+nw/2,y:ny+nh/2,d:1,bub:{x:nx,y:ny,w:nw,h:nh}};y=ny+nh;dir=-1;
-  label('Final Line','Clean to sign-off');const f=rows(ks('fin'));roads.push(f);
+  label('Final Line','Clean to sign-off',1);const f=rows(ks('fin'));roads.push(f);
   conns.push(`M${f[0].x} ${ny+nh}V${f[0].y}`);
   const lastF=f[f.length-1];
   label('Down To','Waiting on OEM parts · max 30');const dX=pad+(wide?90:56),dW=VW-pad+22-dX,dH=bh,dY=y-16;
