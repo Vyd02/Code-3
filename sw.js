@@ -1,6 +1,6 @@
 // Code 3 service worker: loads fresh when online, falls back to the saved copy when offline.
-const CACHE = 'code3-v57';
-const SHELL = ['./', 'index.html', 'fb.js', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'qr.svg'];
+const CACHE = 'code3-v58';
+const SHELL = ['./', 'index.html', 'fb.js', 'manifest.webmanifest', 'icon-192-v2.png', 'icon-512-v2.png', 'qr.svg'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL.map(u => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', e => {
@@ -17,7 +17,7 @@ self.addEventListener('push', e => {
   try { const j = e.data ? e.data.json() : {}; d = j.data || j.notification || j; } catch (x) {}
   const title = d.title || 'Code 3';
   e.waitUntil(self.registration.showNotification(title, {
-    body: d.body || '', icon: 'icon-192.png', badge: 'icon-192.png',
+    body: d.body || '', icon: 'icon-192-v2.png', badge: 'icon-192-v2.png',
     tag: d.tag || undefined, renotify: !!d.tag, data: { url: d.url || './' }
   }));
 });
