@@ -16,7 +16,9 @@ const TYPES = new Set(['move', 'line', 'pull', 'wait', 'down', 'part', 'hold', '
 export default {
   async fetch(req, env, ctx) {
     const cors = {
-      'Access-Control-Allow-Origin': env.ALLOW_ORIGIN || '*',
+      // ALLOW_ORIGIN can list several addresses, separated by commas
+      'Access-Control-Allow-Origin': (() => { const list = String(env.ALLOW_ORIGIN || '*').split(',').map(x => x.trim()); const o = req.headers.get('Origin') || ''; return list.includes('*') ? '*' : list.includes(o) ? o : list[0]; })(),
+      'Vary': 'Origin',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       'Access-Control-Max-Age': '86400'

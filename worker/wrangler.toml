@@ -5,7 +5,7 @@ workers_dev = true
 
 [vars]
 PROJECT_ID = "code-3-e7140"
-ALLOW_ORIGIN = "https://vyd02.github.io"
+ALLOW_ORIGIN = "https://code3-line.pages.dev,https://vyd02.github.io"
 
 # Every morning at 7:05 AM Eastern (12:05 UTC): alert about trucks that just went overdue
 [triggers]

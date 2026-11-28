@@ -1,0 +1,24 @@
+name: Publish app to Cloudflare Pages
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['worker/**', '.github/workflows/push-server.yml', 'CHANGELOG.md', 'README.md', 'firestore.rules']
+  workflow_dispatch:
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      PROJECT: code3-line
+    steps:
+      - uses: actions/checkout@v4
+      - name: Collect the app files (no server code, rules or notes)
+        run: |
+          mkdir dist
+          rsync -a --exclude '.git*' --exclude worker --exclude '*.md' --exclude firestore.rules ./ dist/
+          ls dist
+      - name: Create the Pages project the first time
+        run: npx --yes wrangler@3 pages project create "$PROJECT" --production-branch=main || echo "Project already exists"
+      - name: Publish
+        run: npx --yes wrangler@3 pages deploy dist --project-name="$PROJECT" --branch=main --commit-dirty=true
