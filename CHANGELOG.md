@@ -35,6 +35,7 @@ Every change is its own commit, so any one can be undone without touching the ot
 | 20 | Map title spacing | `7853cbb` | Extra room under the Build line, TAG line and Final Line titles so truck numbers don't cover them. |
 | 21 | Delete signed-off trucks | `69e8b9b` | Owner and co-owners can delete a signed-off truck with a Delete button (tap twice), with Undo. |
 | 22 | Outside services colors | updated in `3422f6c`, first in `492eb99` | Paint red, Body shop orange, Graphics green, Undercoating blue, matching the bar above them (were gray and black). |
+| 23 | New app logo | `82963bf` | App icon is a big white 3 under a red and blue light bar with speed lines. Old icon is in the commit before this. |
 
 ### Database rules changed
 - Photos: new `match /trucks/{id}/photos/{pid}` block (feature 8).
