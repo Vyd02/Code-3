@@ -40,7 +40,6 @@ Every change is its own commit, so any one can be undone without touching the ot
 | 25 | Logo on sign-in screen | `f6590a2` | Sign-in and PIN screens show the C + 3 logo instead of the ambulance drawing. New icon file names so installed apps pick up the new icon. |
 | 26 | Faster, smoother sign-in | `3a12710` | Fonts stored in the app, files open from the phone instantly, PIN pad appears right away, returning users skip the waiting, smooth fades and spinners. |
 | 27 | Crews labels | `0a0f2a7` | No doubled station numbers; short codes shown in parentheses after the name. |
-| 28 | Premium v2 (David's) | `4adc504` | David's premium styling applied as-is: Inter font, refined cards, buttons, tab bar and header. |
 
 ### Database rules changed
 - Photos: new `match /trucks/{id}/photos/{pid}` block (feature 8).
@@ -51,3 +50,10 @@ Tell Claude "undo feature N". It runs `git revert <commit>` for that row and pus
 
 ### How to undo all of them
 Tell Claude "go back to before-extras". It resets the app to that branch.
+
+
+## Nov 28, 2026: premium polish maintenance
+
+| # | Feature | What changed |
+|---|---|---|
+| 28 | Typography, font loading and Undo placement | Subset Inter to the Latin UI glyph set, move premium CSS into the document head, use Inter for interface typography and Barlow Condensed for industrial labels / primary move actions, cache all Inter weights in service worker v62, and move the Undo pill above the bottom navigation so it no longer covers Big cards. |
