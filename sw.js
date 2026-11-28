@@ -1,14 +1,29 @@
-// Code 3 service worker: loads fresh when online, falls back to the saved copy when offline.
-const CACHE = 'code3-v59';
-const SHELL = ['./', 'index.html', 'fb.js', 'manifest.webmanifest', 'icon-192-v2.png', 'icon-512-v2.png', 'qr.svg', 'logo.svg'];
+// Code 3 service worker.
+// Page (index.html): always asks for the newest copy, but if the network is slow (over 2.5 s)
+// it opens the saved copy so the app never hangs. Other files (fonts, Firebase, icons): open
+// instantly from the saved copy and refresh it in the background. Every release bumps CACHE,
+// which re-downloads everything fresh.
+const CACHE = 'code3-v60';
+const SHELL = ['./', 'index.html', 'fb.js', 'manifest.webmanifest', 'icon-192-v2.png', 'icon-512-v2.png', 'qr.svg', 'logo.svg',
+  'fonts/barlow-condensed-latin-600-normal.woff2', 'fonts/barlow-condensed-latin-700-normal.woff2', 'fonts/barlow-condensed-latin-800-normal.woff2',
+  'fonts/barlow-latin-400-normal.woff2', 'fonts/barlow-latin-500-normal.woff2', 'fonts/barlow-latin-600-normal.woff2'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL.map(u => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
+const save = (req, r) => { if (r && r.ok) { const c = r.clone(); caches.open(CACHE).then(x => x.put(req, c)); } return r; };
 self.addEventListener('fetch', e => {
   const u = new URL(e.request.url);
   if (e.request.method !== 'GET' || u.origin !== location.origin) return;
-  const fresh = e.request.mode === 'navigate' ? fetch(u.href, { cache: 'no-store', credentials: 'same-origin' }) : fetch(e.request, { cache: 'no-cache' });
-  e.respondWith(fresh.then(r => { const c = r.clone(); caches.open(CACHE).then(x => x.put(e.request, c)); return r; })
-    .catch(() => caches.match(e.request).then(r => r || caches.match('index.html'))));
+  if (e.request.mode === 'navigate') {
+    const net = fetch(u.href, { cache: 'no-store', credentials: 'same-origin' }).then(r => save('index.html', r));
+    const slow = new Promise(res => setTimeout(res, 2500)).then(() => caches.match('index.html'));
+    e.respondWith(Promise.race([net, slow.then(r => r || net)]).then(r => r || net).catch(() => caches.match('index.html')));
+    return;
+  }
+  e.respondWith(caches.match(e.request).then(hit => {
+    const net = fetch(e.request, { cache: 'no-cache' }).then(r => save(e.request, r));
+    if (hit) { e.waitUntil(net.catch(() => {})); return hit; }
+    return net.catch(() => caches.match('index.html'));
+  }));
 });
 
 // Push alerts from the Code 3 alert server. These arrive even when the app is closed.

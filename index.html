@@ -8,8 +8,18 @@
 <meta name="theme-color" content="#121315">
 <link rel="icon" href="icon-192-v2.png">
 <link rel="apple-touch-icon" href="icon-180-v2.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preload" href="fonts/barlow-condensed-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/barlow-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fb.js" as="script">
+<style>
+/* Fonts are stored with the app (no wait on Google's servers) */
+@font-face{font-family:"Barlow Condensed";font-weight:600;font-display:swap;src:url(fonts/barlow-condensed-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Barlow Condensed";font-weight:700;font-display:swap;src:url(fonts/barlow-condensed-latin-700-normal.woff2) format("woff2")}
+@font-face{font-family:"Barlow Condensed";font-weight:800 900;font-display:swap;src:url(fonts/barlow-condensed-latin-800-normal.woff2) format("woff2")}
+@font-face{font-family:Barlow;font-weight:400;font-display:swap;src:url(fonts/barlow-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:Barlow;font-weight:500;font-display:swap;src:url(fonts/barlow-latin-500-normal.woff2) format("woff2")}
+@font-face{font-family:Barlow;font-weight:600 700;font-display:swap;src:url(fonts/barlow-latin-600-normal.woff2) format("woff2")}
+</style>
 <style>
 /* VOICE: plant-floor board — bold, corporate-industrial, readable at a glance
    IDEA: the plant's flow board: build line → paint shop → TAG line → final line → signed off
@@ -176,7 +186,13 @@ html.nosc,html.nosc body{overflow:hidden;overscroll-behavior:none}body.nosc{posi
 .gbrand{text-align:center}.gbrand h1{font-size:46px;font-weight:800;text-transform:uppercase;margin-top:4px}.gbrand p{color:#b9bdc3;margin:4px 0 0;font-size:15px}
 .gamb{width:150px;height:88px;animation:gdrive 2.4s ease-in-out infinite alternate}
 @keyframes gdrive{from{transform:translateX(-14px)}to{transform:translateX(14px)}}
-.gcard{background:#fff;color:#121315;border-radius:16px;padding:20px;display:grid;gap:12px;color-scheme:light}
+.gate.leave{animation:gout .3s ease-in forwards}@keyframes gout{to{opacity:0;transform:scale(1.04)}}
+#gCard.swap>*{animation:gin .32s cubic-bezier(.2,.9,.3,1) both}#gCard.swap>*:nth-child(2){animation-delay:.03s}#gCard.swap>*:nth-child(3){animation-delay:.06s}#gCard.swap>*:nth-child(4){animation-delay:.09s}@keyframes gin{from{opacity:0;transform:translateY(10px)}}
+.gload{display:flex;flex-direction:column;align-items:center;gap:14px;padding:18px 0}.gload p{margin:0;color:#5b6068;font-weight:600}.gspin{width:38px;height:38px;border-radius:50%;border:4px solid #e7e8ea;border-top-color:#d7141a;border-right-color:#1e6fe0;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+.bspin{display:inline-block;width:16px;height:16px;margin-right:8px;vertical-align:-2px;border-radius:50%;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;animation:spin .7s linear infinite}
+.pdots.ok i{background:#19a463;border-color:#19a463;opacity:1;animation:pok .35s cubic-bezier(.2,1.5,.4,1) both}.pdots.ok i:nth-child(2){animation-delay:.04s}.pdots.ok i:nth-child(3){animation-delay:.08s}.pdots.ok i:nth-child(4){animation-delay:.12s}@keyframes pok{50%{transform:scale(1.45)}}
+.keypad button{transition:transform .08s,background .15s}.keypad button:active{transform:scale(.92);background:#e2e3e5}
+.gcard{transition:height .25s;background:#fff;color:#121315;border-radius:16px;padding:20px;display:grid;gap:12px;color-scheme:light}
 .gcard h2{font-size:28px;font-weight:800;text-transform:uppercase}
 .gcard form{display:grid;gap:12px}
 .gcard input{min-height:48px;border:1.5px solid #cfd1d4;border-radius:10px;padding:0 14px;font-size:16px;background:#fff;color:#121315}
@@ -1179,7 +1195,7 @@ function gateShow(view,msg,ok){gateView=view;const g=$('#gate');g.hidden=false;d
   const em=esc(($('#gEmail')&&$('#gEmail').value)||(view==='signin'?(lsGet('c3-email')||''):'')||'');
   const pu=lsGet('c3-pin');
   const card={
-    loading:`<p class="gmsg">Loading…</p>`,
+    loading:`<div class="gload"><span class="gspin" aria-hidden="true"></span><p>Getting your line ready…</p></div>`,
     pin:`<div class="pinwrap"><div class="pav pbig">${esc(((pu&&pu.name)||'?').trim().charAt(0).toUpperCase())}</div><h2>Welcome back</h2><p class="gmsg">${esc((pu&&pu.name)||'')}</p><div class="pdots" id="pDots">${'<i></i>'.repeat((pu&&pu.len)||4)}</div><p class="gerr" id="gErr" role="alert"></p>${keypadHtml()}<div class="glinks" style="justify-content:center"><button type="button" class="glink" data-usepw>Use password instead</button></div></div>`,
     signin:`<h2>Sign in</h2><form id="gForm" data-act="signin" novalidate><label>Email<input id="gEmail" type="email" autocomplete="email" value="${em}" required></label><label>Password<input id="gPass" type="password" autocomplete="current-password" required></label><label class="gchk"><input type="checkbox" id="gRem" ${lsGet('c3-email')!==''?'checked':''}> Remember my email</label><p class="gerr" id="gErr" role="alert"></p><button class="go gbig" type="submit">Sign in</button></form><p class="gnote">Closing the app signs you out. Set a PIN after you sign in to get back in fast.</p><div class="glinks"><button type="button" class="glink" data-gv="reset">Forgot password?</button><button type="button" class="glink" data-gv="signup">Create an account</button></div>`,
     signup:`<h2>Create account</h2><form id="gForm" data-act="signup" novalidate><label>Your name<input id="gName" autocomplete="name" required></label><label>Email<input id="gEmail" type="email" autocomplete="email" value="${em}" required></label><label>Password <span class="hint">at least 6 characters</span><input id="gPass" type="password" autocomplete="new-password" minlength="6" required></label><label>Type it again<input id="gPass2" type="password" autocomplete="new-password" required></label><p class="gerr" id="gErr" role="alert"></p><button class="go gbig" type="submit">Create account</button></form><p class="gnote">New accounts can't see anything until an admin gives them a role.</p><div class="glinks"><button type="button" class="glink" data-gv="signin">I already have an account</button></div>`,
@@ -1188,10 +1204,10 @@ function gateShow(view,msg,ok){gateView=view;const g=$('#gate');g.hidden=false;d
       <h2>We're sorry to see you go</h2><p class="gmsg">Your access to Code 3 has been removed. Thanks for everything you did on the line.</p><p class="gnote">If you think this is a mistake, talk to the owner.</p><button type="button" class="go" data-gv="signin" style="width:100%">OK</button></div>`,
     pending:`<h2>Almost in</h2><p class="gmsg">Your account is made, but an admin still needs to give you a role. This page opens by itself once they do.</p><p class="gnote">Signed in as ${esc(authUser&&authUser.email||'')}</p><div class="glinks"><button type="button" class="glink" id="gOut">Sign out</button></div>`
   }[view];
-  $('#gCard').innerHTML=card;
+  const gc=$('#gCard');gc.innerHTML=card;gc.classList.remove('swap');void gc.offsetWidth;gc.classList.add('swap');$('#gate').classList.remove('leave');
   if(msg){const e=$('#gErr')||$('#gCard').appendChild(Object.assign(document.createElement('p'),{className:'gerr'}));e.textContent=msg;e.classList.toggle('ok',!!ok)}
   const f=$('#gCard input:not([value]),#gCard input[value=""]');if(f&&view!=='loading')setTimeout(()=>f.focus(),60)}
-function gateHide(){$('#gate').hidden=true;document.body.classList.remove('locked')}
+function gateHide(){const g=$('#gate');document.body.classList.remove('locked');if(g.hidden)return;if(reduce){g.hidden=true;return}g.classList.add('leave');clearTimeout(g._t);g._t=setTimeout(()=>{if(g.classList.contains('leave')){g.hidden=true;g.classList.remove('leave')}},320)}
 
 $('#gate').addEventListener('click',e=>{const b=e.target.closest('[data-gv]');if(b){gateShow(b.dataset.gv);return}if(e.target.closest('#gOut')){ssSet('c3-open',null);FB.signOut();return}
   if(e.target.closest('[data-usepw]')){ssSet('c3-open',null);pinBuf='';FB.signOut();return}
@@ -1204,7 +1220,7 @@ $('#gate').addEventListener('submit',async e=>{e.preventDefault();const f=e.targ
   if(act==='signup'){const name=$('#gName').value.trim();if(!name){err.textContent='Enter your name.';return}
     if(pass.length<6){err.textContent='Use at least 6 characters for your password.';return}
     if(pass!==$('#gPass2').value){err.textContent="The two passwords don't match.";return}}
-  btn.disabled=true;const old=btn.textContent;btn.textContent='One moment…';
+  btn.disabled=true;const old=btn.textContent;btn.innerHTML=`<span class="bspin" aria-hidden="true"></span>${act==='signin'?'Signing in…':act==='signup'?'Creating account…':'Sending…'}`;
   if(act==='signin'){lsSet('c3-email',$('#gRem')&&$('#gRem').checked?email:'')}else if(act==='signup')lsSet('c3-email',email);
   if(act!=='reset')ssSet('c3-open','1');
   try{
@@ -1212,7 +1228,7 @@ $('#gate').addEventListener('submit',async e=>{e.preventDefault();const f=e.targ
     else if(act==='signup')await FB.signUp($('#gName').value.trim(),email,pass);
     else{await FB.reset(email).catch(x=>{if(!/user-not-found/.test(x.code||''))throw x});err.textContent='If that email has an account, a reset link is on its way. Check your inbox and spam folder.';err.classList.add('ok')}
   }catch(x){err.textContent=authErr(x);if(act!=='reset')ssSet('c3-open',null)}
-  btn.disabled=false;btn.textContent=old});
+  if(document.body.contains(btn)){btn.disabled=false;btn.textContent=old}});
 
 
 // ---------- tutorial ----------
@@ -1458,7 +1474,7 @@ async function pinKey(k){if(pinBusy)return;const p=lsGet('c3-pin');if(!p)return;
   paintDots($('#pDots'),pinBuf.length);const err=$('#gErr');if(err&&k!=='del')err.textContent='';
   if(pinBuf.length<p.len)return;pinBusy=true;
   const ok=(await pinHash(pinBuf,p.salt))===p.hash;pinBuf='';
-  if(ok){p.tries=0;lsSet('c3-pin',p);ssSet('c3-open','1');pinBusy=false;if(authUser)enterApp(authUser);return}
+  if(ok){p.tries=0;lsSet('c3-pin',p);ssSet('c3-open','1');pinBusy=false;const d=$('#pDots');if(d)d.classList.add('ok');try{navigator.vibrate&&navigator.vibrate(15)}catch(x){}if(authUser)enterApp(authUser);return}
   p.tries=(p.tries||0)+1;shake($('#pDots'));try{navigator.vibrate&&navigator.vibrate([40,40,40])}catch(x){}
   setTimeout(()=>paintDots($('#pDots'),0),350);
   if(p.tries>=5){lsSet('c3-pin',null);ssSet('c3-open',null);gateNote='Too many wrong PINs, so the PIN was removed from this phone. Sign in with your password.';pinBusy=false;FB.signOut();return}
@@ -1504,29 +1520,44 @@ function startData(){if(dataUnsubs.length)return;setTimeout(()=>registerPush(fal
   dataUnsubs.push(db.collection('comments').orderBy('t','desc').limit(500).onSnapshot(snap=>{C=snap.docs.map(x=>{const v=x.data()||{};return{id:x.id,k:String(v.k||''),text:String(v.text||''),by:String(v.by||''),t:String(v.t||'')}});safeRender()},()=>{}));
   dataUnsubs.push(db.collection('users').onSnapshot(snap=>{users={};snap.docs.forEach(x=>{const v=x.data()||{};users[x.id]={name:String(v.name||''),email:emails[x.id]||'',role:String(v.role||'pending'),insp:!!v.insp||v.role==='inspector',created:String(v.created||'')};names[x.id]=users[x.id].name;if(v.email!==undefined&&me&&me===ownerId)scrubEmail(x.id,v)});safeRender();if(!$('#mPeople').hidden)renderPeople()},()=>{}))}
 
+// Show the PIN pad (or the loading screen) right away, before Firebase finishes waking up
+if(lsGet('c3-pin')&&!ssGet('c3-open'))gateShow('pin');else if(ssGet('c3-open'))gateShow('loading');
 FB.onAuth(async user=>{
   authUser=user;if(meUnsub){meUnsub();meUnsub=null}
   if(!user){stopData();if(privUnsub){privUnsub();privUnsub=null}if(blkUnsub){blkUnsub();blkUnsub=null}blocked={};emails={};$('#pplList').innerHTML='';$('#mPeople').hidden=true;['#mStn','#mSig','#mTruck','#mSt','#mMove','#mInv','#mPin'].forEach(q=>{const m=$(q);if(m)m.hidden=true});shared=false;me=null;role='view';preview=null;S={info:normInfo({}),trucks:[]};C=[];users={};render();if(gateNote==='__bye__')gateShow('bye');else gateShow('signin',gateNote);gateNote=null;return}
-  if(!ssGet('c3-open')){if(pinFor(user.uid)){pinBuf='';gateShow('pin');return}FB.signOut();return}
+  if(!ssGet('c3-open')){if(pinFor(user.uid)){if(gateView!=='pin'){pinBuf='';gateShow('pin')}return}FB.signOut();return}
   enterApp(user)});
+// Sign-in (made fast Nov 27): returning users on this phone go straight in using the saved copy
+// of their account, and the checks run in the background. First sign-in on a phone runs its
+// checks side by side instead of one after another.
 async function enterApp(user){
   if(meUnsub){meUnsub();meUnsub=null}
-  gateShow('loading');db=FB.db;me=user.uid;shared=true;
+  db=FB.db;me=user.uid;shared=true;
+  const boot=lsGet('c3-boot');
+  if(boot&&boot.uid===me){ownerUid=ownerId=boot.owner||null;watchMe(user);bootCheck(user);return}
+  const slow=setTimeout(()=>{if(!$('#gate').hidden)gateShow('loading')},350);
   try{
-    const mine=await db.doc('users/'+me).get();
+    const [mine,o]=await Promise.all([db.doc('users/'+me).get(),db.doc('meta/owner').get().catch(()=>null)]);
+    ownerUid=o&&o.exists?(o.data()||{}).uid:null;
     if(!mine.exists){let gone=false;try{gone=(await db.doc('blocked/'+me).get()).exists}catch(e){}
-      if(gone){gateNote='__bye__';FB.signOut();return}
+      if(gone){clearTimeout(slow);gateNote='__bye__';FB.signOut();return}
       let owner=false;
-      try{const o=await db.doc('meta/owner').get();if(!o.exists){await db.doc('meta/owner').set({uid:me});owner=true}else owner=(o.data()||{}).uid===me}catch(e){}
+      try{if(!o||!o.exists){await db.doc('meta/owner').set({uid:me});owner=true;ownerUid=me}else owner=ownerUid===me}catch(e){}
       await db.doc('users/'+me).set({name:user.displayName||String(user.email||'').split('@')[0],role:owner?'admin':'pending',created:new Date().toISOString()});if(!owner)setTimeout(()=>notify('signup',`${user.displayName||String(user.email||'').split('@')[0]} is waiting for a role`,'Open People in Code 3 to give them access','mgr'),1500);}
     else{const v=mine.data()||{};if(v.email!==undefined){try{await db.doc('users/'+me).set({name:String(v.name||''),role:String(v.role||'pending'),created:String(v.created||'')})}catch(e){}}}
-    try{await db.doc('private/'+me).set({email:user.email||''})}catch(e){}
-    try{const o=await db.doc('meta/owner').get();ownerUid=o.exists?(o.data()||{}).uid:null;ownerId=ownerUid}catch(e){}
-  }catch(e){gateShow('signin',/permission/.test((e&&e.code)||'')?"Signed in, but the database is still locked. The admin needs to publish the Firestore rules, then sign in again.":"Couldn't load your account. Check your signal and try again.");return}
-  meUnsub=db.doc('users/'+me).onSnapshot(snap=>{if(!snap.exists&&!snap.metadata.hasPendingWrites&&!snap.metadata.fromCache){stopData();gateNote='__bye__';FB.signOut();return}const v=snap.exists?snap.data()||{}:{};names[me]=v.name||user.displayName||'';
-    const r=String(v.role||'pending');
+    ownerId=ownerUid;
+  }catch(e){clearTimeout(slow);gateShow('signin',/permission/.test((e&&e.code)||'')?"Signed in, but the database is still locked. The admin needs to publish the Firestore rules, then sign in again.":"Couldn't load your account. Check your signal and try again.");return}
+  clearTimeout(slow);lsSet('c3-boot',{uid:me,owner:ownerUid});saveEmail(user);watchMe(user);
+}
+function saveEmail(user){const k='c3-pe-'+me;if(lsGet(k)===(user.email||''))return;db.doc('private/'+me).set({email:user.email||''}).then(()=>lsSet(k,user.email||'')).catch(()=>{})}
+function bootCheck(user){db.doc('meta/owner').get().then(o=>{const u=o.exists?(o.data()||{}).uid:null;if(u!==ownerId){ownerUid=ownerId=u;render()}lsSet('c3-boot',{uid:me,owner:u})}).catch(()=>{});saveEmail(user)}
+function watchMe(user){let shown=false;const slow=setTimeout(()=>{if(!shown&&!$('#gate').hidden)gateShow('loading')},600);
+  meUnsub=db.doc('users/'+me).onSnapshot(snap=>{if(!snap.exists&&!snap.metadata.hasPendingWrites&&!snap.metadata.fromCache){clearTimeout(slow);lsSet('c3-boot',null);stopData();gateNote='__bye__';FB.signOut();return}
+    if(!snap.exists&&snap.metadata.fromCache)return;
+    const v=snap.data()||{};names[me]=v.name||user.displayName||'';
+    const r=String(v.role||'pending');shown=true;clearTimeout(slow);
     if(!ROLE_MAP[r]){stopData();gateShow('pending');return}
-    myRaw=r;role=ROLE_MAP[r];if(!(me&&me===ownerId))preview=null;syncPrivate();const first=$('#gate').hidden===false;gateHide();startData();render();if(first)firstRun()},()=>gateShow('signin',"Couldn't load your account. Try again."));
+    myRaw=r;role=ROLE_MAP[r];if(!(me&&me===ownerId))preview=null;syncPrivate();const first=$('#gate').hidden===false;gateHide();startData();render();if(first)firstRun()},()=>{clearTimeout(slow);gateShow('signin',"Couldn't load your account. Try again.")});
 }
 
 // ---------- People screen (admin) ----------
