@@ -172,6 +172,7 @@ html.nosc,html.nosc body{overflow:hidden;overscroll-behavior:none}body.nosc{posi
 .gate{position:fixed;inset:0;z-index:50;background:#121315;color:#fff;overflow:auto;display:flex;align-items:center;justify-content:center;padding:24px 16px}
 .gate[hidden]{display:none}
 .gwrap{width:min(420px,100%);display:grid;gap:18px}
+.glogo{display:block;width:112px;height:112px;margin:0 auto 14px;border-radius:26px;box-shadow:0 14px 34px -14px rgba(215,20,26,.55),0 0 0 1px rgba(255,255,255,.08);animation:glin .6s cubic-bezier(.2,1.3,.4,1) both}@keyframes glin{from{opacity:0;transform:scale(.7) rotate(-8deg)}}
 .gbrand{text-align:center}.gbrand h1{font-size:46px;font-weight:800;text-transform:uppercase;margin-top:4px}.gbrand p{color:#b9bdc3;margin:4px 0 0;font-size:15px}
 .gamb{width:150px;height:88px;animation:gdrive 2.4s ease-in-out infinite alternate}
 @keyframes gdrive{from{transform:translateX(-14px)}to{transform:translateX(14px)}}
@@ -464,7 +465,7 @@ label{display:grid;gap:4px;font-size:14px;font-weight:600}
 </head>
 <body>
 <div id="gate" class="gate"><div class="gwrap">
-  <div class="gbrand"><svg class="gamb" viewBox="0 0 48 28" aria-hidden="true"><use href="#v-amb"/></svg><h1>Code 3</h1><p>Mod Line tracker · every truck from Station 1 to signed off</p></div>
+  <div class="gbrand"><img class="glogo" src="logo.svg" alt="" width="112" height="112"><h1>Code 3</h1><p>Mod Line tracker · every truck from Station 1 to signed off</p></div>
   <div class="gcard" id="gCard"><p class="gmsg">Loading…</p></div>
 </div></div>
 <section class="hero v-floor">
