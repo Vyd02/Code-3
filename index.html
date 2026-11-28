@@ -71,7 +71,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .dx:active,.shead1 button[data-close]:active,.shead button[data-close]:active{transform:scale(.9) rotate(90deg);background:color-mix(in srgb,currentColor 18%,transparent)}
 .dx{color:#fff}
 .dpanel .me{margin-top:6px}.dpanel .hbtns{display:grid!important;grid-template-columns:1fr;gap:8px}.dpanel .hbtns button{flex:none;min-height:48px;justify-content:flex-start;padding:0 16px;font-size:16px}
-.dpanel .seg{grid-template-columns:1fr 1fr}
+.dpanel .seg{grid-template-columns:repeat(3,minmax(0,1fr))}
 .dpanel .sync{flex-basis:100%}
 .hhead{display:flex;justify-content:space-between;align-items:center;gap:12px}.hhead>div{flex:1 1 auto}
 .amb{flex:none;width:clamp(130px,34vw,340px);height:auto;overflow:visible;animation:drivein 1.3s cubic-bezier(.2,.8,.2,1) both}
@@ -193,6 +193,7 @@ html.nosc,html.nosc body{overflow:hidden;overscroll-behavior:none}body.nosc{posi
 @keyframes byedrive{0%,100%{transform:translateX(-6px)}50%{transform:translateX(6px)}}@keyframes byeblink{50%{fill:#2f9be0}}
 .prm,.prs{grid-column:2;justify-self:start;min-height:38px;padding:0 14px;border-radius:10px;background:transparent;border:1.5px solid #e11d2a;color:#e11d2a;font-weight:700}
 .prm.arm{background:#e11d2a;color:#fff;animation:shk .3s}.prs{border-color:#19a463;color:#19a463}@keyframes shk{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+.pinsp{grid-column:2;display:flex;align-items:center;gap:10px;margin-top:6px;min-height:40px}.pinsp input{width:22px;height:22px}.pinsp span{display:flex;flex-direction:column}.pinsp small{color:var(--mut)}.seg .pvi{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:8px;min-height:40px;font-weight:700}.seg .pvi input{width:20px;height:20px}
 .pst{grid-column:2;display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:4px}.pstc{padding:3px 9px;border-radius:8px;font-size:12px;font-weight:700;background:var(--card);border:1px solid var(--line)}.pstb{min-height:34px;font-size:13px;padding:0 10px;border-radius:8px}.prow .prm{grid-column:2;justify-self:start;margin-top:4px;padding:0 14px;color:var(--red);border-color:color-mix(in srgb,var(--red) 40%,var(--line))}#pplQ{width:100%;margin:6px 0 12px}.pstlist{display:flex;flex-direction:column;gap:10px;margin:10px 0;max-height:55vh;overflow-y:auto}.pstlist fieldset{border:1px solid var(--line);border-radius:10px;padding:6px 10px;margin:0;display:grid;grid-template-columns:1fr 1fr;gap:2px 8px}.pstlist legend{font:800 13px 'Barlow Condensed',sans-serif;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);padding:0 4px}.pstk{display:flex;align-items:center;gap:8px;min-height:40px;font-weight:600}.pstk input{width:20px;height:20px}#fPst .go{width:100%;min-height:50px}
 .prh{margin:18px 0 8px;font:800 15px "Barlow Condensed",sans-serif;text-transform:uppercase;letter-spacing:.06em;color:var(--mut)}.prow.gone{opacity:.75;border-style:dashed}
 .prow{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;align-items:center;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px}
@@ -554,7 +555,7 @@ label{display:grid;gap:4px;font-size:14px;font-weight:600}
 
 <div class="modal" id="mPeople" hidden><div class="sheet"><div class="shead1"><h2>People</h2><button type="button" data-close aria-label="Close">✕</button></div><input id="pplQ" type="search" placeholder="Search names or emails" aria-label="Search people" autocomplete="off">
 <p class="hint" style="margin:0">Pick a role for each person. New sign-ups wait here with no access until you choose. Only the owner and co-owners can change roles. Only the owner can make co-owners.</p>
-<p class="k" style="margin:0">Co-owner: full control except the owner · Admin: runs the line, but can't change roles · Supervisor: moves trucks, comments, requests sigs · Inspector: signs Station 18 · Employee: view only</p>
+<p class="k" style="margin:0">Co-owner: full control except the owner · Admin: runs the line, but can't change roles · Supervisor: moves trucks, comments, requests sigs · Employee: view only · Inspector box: adds signing Station 18 to a Supervisor or Employee</p>
 <div id="pplList" class="ppl"></div></div></div>
 <div class="modal" id="mHold" hidden><div class="sheet"><div class="shead1"><h2 id="holdT">Put on hold</h2><button type="button" data-close aria-label="Close">✕</button></div>
 <p class="hint" style="margin:0">Why is it on hold? Everyone will see this on the truck and the map.</p>
@@ -644,8 +645,13 @@ let names={};
 // Hold removed (Nov 27): Down To covers it. Set to true to bring Hold back.
 const HOLDS=false;
 const eff=()=>role==='admin'&&preview&&me&&me===ownerId?preview:role;
+// Inspector is an add-on to a person's role (Nov 27): Supervisor + Inspector, Employee + Inspector
+let previewInsp=false;
+const myInsp=()=>{if(role==='admin'&&preview&&me===ownerId)return previewInsp;const u=users[me];return myRaw==='inspector'||!!(u&&u.insp)};
+const signer=()=>eff()!=='admin'&&myInsp();
+const sigRole=()=>eff()==='admin'?'admin':signer()?'insp':eff();
 const isMgr=()=>!!me&&!preview&&(me===ownerId||myRaw==='coowner');
-const can=a=>{const r=eff();if(r==='admin')return true;if(r==='emp')return['move','comment','request'].includes(a);if(r==='insp')return['sign'].includes(a);return false};
+const can=a=>{const r=eff();if(r==='admin')return true;if(a==='sign'&&signer())return true;if(r==='emp')return['move','comment','request'].includes(a);if(r==='insp')return['sign'].includes(a);return false};
 
 function normInfo(src){const info={};STEPS.forEach(s=>{const x=(src||{})[s.k]||{};info[s.k]={n:String(x.n||'').trim()||s.def,sup:String(x.sup||''),crew:Array.isArray(x.crew)?x.crew.map(String).filter(Boolean):[],members:Array.isArray(x.members)?x.members.map(String).filter(Boolean).slice(0,60):[]}});return info}
 function normTruck(t){if(!t||!t.id)return null;const k=(t.k==='done'||STEPS.some(s=>s.k===t.k))?t.k:'s1';
@@ -671,8 +677,8 @@ function writeFail(e){const code=e&&e.code;
   if(code==='invalid_argument'||code==='permission-denied'){toast("You don't have permission to change this");render()}
   else if(code==='quota_exceeded')toast('Storage is full. Delete some old signed-off trucks.');
   else toast("Couldn't save. Check your connection.")}
-async function putTruck(t){if(!shared){saveLocal();return}const d=clone(t);try{const ref=db.collection('trucks').doc(t.id);
-  if(role==='emp')await ref.update({k:d.k,h:d.h,req:d.req,hold:d.hold||null});else if(role==='insp')await ref.update({sig:d.sig,req:d.req,h:d.h});else await ref.set(d)}catch(e){writeFail(e)}}
+async function putTruck(t,mode){if(!shared){saveLocal();return}const d=clone(t);try{const ref=db.collection('trucks').doc(t.id);
+  if(mode==='sig'&&role!=='admin')await ref.update({sig:d.sig,req:d.req,h:d.h});else if(role==='emp')await ref.update({k:d.k,h:d.h,req:d.req,hold:d.hold||null});else if(role==='insp')await ref.update({sig:d.sig,req:d.req,h:d.h});else await ref.set(d)}catch(e){writeFail(e)}}
 async function delTruck(id){if(!shared){saveLocal();return}try{await db.collection('trucks').doc(id).delete()}catch(e){writeFail(e)}}
 async function putInfo(){if(!shared){saveLocal();return}try{await db.doc('plant/crews').set({info:S.info})}catch(e){writeFail(e)}}
 async function putComment(c){if(!shared){saveLocal();return}try{await db.collection('comments').doc(c.id).set(c)}catch(e){writeFail(e)}}
@@ -760,9 +766,9 @@ function tile(s,cnt,bump){const c=cnt[s.k]||0,inf=S.info[s.k],on=sel===s.k,b=bum
   return `<button class="tl${c?' has':''}${on?' on':''}${b}" data-k="${s.k}" aria-pressed="${on}" title="${esc(inf.n)}"${s.c?` style="--sc:${s.c}"`:''}><b>${s.code}</b><span>${s.z==='fin'||s.z==='out'||!isDef(s.k)?esc(inf.n):(inf.sup?esc(inf.sup):'&nbsp;')}</span><i>${c||''}</i>${cm}</button>`}
 
 function renderMe(){const r=eff();
-  const isOwn=me&&me===ownerId&&!preview,isCo=!isOwn&&myRaw==='coowner'&&!preview,label=isOwn?'Owner':isCo?'Co-owner':{admin:'Admin',emp:'Supervisor',insp:'Inspector',view:'Employee · view only'}[r];
+  const isOwn=me&&me===ownerId&&!preview,isCo=!isOwn&&myRaw==='coowner'&&!preview,label=(isOwn?'Owner':isCo?'Co-owner':{admin:'Admin',emp:'Supervisor',insp:'Inspector',view:'Employee · view only'}[r])+(r!=='admin'&&myInsp()?' + Inspector':'');
   {const mb=$('#bMenu');if(mb)mb.hidden=!shared;const tbar=$('#tabbar');if(tbar){tbar.hidden=!shared;document.body.classList.toggle('tabs',!!shared);if(shared&&!document.body.dataset.tab){const lt=lsGet('c3-tab');document.body.dataset.tab=lt==='trucks'?'trucks':'floor';document.querySelectorAll('#tabbar [data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===document.body.dataset.tab));const bc=$('#bCards');if(bc)bc.textContent=cardMode()==='full'?'Small cards':'Big cards'}}if(!shared)closeDrawer()}
-  $('#me').innerHTML=!shared?'':`<span>${me?esc(names[me]||'Signed in'):'Signed in'}</span><span class="role ${isOwn?'owner':isCo?'coowner':r==='admin'?'admin':r==='view'?'view':''}">${label}</span>${me&&me===ownerId?`<div class="seg" role="group" aria-label="View as">${[['admin',me===ownerId?'Owner':'Co-owner'],['emp','Supervisor'],['insp','Inspector'],['view','Employee']].map(([v,l])=>`<button data-prev="${v}" class="${(preview||'admin')===v?'on':''}" aria-pressed="${(preview||'admin')===v}">${l}</button>`).join('')}</div>`:''}<span class="hbtns" style="--n:${(n=>n<=4?n:Math.ceil(n/2))(4+(isMgr()?1:0)+(pinFor(me)?1:0))}">${isMgr()?'<button id="bPeople">People</button>':''}${pinFor(me)?'<button id="bLock">Lock</button>':''}<button id="bBell">Alerts<b id="bellN2" hidden></b></button><button id="bStats">Line stats</button>${can('edit')?'<button id="bExp">Export to spreadsheet</button>':''}<button id="bHelp">Help</button><button id="bInv">Invite</button><button id="bPin">PIN</button><button id="bOut">Sign out</button></span><span class="sync" id="sync"></span>`;
+  $('#me').innerHTML=!shared?'':`<span>${me?esc(names[me]||'Signed in'):'Signed in'}</span><span class="role ${isOwn?'owner':isCo?'coowner':r==='admin'?'admin':r==='view'?'view':''}">${label}</span>${me&&me===ownerId?`<div class="seg" role="group" aria-label="View as">${[['admin',me===ownerId?'Owner':'Co-owner'],['emp','Supervisor'],['view','Employee']].map(([v,l])=>`<button data-prev="${v}" class="${(preview||'admin')===v?'on':''}" aria-pressed="${(preview||'admin')===v}">${l}</button>`).join('')}${preview?`<label class="pvi"><input type="checkbox" id="pvInsp" ${previewInsp?'checked':''}> + Inspector</label>`:''}</div>`:''}<span class="hbtns" style="--n:${(n=>n<=4?n:Math.ceil(n/2))(4+(isMgr()?1:0)+(pinFor(me)?1:0))}">${isMgr()?'<button id="bPeople">People</button>':''}${pinFor(me)?'<button id="bLock">Lock</button>':''}<button id="bBell">Alerts<b id="bellN2" hidden></b></button><button id="bStats">Line stats</button>${can('edit')?'<button id="bExp">Export to spreadsheet</button>':''}<button id="bHelp">Help</button><button id="bInv">Invite</button><button id="bPin">PIN</button><button id="bOut">Sign out</button></span><span class="sync" id="sync"></span>`;
   $('#bAdd').hidden=!can('edit');$('#bStations').textContent=can('edit')?'Crews':'Crews';}
 
 function safeRender(b){if(animating){pendingRender=true;return}render(b)}
@@ -776,7 +782,7 @@ function render(bump){queueMicrotask(alertsTick);
   const zoneHtml=z=>`<section class="zone z-${z.z}"><header><h3>${z.t}</h3><span>${z.sub}</span><b>${zc(z.z)}</b>${z.z==='build'&&can('move')?'<button class="go mv" data-index>Move line ▸</button>':''}</header><div class="tiles">${STEPS.filter(s=>s.z===z.z).map(s=>tile(s,cnt,bump)).join('')}${z.z==='fin'?`<button class="tl dn${bump&&bump.has('done')?' bump':''}" data-done><b>✓</b><span>Signed off</span><i>${dn.length||''}</i></button>`:''}</div></section>`;
   renderFloor(bump);
   $('#panel').innerHTML='';$('#fchip').innerHTML='';if(pop&&!$('#mStn').hidden)refreshStn();
-  {const mine=eff()==='insp'||eff()==='admin'?S.trucks.flatMap(t=>t.k===SIGSTN?SIGS.filter(([k])=>t.req[k]&&t.req[k].uid===me&&!t.sig[k]).map(([k,l])=>({t,l})):[]):[];
+  {const mine=sigRole()==='insp'||eff()==='admin'?S.trucks.flatMap(t=>t.k===SIGSTN?SIGS.filter(([k])=>t.req[k]&&t.req[k].uid===me&&!t.sig[k]).map(([k,l])=>({t,l})):[]):[];
    $('#note').innerHTML=mine.length?`<div class="reqban"><b>${mine.length} signature${mine.length===1?'':'s'} waiting on you</b>${mine.map(x=>`<button data-gocard="${esc(x.t.id)}">${esc(x.t.unit)} · ${x.l}</button>`).join('')}</div>`:''}
   const q=$('#q').value.trim().toLowerCase(),srt=$('#sort').value;
   const isL=t=>t.due&&t.due<td,needMe=t=>t.k===SIGSTN&&SIGS.some(([k])=>t.req[k]&&t.req[k].uid===me&&!t.sig[k]),heldT=t=>HOLDS&&t.hold&&t.k!=='down';
@@ -796,7 +802,7 @@ function render(bump){queueMicrotask(alertsTick);
     const fi=FLOW.indexOf(t.k),pv=FLOW[fi-1];
     const sec=[E,mayMove?'<button data-moveto>Other spot…</button>':'',t.k===EMERG&&can('edit')?'<button class="warn" data-pull>Emergency pull</button>':'',fi>0&&can('edit')?`<button data-back ${pv&&occupied(pv,t.id)?'disabled':''} aria-label="Move back one step">◂ Back</button>`:''].filter(Boolean).join('');
     const acts=(NM?`<button class="go mvbig" data-mv1 ${NM.dis?'aria-disabled="true"':''}>${esc(NM.l)}</button>`:!mayMove&&lock?`<span class="lk">${lock}</span>`:'')+(sec?`<div class="acts">${sec}</div>`:'');
-    const sigs=t.k===SIGSTN?`<div class="sigs">${SIGS.map(([k,l])=>{const g=t.sig[k],rq=t.req[k],r=eff();
+    const sigs=t.k===SIGSTN?`<div class="sigs">${SIGS.map(([k,l])=>{const g=t.sig[k],rq=t.req[k],r=sigRole();
       let cls='sig',main,small='',on=false;
       if(g){cls+=' ok';main='✓ '+esc(g.name||who(g.uid||g.by)||'Signed');small=fmtDT(g.t)+(g.by&&g.by!==g.uid?' · entered by '+esc(who(g.by)):'');on=r==='admin'||(r==='insp'&&g.uid===me)}
       else if(rq){cls+=' rq';main='Waiting on '+esc(rq.uid===me?'you':(users[rq.uid]?users[rq.uid].name:who(rq.uid))||'someone');small='Asked by '+esc(who(rq.by)||'someone')+' · '+fmtDT(rq.t);on=r!=='view'}
@@ -1015,10 +1021,10 @@ function doIndex(dest){
   any?afterAnim(dest?1150:850,bump):render(bump)}
 
 let sigCtx=null;
-const signers=()=>Object.entries(users).filter(([,u])=>u.role==='inspector'||u.role==='admin').sort((a,b)=>(a[1].role==='inspector'?0:1)-(b[1].role==='inspector'?0:1)||a[1].name.localeCompare(b[1].name));
+const signers=()=>Object.entries(users).filter(([,u])=>u.insp||u.role==='admin'||u.role==='coowner').sort((a,b)=>(a[1].role==='inspector'?0:1)-(b[1].role==='inspector'?0:1)||a[1].name.localeCompare(b[1].name));
 const members=()=>Object.entries(users).filter(([,u])=>u.role&&u.role!=='pending').sort((a,b)=>(a[1].role==='inspector'?0:1)-(b[1].role==='inspector'?0:1)||a[1].name.localeCompare(b[1].name));
 const pickRows=(list,cur)=>list.length?list.map(([id,u])=>`<label class="prk"><input type="radio" name="who" value="${esc(id)}" ${cur===id?'checked':''}><span><b>${esc(u.name||u.email)}${id===me?' (you)':''}</b><em>${id===ownerId?'Owner':u.role==='coowner'?'Co-owner':esc(ROLE_NAMES[u.role]||u.role)}</em></span></label>`).join(''):'';
-function sign(t,k){const g=t.sig[k],rq=t.req[k],l=SIGS.find(x=>x[0]===k)[1],r=eff();sigCtx={id:t.id,k,mode:''};
+function sign(t,k){const g=t.sig[k],rq=t.req[k],l=SIGS.find(x=>x[0]===k)[1],r=sigRole();sigCtx={id:t.id,k,mode:''};
   let body='',go='',extra='';
   if(r==='admin'){sigCtx.mode='admin';
     body=`<p class="hint" style="margin:0">Pick who signed, or type a name.</p><div class="prks">${pickRows(members(),g&&g.uid)}</div><label>Or type a name<input id="sigName" maxlength="60" placeholder="Name" value="${esc(g&&!g.uid?g.name:'')}"></label>`;
@@ -1039,11 +1045,11 @@ $('#fSig').addEventListener('submit',e=>{e.preventDefault();if(!sigCtx)return;co
     const name=picked?(users[picked]?users[picked].name:''):typed.slice(0,60);remember([t.id]);t.sig[k]={t:now(),by:me||'',name,uid:picked||''};t.req[k]=null;t.h=t.h.concat({k:'sig-'+k,t:now(),by:me||''});notify('sig',`${t.unit}: ${l} signed`,`Signed by ${name}`,'mgrish');toast(`${l} signed by ${name} on ${t.unit}`)}
   else if(m==='insp'){if(!can('sign'))return;remember([t.id]);t.sig[k]={t:now(),by:me||'',name:names[me]||'',uid:me||''};t.req[k]=null;t.h=t.h.concat({k:'sig-'+k,t:now(),by:me||''});notify('sig',`${t.unit}: ${l} signed`,`Signed by ${myName()}`,'mgrish');toast(`You signed the ${l} on ${t.unit}`)}
   else if(m==='sup'){if(!can('request'))return;if(!picked)return err('Pick who should sign.');remember([t.id]);t.req[k]={uid:picked,by:me||'',t:now()};t.h=t.h.concat({k:'req-'+k,t:now(),by:me||''});notify('req',`${t.unit} needs your ${l}`,`Asked by ${myName()}`,'uid:'+picked);toast(`Asked ${users[picked]?users[picked].name:'them'} to sign the ${l}`)}
-  putTruck(t);$('#mSig').hidden=true;render()});
+  putTruck(t,'sig');$('#mSig').hidden=true;render()});
 $('#sigExtra').addEventListener('click',e=>{const b=e.target.closest('[data-sigact]');if(!b||!sigCtx)return;const t=find(sigCtx.id);if(!t)return;const k=sigCtx.k,l=SIGS.find(x=>x[0]===k)[1];remember([t.id]);
   if(b.dataset.sigact==='clear'){t.sig[k]=null;t.h=t.h.concat({k:'unsig-'+k,t:now(),by:me||''});toast(`${l} cleared on ${t.unit}`)}
   else{t.req[k]=null;t.h=t.h.concat({k:'unreq-'+k,t:now(),by:me||''});toast('Request canceled')}
-  putTruck(t);$('#mSig').hidden=true;render()});
+  putTruck(t,'sig');$('#mSig').hidden=true;render()});
 
 function pick(t,msg,keys,cb,except){pickCb=cb;$('#mvTitle').textContent=t;$('#mvMsg').textContent=msg;
   const only=ZONES.filter(z=>keys.some(k=>k!=='done'&&step(k).z===z.z)).length===1;
@@ -1113,7 +1119,7 @@ document.addEventListener('click',e=>{
   if(b.hasAttribute('data-stncancel')){stnEdit=false;refreshStn(true);return}
   if(b.dataset.stmove){const t2=find(b.dataset.stmove);if(!t2)return;closeModal($('#mStn'));setTimeout(()=>movePick(t2),60);return}
   if(b.dataset.gocard){const id=b.dataset.gocard;closeModal($('#mStn'));setTimeout(()=>openTk(id),60);return}
-  if(b.dataset.prev){if(!(me&&me===ownerId))return;const v=b.dataset.prev==='admin'?null:b.dataset.prev;if(v===preview)return;preview=v;if(v){['#mPeople','#mPst'].forEach(x=>{const m=$(x);if(m)m.hidden=true})}render();toast(preview==='emp'?'Showing what supervisors see':preview==='view'?'Showing what employees see (view only)':'Back to admin view');return}
+  if(b.dataset.prev){if(!(me&&me===ownerId))return;if(b.dataset.prev==='admin')previewInsp=false;const v=b.dataset.prev==='admin'?null:b.dataset.prev;if(v===preview)return;preview=v;if(v){['#mPeople','#mPst'].forEach(x=>{const m=$(x);if(m)m.hidden=true})}render();toast(preview==='emp'?'Showing what supervisors see':preview==='view'?'Showing what employees see (view only)':'Back to admin view');return}
   if(b.hasAttribute('data-index')){indexLine();return}
   if(b.dataset.cdel){const c=C.find(x=>x.id===b.dataset.cdel);if(c&&(can('edit')||c.by===me)){C=C.filter(x=>x.id!==c.id);delComment(c.id);render();toast('Comment deleted')}return}
   if(b.dataset.k&&b.classList.contains('tl')){sel=sel===b.dataset.k?null:b.dataset.k;render();if(sel)$('#panel').scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});return}
@@ -1149,8 +1155,8 @@ render();
 // ---------- accounts and shared data (Firebase) ----------
 const FB=window.C3FB;
 let ownerUid=null,dataUnsubs=[],meUnsub=null,gateView='loading',authUser=null;
-const ROLE_MAP={coowner:'admin',admin:'admin',supervisor:'emp',inspector:'insp',employee:'view'};
-const ROLE_NAMES={coowner:'Co-owner (full control, helped build the app)',admin:'Admin',supervisor:'Supervisor',inspector:'Inspector (signs Station 18)',employee:'Employee (view only)',pending:'No access yet'};
+const ROLE_MAP={coowner:'admin',admin:'admin',supervisor:'emp',inspector:'view',employee:'view'};
+const ROLE_NAMES={coowner:'Co-owner (full control, helped build the app)',admin:'Admin',supervisor:'Supervisor',inspector:'Employee (view only)',employee:'Employee (view only)',pending:'No access yet'};
 const authErr=e=>{const c=(e&&e.code)||'';
   if(/invalid-credential|wrong-password|user-not-found|invalid-login/.test(c))return'Wrong email or password.';
   if(/email-already-in-use/.test(c))return'That email already has an account. Sign in instead.';
@@ -1315,7 +1321,7 @@ function alertList(){if(!me)return[];const r=eff(),out=[],wk=Date.now()-7*864e5,
       else if(e.k==='unhold')out.push({t:e.t,c:'done',i:'✓',txt:`${t.unit} is off hold`,sub:who(e.by)||'',id:t.id,by:e.by});
       else if(i>0&&step(e.k)&&e.k!==SIGSTN&&!WAIT[e.k])out.push({t:e.t,c:'mv1',i:'▸',txt:`${t.unit} → ${title(e.k)}`,sub:who(e.by)||'',id:t.id,by:e.by});
       else if(e.k==='done')out.push({t:e.t,c:'done',i:'✓',txt:`${t.unit} signed off`,sub:who(e.by)||'',id:t.id,by:e.by});
-      else if(e.k===SIGSTN&&(r==='admin'||r==='insp'))out.push({t:e.t,c:'s18',i:'18',txt:`${t.unit} reached Station 18`,sub:'Ready for sigs',id:t.id,by:e.by});
+      else if(e.k===SIGSTN&&(r==='admin'||signer()))out.push({t:e.t,c:'s18',i:'18',txt:`${t.unit} reached Station 18`,sub:'Ready for sigs',id:t.id,by:e.by});
       else if(/^sig-/.test(e.k)&&mgrish)out.push({t:e.t,c:'done',i:'✍',txt:`${t.unit}: ${title(e.k)}`,sub:who(e.by)||'',id:t.id,by:e.by})})});
   Object.values(lines).forEach(L=>out.push({t:L.t,c:'line',i:'▸',txt:'The line moved',sub:`${who(L.by)||'Someone'} · ${L.n} truck${L.n===1?'':'s'} moved up${L.out.length?' · '+L.out.join(', '):''}`,id:'',by:L.by}));
   if(isMgr())Object.entries(users).forEach(([id,u])=>{if(u.role==='pending'&&u.created&&new Date(u.created)>wk)out.push({t:u.created,c:'req',i:'+',txt:`${u.name||'Someone'} is waiting for a role`,sub:'Open People to give them access',id:'',by:'',ppl:1})});
@@ -1412,6 +1418,7 @@ document.addEventListener('click',e=>{const tb=e.target.closest('#tabbar [data-t
   if(e.target.closest('#bCards')){lsSet('c3-cards',cardMode()==='full'?'compact':'full');$('#bCards').textContent=cardMode()==='full'?'Small cards':'Big cards';render();return}});
 function openDrawer(){const d=$('#drawer');d.hidden=false;requestAnimationFrame(()=>requestAnimationFrame(()=>d.classList.add('open')));$('#bMenu').setAttribute('aria-expanded','true')}
 function closeDrawer(){const d=$('#drawer');if(!d||d.hidden)return;d.classList.remove('open');const mb=$('#bMenu');if(mb)mb.setAttribute('aria-expanded','false');setTimeout(()=>{if(!d.classList.contains('open'))d.hidden=true},280)}
+document.addEventListener('change',e=>{if(e.target.id==='pvInsp'&&me===ownerId&&preview){previewInsp=e.target.checked;render();toast(previewInsp?'Showing them as an inspector too':'Inspector turned off')}});
 document.addEventListener('click',e=>{if(e.target.closest('#bMenu')){openDrawer();return}if(e.target.closest('[data-dclose]')){closeDrawer();return}if(e.target.closest('#me button')&&!e.target.closest('.seg'))closeDrawer()},true);
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer()});
 document.addEventListener('click',e=>{if(e.target.closest('#bHelp')){tourStart();return}
@@ -1487,7 +1494,7 @@ function startData(){if(dataUnsubs.length)return;setTimeout(()=>registerPush(fal
   dataUnsubs.push(db.collection('trucks').onSnapshot(snap=>{S.trucks=snap.docs.map(x=>normTruck({...x.data(),id:x.id})).filter(Boolean);if(!snap.metadata.fromCache){clearTimeout(tmr);if(sy())sy().textContent='Live'}safeRender()},e=>{clearTimeout(tmr);if(sy())sy().textContent='Live updates stopped. Reopen to reconnect.'}));
   dataUnsubs.push(db.doc('plant/crews').onSnapshot(snap=>{S.info=normInfo(snap.exists?(snap.data()||{}).info:{});safeRender()},()=>{}));
   dataUnsubs.push(db.collection('comments').orderBy('t','desc').limit(500).onSnapshot(snap=>{C=snap.docs.map(x=>{const v=x.data()||{};return{id:x.id,k:String(v.k||''),text:String(v.text||''),by:String(v.by||''),t:String(v.t||'')}});safeRender()},()=>{}));
-  dataUnsubs.push(db.collection('users').onSnapshot(snap=>{users={};snap.docs.forEach(x=>{const v=x.data()||{};users[x.id]={name:String(v.name||''),email:emails[x.id]||'',role:String(v.role||'pending'),created:String(v.created||'')};names[x.id]=users[x.id].name;if(v.email!==undefined&&me&&me===ownerId)scrubEmail(x.id,v)});safeRender();if(!$('#mPeople').hidden)renderPeople()},()=>{}))}
+  dataUnsubs.push(db.collection('users').onSnapshot(snap=>{users={};snap.docs.forEach(x=>{const v=x.data()||{};users[x.id]={name:String(v.name||''),email:emails[x.id]||'',role:String(v.role||'pending'),insp:!!v.insp||v.role==='inspector',created:String(v.created||'')};names[x.id]=users[x.id].name;if(v.email!==undefined&&me&&me===ownerId)scrubEmail(x.id,v)});safeRender();if(!$('#mPeople').hidden)renderPeople()},()=>{}))}
 
 FB.onAuth(async user=>{
   authUser=user;if(meUnsub){meUnsub();meUnsub=null}
@@ -1520,7 +1527,7 @@ function renderPeople(){const list=Object.entries(users).sort((a,b)=>{const o={p
   const stOf=id=>STEPS.filter(x=>S.info[x.k]&&S.info[x.k].members.includes(id));
   $('#pplList').innerHTML=(waiting&&!pq?`<p class="pwait">${waiting} ${waiting===1?'person is':'people are'} waiting for a role</p>`:'')+(pq&&!shown.length?'<p class="k">No one matches that search.</p>':'')+(shown.map(([id,u])=>{const locked=id===me||id===ownerUid||(me!==ownerUid&&u.role==='coowner');
     return `<div class="prow${u.role==='pending'?' pend':''}"><div class="pav">${esc((u.name||u.email||'?').trim().charAt(0).toUpperCase())}</div><div class="pinfo"><b>${esc(u.name||'No name')}${id===me?' (you)':''}</b><span class="k">${esc(u.email)}</span>${u.created?`<span class="k">Joined ${fmtDT(u.created)}</span>`:''}</div>
-      ${id===ownerUid?'<span class="ownpill">Owner</span>':u.role==='coowner'&&me!==ownerUid?'<span class="ownpill co">Co-owner</span>':`<select data-uid="${esc(id)}" aria-label="Role for ${esc(u.name||u.email)}" ${locked?'disabled':''}>${(me===ownerUid?['pending','employee','inspector','supervisor','admin','coowner']:['pending','employee','inspector','supervisor','admin']).map(r=>`<option value="${r}" ${u.role===r?'selected':''}>${ROLE_NAMES[r]}</option>`).join('')}</select>`}${u.role!=='pending'?`<div class="pst">${stOf(id).map(x=>`<span class="pstc z-${x.z}">${esc(short(x.k))}</span>`).join('')||'<span class="k">No station</span>'}<button type="button" class="pstb" data-pst="${esc(id)}">${stOf(id).length?'Change stations':'Add to stations'}</button></div>`:''}${!locked?`<button class="prm" data-rm="${esc(id)}">Remove</button>`:''}</div>`}).join('')||(pq?'':'<p class="k">No one has signed up yet.</p>'))
+      ${id===ownerUid?'<span class="ownpill">Owner</span>':u.role==='coowner'&&me!==ownerUid?'<span class="ownpill co">Co-owner</span>':`<select data-uid="${esc(id)}" aria-label="Role for ${esc(u.name||u.email)}" ${locked?'disabled':''}>${(me===ownerUid?['pending','employee','supervisor','admin','coowner']:['pending','employee','supervisor','admin']).map(r=>`<option value="${r}" ${(u.role==='inspector'?'employee':u.role)===r?'selected':''}>${ROLE_NAMES[r]}</option>`).join('')}</select>`}${['employee','supervisor','inspector'].includes(u.role)?`<label class="pinsp"><input type="checkbox" data-insp="${esc(id)}" ${u.insp?'checked':''} ${locked?'disabled':''}><span><b>Inspector</b><small>Can sign Station 18</small></span></label>`:''}${u.role!=='pending'?`<div class="pst">${stOf(id).map(x=>`<span class="pstc z-${x.z}">${esc(short(x.k))}</span>`).join('')||'<span class="k">No station</span>'}<button type="button" class="pstb" data-pst="${esc(id)}">${stOf(id).length?'Change stations':'Add to stations'}</button></div>`:''}${!locked?`<button class="prm" data-rm="${esc(id)}">Remove</button>`:''}</div>`}).join('')||(pq?'':'<p class="k">No one has signed up yet.</p>'))
   +(Object.keys(blocked).length?`<h3 class="prh">Removed</h3>`+Object.entries(blocked).sort((a,b)=>b[1].t.localeCompare(a[1].t)).map(([id,u])=>`<div class="prow gone"><div class="pav">${esc((u.name||u.email||'?').trim().charAt(0).toUpperCase())}</div><div class="pinfo"><b>${esc(u.name||'No name')}</b><span class="k">${esc(u.email)}</span><span class="k">Removed ${fmtDT(u.t)}${u.by?' by '+esc(who(u.by)):''}</span></div><button class="prs" data-restore="${esc(id)}">Let back in</button></div>`).join(''):'')}
 let rmArm=null,rmTmr=null,pstUid=null;
 $('#pplQ').addEventListener('input',()=>renderPeople());
@@ -1537,8 +1544,11 @@ $('#pplList').addEventListener('click',async e=>{const ps=e.target.closest('[dat
     try{await db.doc('blocked/'+uid).set({name:u.name||'',email:emails[uid]||u.email||'',by:me,t:new Date().toISOString()});await db.doc('users/'+uid).delete();try{await db.doc('private/'+uid).delete()}catch(x){}
       toast(`${u.name||'They'} can't get into Code 3 anymore`)}catch(x){toast("Couldn't remove them. Make sure the newest rules are published.");renderPeople()}return}
   if(sb){const uid=sb.dataset.restore,u=blocked[uid];sb.disabled=true;try{await db.doc('blocked/'+uid).delete();toast(`${u&&u.name||'They'} can sign in again. They'll need a role.`)}catch(x){toast("Couldn't do that. Make sure the newest rules are published.");renderPeople()}}});
-$('#pplList').addEventListener('change',async e=>{const s=e.target.closest('select[data-uid]');if(!s||!isMgr())return;const uid=s.dataset.uid,r=s.value;if(me!==ownerId&&(r==='coowner'||(users[uid]&&users[uid].role==='coowner')||uid===ownerId)){renderPeople();return}
-  try{await db.doc('users/'+uid).update({role:r});toast(`${users[uid]?users[uid].name:'User'} is now ${ROLE_NAMES[r]}`)}catch(x){toast("Couldn't change that role.");renderPeople()}});
+$('#pplList').addEventListener('change',async e=>{const ic=e.target.closest('input[data-insp]');if(ic){if(!isMgr())return;const uid=ic.dataset.insp,u=users[uid];if(!u||uid===ownerId||(me!==ownerId&&u.role==='coowner')){renderPeople();return}
+    const upd={insp:ic.checked};if(u.role==='inspector')upd.role='employee';
+    try{await db.doc('users/'+uid).update(upd);toast(`${u.name||'They'} ${ic.checked?'can now sign Station 18':'can no longer sign'}`)}catch(x){toast("Couldn't change that. Make sure the newest rules are published.");renderPeople()}return}
+  const s=e.target.closest('select[data-uid]');if(!s||!isMgr())return;const uid=s.dataset.uid,r=s.value;if(me!==ownerId&&(r==='coowner'||(users[uid]&&users[uid].role==='coowner')||uid===ownerId)){renderPeople();return}
+  try{await db.doc('users/'+uid).update(users[uid]&&users[uid].role==='inspector'?{role:r,insp:true}:{role:r});toast(`${users[uid]?users[uid].name:'User'} is now ${ROLE_NAMES[r]}`)}catch(x){toast("Couldn't change that role.");renderPeople()}});
 document.addEventListener('click',e=>{if(e.target.closest('#bPeople')){if(!isMgr())return;renderPeople();$('#mPeople').hidden=false}else if(e.target.closest('#bOut')){undo=null;ssSet('c3-open',null);FB.signOut();toast('Signed out')}});
 }
 </script>

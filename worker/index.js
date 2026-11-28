@@ -7,7 +7,7 @@
 const MEMBER = ['employee', 'inspector', 'supervisor', 'admin', 'coowner'];
 const AUD = {
   all: r => MEMBER.includes(r) || r === 'owner',
-  insp: r => ['inspector', 'admin', 'coowner', 'owner'].includes(r),
+  insp: (r, p) => ['inspector', 'admin', 'coowner', 'owner'].includes(r) || !!(p && p.insp && MEMBER.includes(r)),
   mgrish: r => ['supervisor', 'admin', 'coowner', 'owner'].includes(r),
   mgr: r => ['coowner', 'owner'].includes(r)
 };
@@ -68,10 +68,10 @@ const err = (m, s) => Object.assign(new Error(m), { status: s });
 function pickTargets(people, aud, exclude) {
   let test;
   if (aud.startsWith('uid:')) { const id = aud.slice(4); test = (r, uid) => uid === id && (MEMBER.includes(r) || r === 'owner'); }
-  else { const f = AUD[aud] || AUD.all; test = r => f(r); }
+  else { const f = AUD[aud] || AUD.all; test = (r, uid, p) => f(r, p); }
   const out = [];
   for (const [uid, p] of Object.entries(people)) {
-    if (uid === exclude || !p.tokens.length || !test(p.role, uid)) continue;
+    if (uid === exclude || !p.tokens.length || !test(p.role, uid, p)) continue;
     for (const t of p.tokens) out.push({ uid, token: t });
   }
   return out.slice(0, 44); // free plan allows about 50 outgoing calls per alert
@@ -144,7 +144,7 @@ async function loadPeople(projectId, tok) {
   ]);
   const ownerUid = str(owner.fields, 'uid');
   const people = {};
-  users.forEach(d => { const id = idOf(d); people[id] = { role: id === ownerUid ? 'owner' : str(d.fields, 'role') || 'pending', tokens: [] }; });
+  users.forEach(d => { const id = idOf(d); people[id] = { role: id === ownerUid ? 'owner' : str(d.fields, 'role') || 'pending', insp: !!(d.fields && d.fields.insp && d.fields.insp.booleanValue), tokens: [] }; });
   tokens.forEach(d => {
     const id = idOf(d), p = people[id]; if (!p) return;
     const arr = d.fields && d.fields.list && d.fields.list.arrayValue && d.fields.list.arrayValue.values || [];

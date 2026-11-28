@@ -12,7 +12,12 @@ service cloud.firestore {
     function isCoOwner() { return signedIn() && myRole() == 'coowner'; }
     function isAdmin() { return isOwner() || (signedIn() && myRole() in ['admin', 'coowner']); }
     function isSupervisor() { return isAdmin() || (signedIn() && myRole() == 'supervisor'); }
-    function isInspector() { return isAdmin() || (signedIn() && myRole() == 'inspector'); }
+    function myInspFlag() {
+      let p = /databases/$(database)/documents/users/$(request.auth.uid);
+      return exists(p) && get(p).data.get('insp', false) == true;
+    }
+    // Inspector is an add-on: a supervisor or employee with the Inspector box checked
+    function isInspector() { return isAdmin() || (signedIn() && (myRole() == 'inspector' || (myRole() in ['supervisor', 'employee'] && myInspFlag()))); }
     function isMember() { return isSupervisor() || (signedIn() && myRole() in ['inspector', 'employee']); }
 
     // The first person to sign up becomes the owner (always admin)
@@ -32,9 +37,10 @@ service cloud.firestore {
       allow update: if isOwner()
         || (isCoOwner() && uid != get(ownerDoc()).data.uid && resource.data.role != 'coowner'
             && request.resource.data.role != 'coowner'
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role']))
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role', 'insp']))
         || (request.auth.uid == uid && request.resource.data.role == resource.data.role
-            && request.resource.data.keys().hasOnly(['name', 'role', 'created']));
+            && request.resource.data.get('insp', false) == resource.data.get('insp', false)
+            && request.resource.data.keys().hasOnly(['name', 'role', 'created', 'insp']));
       allow delete: if (isOwner() && uid != request.auth.uid)
         || (isCoOwner() && uid != get(ownerDoc()).data.uid && uid != request.auth.uid && resource.data.role != 'coowner');
     }
