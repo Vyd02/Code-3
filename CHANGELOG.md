@@ -39,6 +39,7 @@ Every change is its own commit, so any one can be undone without touching the ot
 | 24 | Final logo | `4428f4c` | App icon is the C + 3 circle: a chrome C and a red 3 that together form one round badge. |
 | 25 | Logo on sign-in screen | `f6590a2` | Sign-in and PIN screens show the C + 3 logo instead of the ambulance drawing. New icon file names so installed apps pick up the new icon. |
 | 26 | Faster, smoother sign-in | `3a12710` | Fonts stored in the app, files open from the phone instantly, PIN pad appears right away, returning users skip the waiting, smooth fades and spinners. |
+| 27 | Crews labels | `0a0f2a7` | No doubled station numbers; short codes shown in parentheses after the name. |
 
 ### Database rules changed
 - Photos: new `match /trucks/{id}/photos/{pid}` block (feature 8).
