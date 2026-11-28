@@ -31,6 +31,7 @@ Every change is its own commit, so any one can be undone without touching the ot
 | 16 | People: stations + search | `ccb5006` | Assign stations to each person from People, search people by name or email, and the Remove button is no longer squished. |
 | 17 | View-as hides owner tools | `4c577f1` | Viewing as Supervisor, Inspector or Employee hides People and the recap preview, like a real one would see. |
 | 18 | Inspector as an add-on | `4359f5d` | Inspector is a checkbox on top of Supervisor or Employee instead of its own role. Needs the updated rules. |
+| 19 | Inspector box on everyone | `2f306e0` | Owners, co-owners and admins show a grayed, checked Inspector box saying they can already sign. |
 
 ### Database rules changed
 - Photos: new `match /trucks/{id}/photos/{pid}` block (feature 8).
