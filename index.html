@@ -615,7 +615,7 @@ label{display:grid;gap:4px;font-size:14px;font-weight:600}
 {
 const KEY='line-tracker-v2';
 const FIN=['Cleaning','Standard work','QC','Finish gigs','Sign the truck'];
-const OUT=[['paint','P','Paint shop','#d7141a'],['body','B','Body shop','#ff7a00'],['graphics','G','Graphics','#1e7be5'],['under','U','Undercoating','#19a463']];
+const OUT=[['paint','P','Paint shop','#d7141a'],['body','B','Body shop','#ff7a00'],['graphics','G','Graphics','#19a463'],['under','U','Undercoating','#1e7be5']];
 const SIGS=[['el','Electrical sig'],['co','Cosmetic sig']];
 const STEPS=[...Array(15)].map((_,i)=>({k:'s'+(i+1),code:String(i+1),def:'Station '+(i+1),z:'build',pos:i}))
   .concat([{k:'bubble',code:'BB',def:'The Bubble',z:'bub',pos:15}])
@@ -902,7 +902,7 @@ function renderFloor(bump){
    h+=`<g class="bubg${wk==='next'?' nx':wk==='down'?' dn':''}${warn?' warn':''}${pop===wk?' on':''}${bump&&bump.has(wk)?' pulse':''}" data-k="${wk}" tabindex="0" role="button" aria-label="${W.t}, ${bc} trucks"><rect class="bubbox" x="${B.x}" y="${B.y}" width="${B.w}" height="${B.h}" rx="28"/>
    ${[[.12,.8,5],[.3,.7,3.5],[.55,.85,6],[.78,.75,4],[.9,.82,3]].map(([fx,fy,r],i)=>`<circle class="bfl" cx="${B.x+B.w*fx}" cy="${B.y+B.h*fy}" r="${r}" style="animation-delay:${i*0.7}s"/>`).join('')}
    <text class="bubn" x="${B.x+B.w-16}" y="${B.y+22}" text-anchor="end">${bc} / ${W.max}${warn?' · over '+W.warn:''}</text>${bc>shown?`<text class="bubm" x="${B.x+B.w-16}" y="${B.y+B.h-12}" text-anchor="end">+${bc-shown} more</text>`:''}${bc?'':`<text class="bube" x="${B.x+B.w/2}" y="${B.y+B.h/2+5}" text-anchor="middle">Empty</text>`}${nc?`<circle cx="${B.x+18}" cy="${B.y+18}" r="8" class="ncm"/><text class="ncmt" x="${B.x+18}" y="${B.y+18}">${nc}</text>`:''}</g>`})
-  const s=FL.svc;h+=`<rect class="svcbox" x="${s.x}" y="${s.y}" width="${s.w}" height="${s.h}" rx="12"/><rect x="${s.x+12}" y="${s.y-2}" width="${s.w-24}" height="4" rx="2" fill="url(#pg)"/>`;
+  const s=FL.svc;h+=`<rect class="svcbox" x="${s.x}" y="${s.y}" width="${s.w}" height="${s.h}" rx="12"/><rect x="${s.x+12}" y="${s.y-2}" width="${s.w-24}" height="4" rx="2" fill="url(#svcg)"/>`;
   FL.bays.forEach(k=>{const p=FL.P[k],b=p.bay,st=step(k),nc=comments(k).length;
     h+=`<g class="bayg" data-k="${k}"><rect class="bay${pop===k?' on':''}${bump&&bump.has(k)?' pulse':''}" x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="8" style="--sc:${st.c}"/><rect x="${b.x}" y="${b.y}" width="${b.w}" height="4" rx="2" fill="${st.c}"/>
       <text class="bayl${FL.wide?'':' sm'}">${svgLines(S.info[k].n,FL.wide?18:10,b.x+(FL.wide?8:5),b.y+19,13,b.w-(FL.wide?36:10))}</text>${cnt[k]&&FL.wide?`<text class="bays" x="${b.x+b.w-8}" y="${b.y+19}" text-anchor="end">${cnt[k]}</text>`:''}${nc?`<circle cx="${b.x+b.w-6}" cy="${b.y+b.h-6}" r="7" class="ncm"/><text class="ncmt" x="${b.x+b.w-6}" y="${b.y+b.h-6}">${nc}</text>`:''}</g>`});
@@ -911,7 +911,7 @@ function renderFloor(bump){
     h+=`<g class="node z-${st.z}${pop===st.k?' on':''}${bump&&bump.has(st.k)?' pulse':''}${cnt[st.k]?' has':''}" data-k="${st.k}" tabindex="0" role="button" aria-label="${esc(title(st.k))}"><circle class="hit" cx="${p.x}" cy="${p.y-8}" r="28"/><circle class="nc" cx="${p.x}" cy="${p.y}" r="14"/><circle class="hold" cx="${p.x}" cy="${p.y}" r="19" transform="rotate(-90 ${p.x} ${p.y})"/><text class="nt" x="${p.x}" y="${p.y+1}">${st.code}</text>${lab?`<text class="nl">${svgLines(lab,FL.wide?14:11,p.x,p.y+29,12,FL.wide?84:66)}</text>`:''}${nc?`<circle cx="${p.x+12}" cy="${p.y-11}" r="7" class="ncm"/><text class="ncmt" x="${p.x+12}" y="${p.y-11}">${nc}</text>`:''}</g>`});
   const L=FL.lot;h+=`<g class="lotg" data-done tabindex="0" role="button" aria-label="Signed off trucks"><rect class="lot${bump&&bump.has('done')?' pulse':''}" x="${L.x}" y="${L.y}" width="${L.w}" height="${L.h}" rx="12"/><text class="lott" x="${L.x+18}" y="${L.y+L.h/2+1}">✓ Signed off</text><text class="lotn" x="${L.x+L.w-18}" y="${L.y+L.h/2+1}" text-anchor="end">${dn.length}</text></g>`;
   h+=labs;
-  $('#fStatic').innerHTML=`<defs><linearGradient id="pg"><stop offset="0" stop-color="#d7141a"/><stop offset=".3" stop-color="#ff7a00"/><stop offset=".55" stop-color="#ffd400"/><stop offset=".75" stop-color="#19a463"/><stop offset="1" stop-color="#1e7be5"/></linearGradient></defs>`+h;
+  $('#fStatic').innerHTML=`<defs><linearGradient id="svcg"><stop offset=".12" stop-color="#d7141a"/><stop offset=".37" stop-color="#ff7a00"/><stop offset=".63" stop-color="#19a463"/><stop offset=".88" stop-color="#1e7be5"/></linearGradient><linearGradient id="pg"><stop offset="0" stop-color="#d7141a"/><stop offset=".3" stop-color="#ff7a00"/><stop offset=".55" stop-color="#ffd400"/><stop offset=".75" stop-color="#19a463"/><stop offset="1" stop-color="#1e7be5"/></linearGradient></defs>`+h;
   // trucks: keep the same elements so they glide to new spots
   // Feature 3: if the Floor tab is hidden, wait and play the slide when it opens
   if(document.body.classList.contains('tabs')&&document.body.dataset.tab&&document.body.dataset.tab!=='floor'&&prevOn.size)return;
