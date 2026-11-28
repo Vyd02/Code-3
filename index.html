@@ -1601,3 +1601,56 @@ navigator.serviceWorker.addEventListener('controllerchange',()=>{if(hadCtl&&!rel
 navigator.serviceWorker.register('sw.js').then(r=>{const chk=()=>r.update().catch(()=>{});document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')chk()});setInterval(chk,30*60e3)}).catch(()=>{})}</script>
 </body>
 </html>
+
+<style>
+/* CODE 3 — premium finish: preserve the original charcoal / fire-red identity and layout */
+@font-face{font-family:Inter;src:url(fonts/inter-400.woff2) format('woff2');font-style:normal;font-weight:400;font-display:swap}
+@font-face{font-family:Inter;src:url(fonts/inter-500.woff2) format('woff2');font-style:normal;font-weight:500;font-display:swap}
+@font-face{font-family:Inter;src:url(fonts/inter-600.woff2) format('woff2');font-style:normal;font-weight:600;font-display:swap}
+@font-face{font-family:Inter;src:url(fonts/inter-700.woff2) format('woff2');font-style:normal;font-weight:700;font-display:swap}
+@font-face{font-family:Inter;src:url(fonts/inter-800.woff2) format('woff2');font-style:normal;font-weight:800;font-display:swap}
+:root{--red:#d71920;--red2:#a50e13;--dk:#121315;--line:light-dark(#dedfe2,#303237);--card:light-dark(#fff,#191a1d);--mut:light-dark(#666b73,#a4a8af)}
+body{font-family:Inter,system-ui,sans-serif;letter-spacing:-.012em;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+h1,h2,h3,.tbig,.dtop b,.sth,.aday,.holdbar b{font-family:Inter,system-ui,sans-serif;letter-spacing:-.035em}
+h1,h2,h3{font-weight:800;line-height:1.08}
+.hero{background:#121315;color:#fff;padding-top:28px;padding-bottom:42px}
+.hero::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 82% 8%,rgba(215,25,32,.14),transparent 48%),linear-gradient(115deg,transparent 0 72%,rgba(255,255,255,.025) 72% 72.2%,transparent 72.2%);}
+.hero::after{height:3px;bottom:0;width:100%;opacity:.95;background:linear-gradient(90deg,transparent 0%,#d71920 35%,#d71920 70%,transparent 100%);animation:none}
+.hero h1{font-size:clamp(36px,6vw,50px);font-weight:800;letter-spacing:-.055em;text-transform:none}
+.hero p{font-family:Inter,system-ui,sans-serif;font-size:13px;letter-spacing:.015em;color:#aeb2b9}
+.amb{filter:drop-shadow(0 9px 16px rgba(0,0,0,.34));}
+.amb .bod{filter:drop-shadow(0 3px 2px rgba(0,0,0,.18))}
+.wrap{max-width:1240px}
+.card{border-width:1px;border-radius:15px;padding:16px 17px;box-shadow:0 2px 7px rgba(0,0,0,.035);transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease,opacity .4s;}
+.card::before{width:3px}
+.card:active{transform:translateY(1px)}
+.stg div,.sig,.prk,.alist{border-radius:13px}
+.stg div{padding:12px;border-width:1px}
+.stg b{font-family:Inter,system-ui,sans-serif;font-size:27px;font-weight:800;letter-spacing:-.05em}
+.stg span,.sth,.aday{font-family:Inter,system-ui,sans-serif;letter-spacing:.045em}
+button{font-family:Inter,system-ui,sans-serif;font-weight:600;border-radius:10px;transition:background .18s ease,border-color .18s ease,color .18s ease,transform .12s ease,box-shadow .18s ease}
+button:active{transform:scale(.985)}
+.go{background:#d71920;border-color:#d71920;box-shadow:0 3px 9px rgba(215,25,32,.18)}
+.go:hover{background:#bd151b;border-color:#bd151b;box-shadow:0 5px 14px rgba(215,25,32,.24)}
+.menub{border-color:#45474c;border-radius:12px}
+.menub:hover{background:rgba(255,255,255,.07)}
+.tabbar{background:rgba(18,19,21,.96);border-top:1px solid #303237;backdrop-filter:blur(18px) saturate(140%);padding-top:8px}
+.tabbar button{font-family:Inter,system-ui,sans-serif;font-weight:600;letter-spacing:-.01em}
+.tabbar button.on{color:#ff555b}
+.bar{backdrop-filter:blur(16px) saturate(140%)}
+.bar input,.bar select{border-radius:11px}
+.fhead h2,.tbig{font-family:Inter,system-ui,sans-serif;font-size:24px;font-weight:800;letter-spacing:-.04em;text-transform:none}
+.tbig{font-size:32px}
+.alist{border-radius:14px}
+.alist li{padding:11px 12px}
+.alist li i{box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.holdbar{border-radius:12px}
+.dpanel{background:#151619;box-shadow:12px 0 40px rgba(0,0,0,.45)}
+.dtop b{font-family:Inter,system-ui,sans-serif;font-size:23px;letter-spacing:-.04em}
+/* Keep red as the brand accent; polish the map's existing vector drawing without changing its geometry. */
+#floor{filter:drop-shadow(0 2px 3px rgba(0,0,0,.045))}
+#floor .bubbox{stroke-width:1.7}
+#floor .bubg.on .bubbox{stroke-width:2.6}
+@media(hover:hover){.card:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.075);border-color:color-mix(in srgb,var(--red) 24%,var(--line))}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
+</style>

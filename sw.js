@@ -3,7 +3,7 @@
 // it opens the saved copy so the app never hangs. Other files (fonts, Firebase, icons): open
 // instantly from the saved copy and refresh it in the background. Every release bumps CACHE,
 // which re-downloads everything fresh.
-const CACHE = 'code3-v61';
+const CACHE = 'code3-v62';
 const SHELL = ['./', 'index.html', 'fb.js', 'manifest.webmanifest', 'icon-192-v2.png', 'icon-512-v2.png', 'qr.svg', 'logo.svg',
   'fonts/barlow-condensed-latin-600-normal.woff2', 'fonts/barlow-condensed-latin-700-normal.woff2', 'fonts/barlow-condensed-latin-800-normal.woff2',
   'fonts/barlow-latin-400-normal.woff2', 'fonts/barlow-latin-500-normal.woff2', 'fonts/barlow-latin-600-normal.woff2'];
