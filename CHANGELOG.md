@@ -32,6 +32,7 @@ Every change is its own commit, so any one can be undone without touching the ot
 | 17 | View-as hides owner tools | `4c577f1` | Viewing as Supervisor, Inspector or Employee hides People and the recap preview, like a real one would see. |
 | 18 | Inspector as an add-on | `4359f5d` | Inspector is a checkbox on top of Supervisor or Employee instead of its own role. Needs the updated rules. |
 | 19 | Inspector box on everyone | `2f306e0` | Owners, co-owners and admins show a grayed, checked Inspector box saying they can already sign. |
+| 20 | Map title spacing | `7853cbb` | Extra room under the Build line, TAG line and Final Line titles so truck numbers don't cover them. |
 
 ### Database rules changed
 - Photos: new `match /trucks/{id}/photos/{pid}` block (feature 8).
