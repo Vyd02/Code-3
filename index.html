@@ -644,7 +644,7 @@ let names={};
 // Hold removed (Nov 27): Down To covers it. Set to true to bring Hold back.
 const HOLDS=false;
 const eff=()=>role==='admin'&&preview&&me&&me===ownerId?preview:role;
-const isMgr=()=>!!me&&(me===ownerId||myRaw==='coowner');
+const isMgr=()=>!!me&&!preview&&(me===ownerId||myRaw==='coowner');
 const can=a=>{const r=eff();if(r==='admin')return true;if(r==='emp')return['move','comment','request'].includes(a);if(r==='insp')return['sign'].includes(a);return false};
 
 function normInfo(src){const info={};STEPS.forEach(s=>{const x=(src||{})[s.k]||{};info[s.k]={n:String(x.n||'').trim()||s.def,sup:String(x.sup||''),crew:Array.isArray(x.crew)?x.crew.map(String).filter(Boolean):[],members:Array.isArray(x.members)?x.members.map(String).filter(Boolean).slice(0,60):[]}});return info}
@@ -1113,7 +1113,7 @@ document.addEventListener('click',e=>{
   if(b.hasAttribute('data-stncancel')){stnEdit=false;refreshStn(true);return}
   if(b.dataset.stmove){const t2=find(b.dataset.stmove);if(!t2)return;closeModal($('#mStn'));setTimeout(()=>movePick(t2),60);return}
   if(b.dataset.gocard){const id=b.dataset.gocard;closeModal($('#mStn'));setTimeout(()=>openTk(id),60);return}
-  if(b.dataset.prev){if(!(me&&me===ownerId))return;const v=b.dataset.prev==='admin'?null:b.dataset.prev;if(v===preview)return;preview=v;render();toast(preview==='emp'?'Showing what supervisors see':preview==='view'?'Showing what employees see (view only)':'Back to admin view');return}
+  if(b.dataset.prev){if(!(me&&me===ownerId))return;const v=b.dataset.prev==='admin'?null:b.dataset.prev;if(v===preview)return;preview=v;if(v){['#mPeople','#mPst'].forEach(x=>{const m=$(x);if(m)m.hidden=true})}render();toast(preview==='emp'?'Showing what supervisors see':preview==='view'?'Showing what employees see (view only)':'Back to admin view');return}
   if(b.hasAttribute('data-index')){indexLine();return}
   if(b.dataset.cdel){const c=C.find(x=>x.id===b.dataset.cdel);if(c&&(can('edit')||c.by===me)){C=C.filter(x=>x.id!==c.id);delComment(c.id);render();toast('Comment deleted')}return}
   if(b.dataset.k&&b.classList.contains('tl')){sel=sel===b.dataset.k?null:b.dataset.k;render();if(sel)$('#panel').scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});return}
