@@ -37,6 +37,7 @@ Every change is its own commit, so any one can be undone without touching the ot
 | 22 | Outside services colors | updated in `3422f6c`, first in `492eb99` | Paint red, Body shop orange, Graphics green, Undercoating blue, matching the bar above them (were gray and black). |
 | 23 | New app logo | `82963bf` | App icon is a big white 3 under a red and blue light bar with speed lines. Old icon is in the commit before this. |
 | 24 | Final logo | `4428f4c` | App icon is the C + 3 circle: a chrome C and a red 3 that together form one round badge. |
+| 25 | Logo on sign-in screen | `f6590a2` | Sign-in and PIN screens show the C + 3 logo instead of the ambulance drawing. New icon file names so installed apps pick up the new icon. |
 
 ### Database rules changed
 - Photos: new `match /trucks/{id}/photos/{pid}` block (feature 8).
