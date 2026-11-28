@@ -57,3 +57,9 @@ Tell Claude "go back to before-extras". It resets the app to that branch.
 | # | Feature | What changed |
 |---|---|---|
 | 28 | Typography, font loading and Undo placement | Subset Inter to the Latin UI glyph set, move premium CSS into the document head, use Inter for interface typography and Barlow Condensed for industrial labels / primary move actions, cache all Inter weights in service worker v62, and move the Undo pill above the bottom navigation so it no longer covers Big cards. |
+
+## Nov 28, 2026: moved to Cloudflare
+
+| # | Change | What changed |
+|---|---|---|
+| 29 | New address | App now published to **code3-line.pages.dev** (Cloudflare Pages, workflow `site.yml`). Invite link and QR code point there. The old address (vyd02.github.io/Code-3) shows a "Code 3 has moved" screen. Alert server accepts both addresses. |

@@ -538,6 +538,11 @@ button:active{transform:scale(.985)}
 </style>
 </head>
 <body>
+<!-- Moved notice: only shows on the old address (vyd02.github.io). Remove once the old site is off. -->
+<script>if(location.hostname==='vyd02.github.io')document.documentElement.classList.add('moved')</script>
+<style>#moved{display:none}html.moved body>*:not(#moved){display:none!important}html.moved #moved{display:flex;position:fixed;inset:0;z-index:999;background:#121315;color:#fff;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:28px;text-align:center;font-family:Inter,Barlow,system-ui,sans-serif}#moved img{width:104px;height:104px;border-radius:24px;box-shadow:0 14px 34px -14px rgba(215,20,26,.6)}#moved h1{margin:6px 0 0;font-size:30px;letter-spacing:-.03em}#moved p{margin:0;color:#aeb2b9;max-width:340px;line-height:1.45}#moved a{display:block;width:100%;max-width:340px;background:#d71920;color:#fff;text-decoration:none;font-weight:800;font-size:19px;padding:16px;border-radius:14px;box-shadow:0 8px 22px -8px rgba(215,25,32,.6)}#moved ol{margin:0;padding-left:20px;text-align:left;color:#d7d9dd;max-width:340px;line-height:1.6}#moved b.u{color:#fff;font-size:18px;letter-spacing:.01em}</style>
+<div id="moved"><img src="logo.svg" alt=""><h1>Code 3 has moved</h1><p>Same app, same trucks, new address:</p><b class="u">code3-line.pages.dev</b><a href="https://code3-line.pages.dev/">Open the new Code 3</a><ol><li>Tap the button above.</li><li>Sign in with your password once.</li><li>Add it to your home screen again, then delete this old icon.</li></ol></div>
+
 <div id="gate" class="gate"><div class="gwrap">
   <div class="gbrand"><img class="glogo" src="logo.svg" alt="" width="112" height="112"><h1>Code 3</h1><p>Mod Line tracker · every truck from Station 1 to signed off</p></div>
   <div class="gcard" id="gCard"><p class="gmsg">Loading…</p></div>
@@ -644,9 +649,9 @@ button:active{transform:scale(.985)}
 <div class="modal" id="mAlerts" hidden><div class="sheet"><div class="shead1"><h2>Alerts</h2><button type="button" data-close aria-label="Close">✕</button></div><div id="alertsBody"></div></div></div>
 <div class="modal" id="mPin" hidden><div class="sheet pinsheet" id="pinBody"></div></div>
 <div class="modal" id="mInv" hidden><div class="sheet invsheet"><div class="shead1"><h2>Invite people</h2><button type="button" data-close aria-label="Close">✕</button></div>
-<div class="invqr"><img src="qr.svg" alt="QR code for vyd02.github.io/Code-3"></div>
+<div class="invqr"><img src="qr.svg" alt="QR code for code3-line.pages.dev"></div>
 <p class="gmsg" style="margin:0">Have them scan this with their phone camera.</p>
-<div class="invurl"><span class="k">Can't scan? The link is</span><b>vyd02.github.io/Code-3</b></div>
+<div class="invurl"><span class="k">Can't scan? The link is</span><b>code3-line.pages.dev</b></div>
 <div class="invbtns"><button class="go" id="invShare" type="button">Share…</button><a class="btnlike" id="invSms" href="#">Text it</a><a class="btnlike" id="invMail" href="#">Email it</a><button id="invCopy" type="button">Copy link</button><a class="btnlike" href="invite.html" target="_blank" rel="noopener">Printable flyer</a></div>
 <p class="hint" style="margin:0">New sign-ups wait on the People screen until they get a role.</p></div></div>
 <div class="modal" id="mStn" hidden><div class="sheet stn" id="stnSheet" role="dialog" aria-modal="true" aria-label="Station"></div></div>
@@ -1508,12 +1513,12 @@ document.addEventListener('click',e=>{if(e.target.closest('#bHelp')){tourStart()
 document.addEventListener('keydown',e=>{if(!tour)return;if(e.key==='Escape')tourEnd();else if(e.key==='ArrowRight')tourGo(tour.i+1);else if(e.key==='ArrowLeft')tourGo(tour.i-1)});
 function firstRun(){if(me&&!lsGet('c3-tour-'+me))setTimeout(()=>{if($('#gate').hidden)tourStart(offerPin);else offerPin()},500);else offerPin()}
 // ---------- invite ----------
-{const URL_='https://vyd02.github.io/Code-3/',MSG='Join Code 3, our line tracker: '+URL_+' Tap "Create an account", then you\'ll get access once you\'re approved.';
+{const URL_='https://code3-line.pages.dev/',MSG='Join Code 3, our line tracker: '+URL_+' Tap "Create an account", then you\'ll get access once you\'re approved.';
  $('#invSms').href='sms:?&body='+encodeURIComponent(MSG);
  $('#invMail').href='mailto:?subject='+encodeURIComponent('Join Code 3')+'&body='+encodeURIComponent(MSG);
  if(!navigator.share)$('#invShare').hidden=true;
  $('#invShare').addEventListener('click',()=>{navigator.share({title:'Code 3',text:MSG,url:URL_}).catch(()=>{})});
- $('#invCopy').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(URL_);toast('Link copied')}catch(e){toast('Copy failed. The link is vyd02.github.io/Code-3')}});
+ $('#invCopy').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(URL_);toast('Link copied')}catch(e){toast('Copy failed. The link is code3-line.pages.dev')}});
  document.addEventListener('click',e=>{if(e.target.closest('#bInv'))$('#mInv').hidden=false});}
 // ---------- quick PIN and sign-out-on-close ----------
 function lsGet(k){try{const v=localStorage.getItem(k);return v==null?null:JSON.parse(v)}catch(e){return null}}
